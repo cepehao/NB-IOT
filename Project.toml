@@ -1,0 +1,22 @@
+name = "NBIoTSim"
+uuid = "8f1c9a3e-6b2d-4e7a-9c0d-2a4f7e8b1c5d"
+version = "0.1.0"
+authors = ["NB-IoT RA Research Project"]
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[compat]
+DataStructures = "0.18, 0.19"
+Distributions = "0.25"
+HypothesisTests = "0.11"
+julia = "1.9"
+
+[extras]
+HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["HypothesisTests", "Test"]
