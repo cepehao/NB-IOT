@@ -1,0 +1,639 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+.......... .
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAtHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAtHorizon) at 79
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAtHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAtHorizon) at 79
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAtHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAtHorizon) at 80
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAtHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAtHorizon) at 80
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAtHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAtHorizon) at 81
+================================================================================
+.
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAfterHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAfterHorizon) at 87
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAfterHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAfterHorizon) at 87
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAfterHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAfterHorizon) at 88
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAfterHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAfterHorizon) at 88
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservationBeforeHorizonWithStartAfterHorizon.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservationBeforeHorizonWithStartAfterHorizon) at 89
+================================================================================
+.
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              2          1          1            1      
+    
+    Actual Value:
+         2
+    Expected Value:
+         1
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 99
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 99
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 100
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 100
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              2          1          1            1      
+    
+    Actual Value:
+         2
+    Expected Value:
+         1
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 99
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 99
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 100
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.reservedRetryAtOrAfterHorizonDoesNotStart) at 100
+================================================================================
+.
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 109
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/invalidScheduledStartIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:metrics:HarqJournal'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.metrics.harqSummary(j,10)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.invalidScheduledStartIsRejected) at 112
+================================================================================
+..
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... ........
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                           Failed  Incomplete  Reason(s)
+    ============================================================================================================
+     TestHarqMetrics/reservationBeforeHorizonWithStartAtHorizon       X                 Failed by verification.
+    ------------------------------------------------------------------------------------------------------------
+     TestHarqMetrics/reservationBeforeHorizonWithStartAfterHorizon    X                 Failed by verification.
+    ------------------------------------------------------------------------------------------------------------
+     TestHarqMetrics/reservedRetryAtOrAfterHorizonDoesNotStart        X                 Failed by verification.
+    ------------------------------------------------------------------------------------------------------------
+     TestHarqMetrics/invalidScheduledStartIsRejected                  X                 Failed by verification.
+STAGE1_TARGETED total=34 passed=30 failed=4 incomplete=0
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

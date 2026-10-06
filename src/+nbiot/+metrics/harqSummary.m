@@ -12,6 +12,7 @@ h=struct('schemaVersion',1,'available',~isempty(journal),'blocksStarted',0, ...
 if isempty(journal), return; end
 required={'contextId','packetSequence','blockIndex','attempt'};
 keys=cell(numel(journal),1);
+scheduled=false(1,numel(journal));
 for k=1:numel(journal)
     f=journal(k).fields;
     if strcmp(journal(k).kind,'unmatchedEmission')
@@ -27,13 +28,21 @@ for k=1:numel(journal)
         error('nbiot:metrics:HarqJournal','HARQ identity must contain valid integer indices.');
     end
     keys{k}=sprintf('%d:%d:%d',f.contextId,f.packetSequence,f.blockIndex);
+    if strcmp(journal(k).kind,'scheduled')
+        if ~isfield(f,'startTick') || ~isnumeric(f.startTick) || ...
+                ~isscalar(f.startTick) || ~isreal(f.startTick) || ...
+                ~isfinite(f.startTick) || f.startTick<0 || f.startTick~=fix(f.startTick)
+            error('nbiot:metrics:HarqJournal','Scheduled startTick must be a nonnegative integer scalar.');
+        end
+        % The journal tick is reservation time; the grant may start later.
+        scheduled(k)=journal(k).tick<actualTick && f.startTick<actualTick;
+    end
 end
 visible=[journal.tick]<=actualTick;
-scheduled=strcmp({journal.kind},'scheduled') & [journal.tick]<actualTick;
 blockKeys=unique(keys(scheduled)); h.blocksStarted=numel(blockKeys);
 for b=1:numel(blockKeys)
     group=find(strcmp(keys,blockKeys{b}) & visible(:));
-    starts=group(strcmp({journal(group).kind},'scheduled') & [journal(group).tick]<actualTick);
+    starts=group(scheduled(group));
     decodes=group(strcmp({journal(group).kind},'decoded'));
     emitted=group(strcmp({journal(group).kind},'emitted') & [journal(group).tick]<actualTick);
     terminals=group(strcmp({journal(group).kind},'terminal'));

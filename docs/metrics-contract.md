@@ -47,6 +47,13 @@ after waveform insertion into the channel with event time at waveform start;
 `terminal` records contain the resulting BS
 state. No waveform/grant or RNG input is changed.
 
+For `scheduled` records, `tick` is the reservation time and `fields.startTick`
+is the grant's actual receiver start. `startTick` must be a finite real numeric
+scalar, a nonnegative integer. A reservation counts as a started receiver
+attempt only when both its journal tick and actual start are strictly before H.
+Reservations for starts at or after H contribute no started/pending attempt or
+started/censored block, even when reserved before H.
+
 Identity is `(contextId, packetSequence, blockIndex)`. RaContextStore allocates
 monotone IDs without reuse, Msg3 fixes sequence/token once, and a context
 handles a single packet. Fragment changes follow decoded valid headers;
@@ -62,11 +69,13 @@ Algorithm: select events through H; group by explicit identity; count scheduled
 attempts and real decoded CRCs; evaluate first actual emitted ordinal and first
 receiver ordinal separately; derive
 accepted/failed/censored blocks from explicit BS transitions. A first decode
-at H counts, a receiver-ready tick after H remains pending. Legacy results
+at H counts; a receiver starting before H with a receiver-ready tick after H
+remains pending and its unfinished block is censored. Legacy results
 without this journal have `available=false`; no RNTI/time inference is used.
 Tests: first success, recovered retry, exhausted retries, multiple blocks and
 packets, CRC success but invalid header, pending retry, exact-H completion,
-post-H exclusion, legacy unavailable and malformed identity rejection.
+post-H exclusion, early reservation for starts at/after H (including retries),
+legacy unavailable and malformed identity/start-tick rejection.
 
 ## `runtimeManifest(cfg, options)`
 

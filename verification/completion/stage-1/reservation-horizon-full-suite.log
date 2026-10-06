@@ -1,0 +1,162 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestCalendar
+....
+Done TestCalendar
+__________
+
+Running TestCaseResume
+.......... ...
+Done TestCaseResume
+__________
+
+Running TestConfig
+..
+Done TestConfig
+__________
+
+Running TestDataset
+...
+Done TestDataset
+__________
+
+Running TestDiagnosticCapture
+....
+Done TestDiagnosticCapture
+__________
+
+Running TestDlCalendarIndex
+.
+Done TestDlCalendarIndex
+__________
+
+Running TestDownlinkMultipath
+........
+Done TestDownlinkMultipath
+__________
+
+Running TestDownlinkTiming
+.
+Done TestDownlinkTiming
+__________
+
+Running TestEndToEnd
+..
+Done TestEndToEnd
+__________
+
+Running TestEngine
+..
+Done TestEngine
+__________
+
+Running TestExport
+...
+Done TestExport
+__________
+
+Running TestHarqMetrics
+.......... ......
+Done TestHarqMetrics
+__________
+
+Running TestLayout
+.
+Done TestLayout
+__________
+
+Running TestMetrics
+..
+Done TestMetrics
+__________
+
+Running TestMonitoringTickIndex
+.
+Done TestMonitoringTickIndex
+__________
+
+Running TestNprachInterference
+.....
+Done TestNprachInterference
+__________
+
+Running TestOptimizationEquivalence
+...
+Done TestOptimizationEquivalence
+__________
+
+Running TestPacketStore
+....
+Done TestPacketStore
+__________
+
+Running TestParallelCases
+....
+Done TestParallelCases
+__________
+
+Running TestPhyTables
+...
+Done TestPhyTables
+__________
+
+Running TestPhyWaveforms
+..
+Done TestPhyWaveforms
+__________
+
+Running TestProfileCache
+...
+Done TestProfileCache
+__________
+
+Running TestProtocolCodec
+....
+Done TestProtocolCodec
+__________
+
+Running TestRadioProtocol
+.......... ...
+Done TestRadioProtocol
+__________
+
+Running TestRandomSources
+..
+Done TestRandomSources
+__________
+
+Running TestRuntimeManifest
+.......... ........
+Done TestRuntimeManifest
+__________
+
+Running TestScheduler
+.....
+Done TestScheduler
+__________
+
+Running TestSchedulingFairness
+..
+Done TestSchedulingFairness
+__________
+
+Running TestTraffic
+....
+Done TestTraffic
+__________
+
+Running TestUciAlias
+....
+Done TestUciAlias
+__________
+
+Running TestUciPresence
+..
+Done TestUciPresence
+__________
+
+Running TestWaveformChannel
+......
+Done TestWaveformChannel
+__________
+
+STAGE1_FULL_SUITE total=147 passed=147 failed=0 incomplete=0

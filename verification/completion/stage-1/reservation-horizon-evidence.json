@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "a197074df9ab8b2322455eaa05914e09d1bbd990",
+  "branch": "codex/2026-10-06-project-completion",
+  "matlabVersion": "25.2.0.2998904 (R2025b)",
+  "release": "2025b",
+  "launchGuard": "Fresh Get-Process MATLAB check before each launch, hard fail when nonempty",
+  "commands": {
+    "red": "D:\\MATLAB\\bin\\matlab.exe -batch \"run('verification/completion/stage-1/stage1Targeted.m')\" -logfile verification/completion/stage-1/reservation-horizon-red.log",
+    "green": "D:\\MATLAB\\bin\\matlab.exe -batch \"run('verification/completion/stage-1/stage1Targeted.m')\" -logfile verification/completion/stage-1/reservation-horizon-green.log",
+    "fullSuite": "D:\\MATLAB\\bin\\matlab.exe -batch \"run('verification/completion/stage-1/stage1FullSuite.m')\" -logfile verification/completion/stage-1/reservation-horizon-full-suite.log"
+  },
+  "red": {
+    "total": 34,
+    "passed": 30,
+    "failed": 4,
+    "incomplete": 0,
+    "exitCode": 1,
+    "failedTests": [
+      "reservationBeforeHorizonWithStartAtHorizon",
+      "reservationBeforeHorizonWithStartAfterHorizon",
+      "reservedRetryAtOrAfterHorizonDoesNotStart",
+      "invalidScheduledStartIsRejected"
+    ]
+  },
+  "green": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "incomplete": 0,
+    "exitCode": 0
+  },
+  "fullSuite": {
+    "launchCount": 1,
+    "total": 147,
+    "passed": 147,
+    "failed": 0,
+    "incomplete": 0,
+    "exitCode": 0
+  },
+  "files": [
+    {
+      "path": "src/+nbiot/+metrics/harqSummary.m",
+      "bytes": 5451,
+      "sha256": "97fa7dec7a032f3654b427cae9bf19d7df1c9d0d1af49343a498d82066895bcb"
+    },
+    {
+      "path": "tests/TestHarqMetrics.m",
+      "bytes": 8455,
+      "sha256": "4f176d0bfd659fd58aa13c5848a163d935e065a1834863bddaee5892e49f0077"
+    },
+    {
+      "path": "docs/metrics-contract.md",
+      "bytes": 8863,
+      "sha256": "5942e0476725854722367cedf050c9065b8d2f43b97fe043967a491b34873083"
+    },
+    {
+      "path": "verification/completion/stage-1/stage1Targeted.m",
+      "bytes": 422,
+      "sha256": "a956b2af6063b715f1bafb696449acd670e7c4fe09f9486cf10dae8f596d33d1"
+    },
+    {
+      "path": "verification/completion/stage-1/stage1FullSuite.m",
+      "bytes": 399,
+      "sha256": "9d85bc0704cdb615f5104f4ae3fb87fbee287fca888c97350006af390a13287c"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-README.md",
+      "bytes": 2537,
+      "sha256": "189b0f90dddee895318ff4ded12c73a7bda4a9c47e3f356f7e67a5e3ac25a441"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-red.log",
+      "bytes": 26276,
+      "sha256": "31a4342df1681a850403ff666d4a2cb6cb6cf3dfc321008edd4243c44d92a651"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-red-status.txt",
+      "bytes": 76,
+      "sha256": "eeed204a56c95bc84ea30a08e487bfbd13c3938af90111f4d2fb402e6fa9c797"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-green.log",
+      "bytes": 270,
+      "sha256": "aa4c8129bea0ed286ba2d7d14f657221d24d78391a60757bdd004ed7cf09477b"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-green-status.txt",
+      "bytes": 76,
+      "sha256": "56887ef5b5134a450181168841e6917908789dbfdc55e68fe64d8eeb1cfc92ae"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-full-suite.log",
+      "bytes": 2171,
+      "sha256": "6f933a1f9f09730e3d6fc0fb3f0bc721d17887b7903bcbb9c7ffb7bb6229e55f"
+    },
+    {
+      "path": "verification/completion/stage-1/reservation-horizon-full-suite-status.txt",
+      "bytes": 76,
+      "sha256": "73893a7f3d5b299769dae05f97dc74d585efa8b05558fc084ed2cc4c32ae37ee"
+    }
+  ]
+}

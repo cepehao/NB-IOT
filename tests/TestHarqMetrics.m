@@ -33,11 +33,14 @@ classdef TestHarqMetrics < matlab.unittest.TestCase
         end
         function exactHorizonAndPendingReception(t)
             j=block(1,1,0,0,10); f=j(1).fields; f.contextId=2; f.readyTick=11;
-            j(end+1)=event(9,'scheduled',f);
+            f.startTick=9; f.endTick=10;
+            j(end+1)=event(8,'scheduled',f);
             j(end+1)=event(9,'emitted',f);
             h=nbiot.metrics.harqSummary(j,10);
             t.verifyEqual(h.blocksAccepted,1); t.verifyEqual(h.blocksCensored,1);
             t.verifyEqual(h.firstPending,1); t.verifyEqual(h.firstDecoded,1);
+            t.verifyEqual(h.blocksStarted,2); t.verifyEqual(h.attemptsStarted,2);
+            t.verifyEqual(h.firstReceiverPending,1); t.verifyEqual(h.pendingAttempts,1);
         end
         function pendingRetryIsCensored(t)
             j=block(1,1,0,1,10); j(end)=[];
@@ -68,6 +71,45 @@ classdef TestHarqMetrics < matlab.unittest.TestCase
             j(1).tick=10; j(2).tick=10;
             h=nbiot.metrics.harqSummary(j,10);
             t.verifyEqual(h.blocksStarted,0); t.verifyEqual(h.attemptsStarted,0);
+        end
+        function reservationBeforeHorizonWithStartAtHorizon(t)
+            j=block(1,1,0,0,13); j=j(1);
+            j.tick=9; j.fields.startTick=10;
+            h=nbiot.metrics.harqSummary(j,10);
+            t.verifyEqual(h.blocksStarted,0); t.verifyEqual(h.attemptsStarted,0);
+            t.verifyEqual(h.firstReceiverPending,0); t.verifyEqual(h.blocksCensored,0);
+            t.verifyEqual(h.pendingAttempts,0); t.verifyTrue(isnan(h.firstReceiverBler));
+        end
+        function reservationBeforeHorizonWithStartAfterHorizon(t)
+            j=block(1,1,0,0,14); j=j(1);
+            j.tick=9; j.fields.startTick=11;
+            h=nbiot.metrics.harqSummary(j,10);
+            t.verifyEqual(h.blocksStarted,0); t.verifyEqual(h.attemptsStarted,0);
+            t.verifyEqual(h.firstReceiverPending,0); t.verifyEqual(h.blocksCensored,0);
+            t.verifyEqual(h.pendingAttempts,0); t.verifyTrue(isnan(h.firstReceiverBler));
+        end
+        function reservedRetryAtOrAfterHorizonDoesNotStart(t)
+            for start=[10 11]
+                j=block(1,1,0,1,8); j(end)=[];
+                f=j(1).fields; f.attempt=2; f.startTick=start;
+                f.endTick=start+1; f.readyTick=start+3;
+                j(end+1)=event(9,'scheduled',f);
+                h=nbiot.metrics.harqSummary(j,10);
+                t.verifyEqual(h.blocksStarted,1); t.verifyEqual(h.blocksCensored,1);
+                t.verifyEqual(h.attemptsStarted,1); t.verifyEqual(h.retryAttempts,0);
+                t.verifyEqual(h.receiverRetryAttempts,0); t.verifyEqual(h.pendingAttempts,0);
+                t.verifyEqual(h.firstReceiverPending,0); t.verifyEqual(h.firstReceiverBler,1);
+            end
+        end
+        function invalidScheduledStartIsRejected(t)
+            j=block(1,1,0,0,10);
+            invalid={NaN,Inf,-1,.5,[0 1],[],1i,'0'};
+            for k=1:numel(invalid)
+                j(1).fields.startTick=invalid{k};
+                t.verifyError(@() nbiot.metrics.harqSummary(j,10),'nbiot:metrics:HarqJournal');
+            end
+            j(1).fields=rmfield(j(1).fields,'startTick');
+            t.verifyError(@() nbiot.metrics.harqSummary(j,10),'nbiot:metrics:HarqJournal');
         end
         function secondaryMetricsAndCsvCompatibility(t)
             cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=1;

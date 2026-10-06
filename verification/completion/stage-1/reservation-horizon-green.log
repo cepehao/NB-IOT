@@ -1,0 +1,12 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+.......... ......
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... ........
+Done TestRuntimeManifest
+__________
+
+STAGE1_TARGETED total=34 passed=34 failed=0 incomplete=0
