@@ -1,0 +1,90 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+.......... .
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... ......
+================================================================================
+Verification failed in TestRuntimeManifest/suppliedScenarioIsUsedBySequentialAndCaseRunners.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> Missing fields in Actual:
+            'scenarioLabel'
+    
+    Actual Value:
+      struct with fields:
+    
+                           ue: [1×1 struct]
+                     arrivals: [0×0 struct]
+               randomManifest: [1×1 struct]
+        externalRealizationId: 0
+    Expected Value:
+      struct with fields:
+    
+                           ue: [1×1 struct]
+                     arrivals: [0×0 struct]
+               randomManifest: [1×1 struct]
+        externalRealizationId: 0
+                scenarioLabel: 'registered-external-fixture'
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.suppliedScenarioIsUsedBySequentialAndCaseRunners) at 175
+================================================================================
+
+================================================================================
+Verification failed in TestRuntimeManifest/suppliedScenarioIsUsedBySequentialAndCaseRunners.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> Missing fields in Actual:
+            'scenarioLabel'
+    
+    Actual Value:
+      struct with fields:
+    
+                           ue: [1×1 struct]
+                     arrivals: [0×0 struct]
+               randomManifest: [1×1 struct]
+        externalRealizationId: 0
+    Expected Value:
+      struct with fields:
+    
+                           ue: [1×1 struct]
+                     arrivals: [0×0 struct]
+               randomManifest: [1×1 struct]
+        externalRealizationId: 0
+                scenarioLabel: 'registered-external-fixture'
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.suppliedScenarioIsUsedBySequentialAndCaseRunners) at 181
+================================================================================
+.
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                                  Failed  Incomplete  Reason(s)
+    ===================================================================================================================
+     TestRuntimeManifest/suppliedScenarioIsUsedBySequentialAndCaseRunners    X                 Failed by verification.
+STAGE1_TARGETED total=28 passed=27 failed=1 incomplete=0
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

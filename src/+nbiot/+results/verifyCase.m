@@ -3,6 +3,16 @@ function report=verifyCase(caseFolder,expected,memoryResult,requireMarker)
 if nargin<2 || isempty(expected), expected=struct(); end
 if nargin<3, memoryResult=[]; end
 if nargin<4, requireMarker=true; end
+try
+    report=verifyCaseImpl(caseFolder,expected,memoryResult,requireMarker);
+catch exception
+    report=struct('passed',false,'status','','caseKey','','checks', ...
+        struct('name','damaged-package','passed',false,'detail',exception.message), ...
+        'errors',{{['damaged-package: ' exception.message]}});
+end
+end
+
+function report=verifyCaseImpl(caseFolder,expected,memoryResult,requireMarker)
 report=struct('passed',false,'status','','caseKey','','checks', ...
     struct('name',{},'passed',{},'detail',{}),'errors',{{}});
 markerPath=fullfile(caseFolder,'case-complete.json'); marker=[];
@@ -26,8 +36,18 @@ if ~isempty(marker)
     report=addCheck(report,'marker-fields',isempty(missing),strjoin(missing,', '));
     if ~isempty(missing), report=finish(report); return; end
     report.status=char(string(marker.status)); report.caseKey=char(string(marker.caseKey));
-    report=addCheck(report,'marker-version',isequal(double(marker.manifestVersion),1), ...
+    versionOk=isequal(double(marker.manifestVersion),1) || isequal(double(marker.manifestVersion),2);
+    report=addCheck(report,'marker-version',versionOk, ...
         sprintf('manifestVersion=%s',string(marker.manifestVersion)));
+    if ~versionOk, report=finish(report); return; end
+    if marker.manifestVersion==1 && (isfield(marker,'runtimeVersion') || isfield(marker,'resultSchemaVersion'))
+        report=addCheck(report,'marker-runtime-version',false,'Legacy marker cannot contain schema-2 runtime identity.');
+        report=finish(report); return;
+    end
+    if marker.manifestVersion==2
+        report=addCheck(report,'runtime-schema',runtimeValid(marker),'Runtime identity schema 1 / result schema 2 required.');
+        if ~runtimeValid(marker), report=finish(report); return; end
+    end
 else
     report.status='staging';
 end
@@ -66,6 +86,12 @@ catch exception
     report=finish(report); return
 end
 caseMetadata=loaded.caseMetadata;
+if isfield(caseMetadata,'runtimeVersion')
+    versionSnapshot=load(matPath,'resultSchemaVersion');
+    schemaOk=runtimeValid(caseMetadata) && isfield(versionSnapshot,'resultSchemaVersion') && ...
+        isequal(versionSnapshot.resultSchemaVersion,2);
+    report=addCheck(report,'result-schema',schemaOk,'MAT result schema must be supported and agree with runtime identity.');
+end
 if isempty(marker)
     marker=caseMetadata;
     marker.resultFile=resultFile; marker.exportStem=exportStem;
@@ -75,6 +101,9 @@ if isempty(marker)
 end
 
 identityFields={'caseKey','configSha256','sourceSha256','calibrationSha256','environment'};
+runtimeFields={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
+    'modelSha256','policySha256','inputSha256','runnerSha256'};
+identityFields=[identityFields runtimeFields];
 for k=1:numel(identityFields)
     name=identityFields{k};
     if isfield(expected,name)
@@ -85,6 +114,9 @@ for k=1:numel(identityFields)
 end
 
 compareFields={'caseKey','configSha256','sourceSha256','calibrationSha256','environment','status'};
+if isfield(marker,'runtimeVersion') || isfield(caseMetadata,'runtimeVersion')
+    compareFields=[compareFields runtimeFields];
+end
 matched=true;
 for k=1:numel(compareFields)
     name=compareFields{k};
@@ -95,7 +127,7 @@ for k=1:numel(compareFields)
 end
 report=addCheck(report,'mat-identity',matched,'MAT identity snapshot must match marker.');
 try
-    computed=nbiot.results.configSha256(loaded.configSnapshot);
+    computed=nbiot.results.configSha256(loaded.configSnapshot,isfield(marker,'runtimeVersion'));
     configOk=strcmp(computed,char(string(marker.configSha256)));
     expectedStem=sprintf('static-v1_n%d_r%04d', ...
         loaded.configSnapshot.simulation.numUE,loaded.configSnapshot.simulation.realizationId);
@@ -303,4 +335,17 @@ end
 
 function removeTemporary(path)
 if isfile(path), delete(path); end
+end
+
+function ok=runtimeValid(value)
+names={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
+    'modelSha256','policySha256','inputSha256','runnerSha256'};
+ok=isstruct(value) && isscalar(value) && all(isfield(value,names));
+if ~ok, return; end
+ok=isequal(double(value.runtimeVersion),1) && isequal(double(value.resultSchemaVersion),2);
+hashes=[{'configSha256','sourceSha256','calibrationSha256'} names(3:end)];
+for k=1:numel(hashes)
+    ok=ok && isfield(value,hashes{k}) && ...
+        ~isempty(regexp(char(string(value.(hashes{k}))),'^[0-9a-fA-F]{64}$','once'));
+end
 end

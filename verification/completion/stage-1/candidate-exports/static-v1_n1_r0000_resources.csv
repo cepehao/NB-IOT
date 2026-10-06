@@ -1,0 +1,7 @@
+startTick,endTick,direction,availableUnits,raQuotaUnits,dtQuotaUnits,raReservedUnits,dtReservedUnits,unitHzSeconds,raReservedHzSeconds,dtReservedHzSeconds
+0,500,0,48000,4800,43200,1232,4824,1.875,2310,9045
+0,500,1,367,36,331,8,14,180,1440,2520
+500,1000,0,48000,4800,43200,864,1352,1.875,1620,2535
+500,1000,1,367,36,331,0,6,180,0,1080
+1000,1200,0,19200,1920,17280,288,0,1.875,540,0
+1000,1200,1,150,15,135,0,0,180,0,0

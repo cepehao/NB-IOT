@@ -1,0 +1,51 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+..........
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... ...
+================================================================================
+Verification failed in TestRuntimeManifest/unknownExternalHookFailsClosed.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:experiments:UnregisteredDependency'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.experiments.runtimeManifest(cfg,o)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.unknownExternalHookFailsClosed) at 147
+================================================================================
+.
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                Failed  Incomplete  Reason(s)
+    =================================================================================================
+     TestRuntimeManifest/unknownExternalHookFailsClosed    X                 Failed by verification.
+STAGE1_TARGETED total=24 passed=23 failed=1 incomplete=0
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

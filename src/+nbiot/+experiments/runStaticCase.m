@@ -1,9 +1,21 @@
-function meta=runStaticCase(cfg,caseFolder,provenance,runner)
+function meta=runStaticCase(cfg,caseFolder,provenance,runner,runtimeOptions)
 %RUNSTATICCASE Execute and commit one independent case in its own folder.
 root=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 addpath(root); addpath(fullfile(root,'src')); addpath(fullfile(root,'experiments')); setupProject();
-if nargin<3 || isempty(provenance), provenance=defaultProvenance(cfg,root); end
 if nargin<4, runner=[]; end
+if nargin<5, runtimeOptions=struct(); end
+runtimeOptions.projectRoot=root; runtimeOptions.runner=runner;
+if nargin<3 || isempty(provenance)
+    provenance=nbiot.experiments.runtimeManifest(cfg,runtimeOptions);
+elseif isfield(provenance,'runtimeVersion')
+    current=nbiot.experiments.runtimeManifest(cfg,runtimeOptions);
+    names=fieldnames(current);
+    for k=1:numel(names)
+        if ~isfield(provenance,names{k}) || ~isequaln(provenance.(names{k}),current.(names{k}))
+            error('nbiot:experiments:RuntimeIdentity','Supplied runtime identity differs in %s.',names{k});
+        end
+    end
+end
 cfg.logging.outputFolder=caseFolder;
 if ~isfolder(caseFolder), mkdir(caseFolder); end
 id=char(java.util.UUID.randomUUID());
@@ -15,7 +27,9 @@ end
 [ok,message]=mkdir(staging);
 if ~ok, error('nbiot:experiments:Stage','Cannot create case staging directory: %s',message); end
 if isempty(runner)
-    result=nbiot.runExperiment(cfg);
+    scenario=[];
+    if isfield(runtimeOptions,'scenario'), scenario=runtimeOptions.scenario; end
+    result=nbiot.runExperiment(cfg,scenario);
 else
     result=runner(cfg);
 end
@@ -31,30 +45,9 @@ meta=struct('caseKey',char(string(marker.caseKey)), ...
     'sourceSha256',char(string(marker.sourceSha256)), ...
     'calibrationSha256',char(string(marker.calibrationSha256)), ...
     'environment',marker.environment,'files',marker.files);
+if isfield(marker,'runtimeVersion')
+    names={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
+        'modelSha256','policySha256','inputSha256','runnerSha256'};
+    for k=1:numel(names), meta.(names{k})=marker.(names{k}); end
 end
-
-function metadata=defaultProvenance(cfg,root)
-sources=optimizationSourceManifest(root);
-if isfield(cfg,'calibrationReport')
-    calibration=unicode2native(jsonencode(cfg.calibrationReport),'UTF-8');
-else
-    calibration=unicode2native(jsonencode(cfg.phy),'UTF-8');
-end
-metadata=struct('caseKey',sprintf('static-v1_n%04d_d%04d_r%04d', ...
-    cfg.simulation.numUE,cfg.traffic.burstDurationTicks,cfg.simulation.realizationId), ...
-    'configSha256',nbiot.results.configSha256(cfg), ...
-    'sourceSha256',sources.sha256,'calibrationSha256',hashBytes(calibration), ...
-    'environment',environment());
-end
-
-function value=environment()
-value=struct('matlabVersion',version,'release',version('-release'), ...
-    'lteVersion',ver('lte'),'computer',computer, ...
-    'validatedInMatlab',false,'sourceProfile','static-v1');
-end
-
-function hex=hashBytes(bytes)
-digest=java.security.MessageDigest.getInstance('SHA-256');
-digest.update(typecast(uint8(bytes(:)),'int8'));
-hex=lower(reshape(dec2hex(typecast(digest.digest(),'uint8'),2).',1,[]));
 end

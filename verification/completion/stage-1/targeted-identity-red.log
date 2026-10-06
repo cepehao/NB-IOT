@@ -1,0 +1,89 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+..........
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+......
+================================================================================
+Verification failed in TestRuntimeManifest/versionedSaveReadbackAndChangedIdentities.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          2         -1          -0.5     
+    
+    Actual Value:
+         1
+    Expected Value:
+         2
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.versionedSaveReadbackAndChangedIdentities) at 60
+================================================================================
+
+================================================================================
+Error occurred in TestRuntimeManifest/versionedSaveReadbackAndChangedIdentities and it did not run to completion.
+    ---------
+    Error ID:
+    ---------
+    'MATLAB:nonExistentField'
+    --------------
+    Error Details:
+    --------------
+    Unrecognized field name "runtimeVersion".
+    
+    Error in TestRuntimeManifest/versionedSaveReadbackAndChangedIdentities (line 60)
+                t.verifyEqual(marker.manifestVersion,2); t.verifyEqual(marker.runtimeVersion,1);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+================================================================================
+.
+================================================================================
+Error occurred in TestRuntimeManifest/damagedRuntimeIdentityIsRejected and it did not run to completion.
+    ---------
+    Error ID:
+    ---------
+    'MATLAB:rmfield:InvalidFieldname'
+    --------------
+    Error Details:
+    --------------
+    Error using rmfield (line 55)
+    A field named 'modelSha256' doesn't exist.
+    
+    Error in TestRuntimeManifest/damagedRuntimeIdentityIsRejected (line 76)
+                marker=rmfield(marker,'modelSha256'); writeJson(path,marker);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+================================================================================
+.
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                           Failed  Incomplete  Reason(s)
+    ============================================================================================================
+     TestRuntimeManifest/versionedSaveReadbackAndChangedIdentities    X         X       Failed by verification.
+                                                                                        Errored.
+    ------------------------------------------------------------------------------------------------------------
+     TestRuntimeManifest/damagedRuntimeIdentityIsRejected             X         X       Errored.
+STAGE1_TARGETED total=18 passed=16 failed=2 incomplete=2
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

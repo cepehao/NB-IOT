@@ -1,0 +1,141 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+..........
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+........
+================================================================================
+Verification failed in TestRuntimeManifest/calculateVerifyResumeAndExternalReplacement.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyNotEqual failed.
+    --> The cell arrays of character arrays are equal.
+    
+    Actual Value:
+      1×1 cell array
+    
+        {'static-v1_n0001_d0100_r0000'}
+    Prohibited Value:
+      1×1 cell array
+    
+        {'static-v1_n0001_d0100_r0000'}
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.calculateVerifyResumeAndExternalReplacement) at 90
+================================================================================
+
+================================================================================
+Verification failed in TestRuntimeManifest/calculateVerifyResumeAndExternalReplacement.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          2         -1          -0.5     
+    
+    Actual Value:
+         1
+    Expected Value:
+         2
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.calculateVerifyResumeAndExternalReplacement) at 90
+================================================================================
+
+================================================================================
+Verification failed in TestRuntimeManifest/calculateVerifyResumeAndExternalReplacement.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error      RelativeError   
+            ______    ________    _____    __________________
+                                                             
+              2          3         -1      -0.333333333333333
+    
+    Actual Value:
+         2
+    Expected Value:
+         3
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.calculateVerifyResumeAndExternalReplacement) at 93
+================================================================================
+.
+================================================================================
+Verification failed in TestRuntimeManifest/sweepRejectsUnregisteredRunnerBeforeExecution.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function threw the wrong exception.
+        
+        Actual Exception:
+            'MATLAB:nonExistentField'
+        Expected Exception:
+            'nbiot:experiments:UnregisteredDependency'
+    --> Actual Error Report:
+            Unrecognized field name "config".
+            
+            Error in nbiot.results.saveResult>saveCaseResult (line 50)
+            if ~strcmp(nbiot.results.configSha256(result.config),metadata.configSha256)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            Error in nbiot.results.saveResult (line 7)
+                destination=saveCaseResult(result,folder,metadata);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            Error in runStaticSweep>runCase (line 91)
+            nbiot.results.saveResult(result,stage,metadata);
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            Error in runStaticSweep (line 43)
+                            [result,attemptFolder]=runCase(cfg,caseFolder,metadata,options.runExperimentFcn);
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            Error in TestRuntimeManifest>@()runStaticSweep(options) (line 100)
+                        t.verifyError(@() runStaticSweep(options),'nbiot:experiments:UnregisteredDependency');
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()runStaticSweep(options)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.sweepRejectsUnregisteredRunnerBeforeExecution) at 100
+================================================================================
+.
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                               Failed  Incomplete  Reason(s)
+    ================================================================================================================
+     TestRuntimeManifest/calculateVerifyResumeAndExternalReplacement      X                 Failed by verification.
+    ----------------------------------------------------------------------------------------------------------------
+     TestRuntimeManifest/sweepRejectsUnregisteredRunnerBeforeExecution    X                 Failed by verification.
+STAGE1_TARGETED total=20 passed=18 failed=2 incomplete=0
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

@@ -33,6 +33,17 @@ classdef TestRadioProtocol < matlab.unittest.TestCase
             t.verifyEqual(r.kpiSummary.dataCrcFailures,4);
             t.verifyEqual(r.packetLog.reason,'progress_timeout');
             t.verifyEqual([grants.rv],[0 2 0 2]); t.verifyEqual(unique([grants.ndi]),0);
+            t.verifyEqual(r.kpiSummary.harq.transmissionsStarted,0);
+            t.verifyTrue(isnan(r.kpiSummary.harq.firstTransmissionBler));
+            t.verifyEqual(r.kpiSummary.harq.firstReceiverBler,1);
+        end
+        function lostFirstN0DoesNotBecomeFirstTransmittedTbFailure(t)
+            [cfg,scenario]=fixture(2000);
+            [r,removed]=runWithPhysicalLoss(cfg,scenario,'DataControl',1);
+            t.verifyEqual(removed,1); t.verifyEqual(r.kpiSummary.delivered,1);
+            t.verifyEqual(r.kpiSummary.harq.firstTransmissionBler,0);
+            t.verifyEqual(r.kpiSummary.harq.firstReceiverBler,1/8);
+            t.verifyEqual(r.kpiSummary.harq.transmissionsStarted,8);
         end
         function lostReceiptControlCannotUndoBsDelivery(t)
             [cfg,scenario]=fixture(2600);

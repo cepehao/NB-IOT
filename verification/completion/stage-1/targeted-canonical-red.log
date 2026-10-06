@@ -1,0 +1,124 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+..........
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+
+================================================================================
+Verification failed in TestRuntimeManifest/canonicalConfigurationAndOutputRelocation.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The character arrays are not equal.
+    
+    Actual char:
+        c6331bf67fd350b021d5071537baa3ca45eb1c7020e2be9233b207e72130fac6
+    Expected char:
+        cf8c59073e41837687a5622d22443a66436bc1474d1842be52f36b085938c2cd
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.canonicalConfigurationAndOutputRelocation) at 8
+================================================================================
+.......... 
+================================================================================
+Verification failed in TestRuntimeManifest/equivalentConfigOrderResumesSameCase.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> Path to failure: <Value>{1}
+        --> The character arrays are not equal.
+        
+        Actual char:
+            C:\Users\spart\AppData\Local\Temp\tpca8600c9_27a1_4c62_b3f0_41080a914932\sweep\burst_0100ms\case-v2-320181a4e799c403c464fd3ea79254db919ce771b31c82856cf4b5a8102b6bcb\run-b22cf1b2-f94d-4f4a-b127-f9b586ea1607\static-v1_n1_r0000.mat
+        Expected char:
+            C:\Users\spart\AppData\Local\Temp\tpca8600c9_27a1_4c62_b3f0_41080a914932\sweep\burst_0100ms\case-v2-320181a4e799c403c464fd3ea79254db919ce771b31c82856cf4b5a8102b6bcb\run-4e7e699d-b033-4af9-a97b-24d2c1e6e820\static-v1_n1_r0000.mat
+    
+    Actual Value:
+      1×1 cell array
+    
+        {'C:\Users\spart\AppData\Local\Temp\tpca8600c9_27a1_4c62_b3f0_41080a914932\sweep\burst_0100ms\case-v2-320181a4e799c403c464fd3ea79254db919ce771b31c82856cf4b5a8102b6bcb\run-b22cf1b2-f94d-4f4a-b127-f9b586ea1607\static-v1_n1_r0000.mat'}
+    Expected Value:
+      1×1 cell array
+    
+        {'C:\Users\spart\AppData\Local\Temp\tpca8600c9_27a1_4c62_b3f0_41080a914932\sweep\burst_0100ms\case-v2-320181a4e799c403c464fd3ea79254db919ce771b31c82856cf4b5a8102b6bcb\run-4e7e699d-b033-4af9-a97b-24d2c1e6e820\static-v1_n1_r0000.mat'}
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.equivalentConfigOrderResumesSameCase) at 115
+================================================================================
+
+================================================================================
+Verification failed in TestRuntimeManifest/equivalentConfigOrderResumesSameCase.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              2          1          1            1      
+    
+    Actual Value:
+         2
+    Expected Value:
+         1
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.equivalentConfigOrderResumesSameCase) at 116
+================================================================================
+..
+================================================================================
+Verification failed in TestRuntimeManifest/incompatibleInMemorySchemaIsRejected.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyError failed.
+    --> The function did not throw any exception.
+        
+        Expected Exception:
+            'nbiot:results:Metadata'
+    
+    Evaluated Function:
+      function_handle with value:
+    
+        @()nbiot.results.saveResult(result,fullfile(o.projectRoot,'bundle'),metadata)
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.incompatibleInMemorySchemaIsRejected) at 142
+================================================================================
+.
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                           Failed  Incomplete  Reason(s)
+    ============================================================================================================
+     TestRuntimeManifest/canonicalConfigurationAndOutputRelocation    X                 Failed by verification.
+    ------------------------------------------------------------------------------------------------------------
+     TestRuntimeManifest/equivalentConfigOrderResumesSameCase         X                 Failed by verification.
+    ------------------------------------------------------------------------------------------------------------
+     TestRuntimeManifest/incompatibleInMemorySchemaIsRejected         X                 Failed by verification.
+STAGE1_TARGETED total=23 passed=20 failed=3 incomplete=0
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

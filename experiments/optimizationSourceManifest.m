@@ -1,6 +1,14 @@
 function manifest=optimizationSourceManifest(projectRoot)
 %OPTIMIZATIONSOURCEMANIFEST Hash MATLAB sources in a project snapshot.
-files=dir(fullfile(projectRoot,'**','*.m'));
+% Only computational sources: docs, tests, outputs and nested checkouts cannot
+% change the runtime identity. External runners are registered separately.
+files=dir(fullfile(projectRoot,'src','**','*.m'));
+entryPoints={'setupProject.m','experiments/runStaticSweep.m', ...
+    'experiments/runStaticSweepParallel.m','experiments/optimizationSourceManifest.m'};
+for j=1:numel(entryPoints)
+    entry=dir(fullfile(projectRoot,entryPoints{j}));
+    files=[files;entry(:)]; %#ok<AGROW>
+end
 entries=struct('file',{},'sha256',{});
 for k=1:numel(files)
     path=fullfile(files(k).folder,files(k).name);

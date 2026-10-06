@@ -22,6 +22,8 @@ classdef NBIoTSimulator < handle
         receiveQueue
         observed
         truth
+        harqJournal
+        queueSamples = zeros(0,3)
         occasions
         nextTick = 0
         arrivalCursor = 1
@@ -50,6 +52,7 @@ classdef NBIoTSimulator < handle
             obj.channel=nbiot.channel.RadioChannel(cfg,scenario,obj.sources);
             obj.receiveQueue=nbiot.engine.EventQueue();
             obj.observed=nbiot.results.EventLog(); obj.truth=nbiot.results.EventLog();
+            obj.harqJournal=nbiot.results.EventLog();
             obj.occasions=obj.scheduler.reserveNprach();
             obj.tokens=containers.Map('KeyType','char','ValueType','logical');
         end
@@ -104,10 +107,13 @@ classdef NBIoTSimulator < handle
                 if ~isempty(mandatory), obj.channel.add(mandatory); end
                 obj.emitNprach(); obj.schedulePending(); obj.queueMonitoring();
                 [ra,~]=obj.devices.counts();
-                work=0; waiting=0;
+                work=0; waiting=0; totalQueued=0; maxQueued=0;
                 for u=1:obj.cfg.simulation.numUE
-                    waiting=waiting+max(0,obj.packets.queueLength(u)-1);
+                    queueLength=obj.packets.queueLength(u);
+                    waiting=waiting+max(0,queueLength-1);
+                    totalQueued=totalQueued+queueLength; maxQueued=max(maxQueued,queueLength);
                 end
+                obj.queueSamples(end+1,:)=[now,totalQueued,maxQueued];
                 if ~isempty(obj.packets.packets)
                     pending=obj.packets.packets(strcmp({obj.packets.packets.status},'pending'));
                     work=numel(unique([pending.ueId]));
@@ -144,6 +150,13 @@ classdef NBIoTSimulator < handle
             obs=obj.observed.all(); truth=obj.truth.all();
             result=nbiot.results.finalizeResult(obj.cfg,obj.scenario,packets,attempts,obs,truth, ...
                 obj.calendar.usage(),obj.currentTick,obj.status,obj.stopReason,obj.errorInfo);
+            result.harqLog=obj.harqJournal.all(); result.harqLogSchemaVersion=1;
+            result.queueSamples=obj.queueSamples;
+            result.kpiSummary=nbiot.metrics.summarizeKpi(obj.cfg,packets,attempts,obs,truth, ...
+                result.resourceUsage,obj.currentTick,result.harqLog,obj.queueSamples);
+            % An initialized but empty journal is known empty, not legacy data.
+            result.kpiSummary.harq.available=true;
+            result.kpiTimeSeries=nbiot.metrics.windowKpi(obj.cfg,packets,attempts,obs,obj.currentTick,obj.queueSamples);
             schema=nbiot.dataset.featureSchema();
             result.dataset=struct('observations',obj.rowsTable(obj.observationRows,schema.observationNames), ...
                 'targets',obj.rowsTable(obj.targetRows,schema.targetNames), ...
@@ -227,7 +240,10 @@ classdef NBIoTSimulator < handle
             [~,order]=sortrows([[entries(pending).deadlineTick].',[entries(pending).lastProgressTick].',pending.'],[1 2 3]);
             for id=pending(order)
                 c=obj.contexts.get(id); s=[];
-                if obj.currentTick>c.deadlineTick, c.pending=false; c.state='EXPIRED'; obj.contexts.set(id,c); continue; end
+                if obj.currentTick>c.deadlineTick
+                    if strcmp(c.state,'DATA_PENDING'), obj.harqTerminal(c,'failed'); end
+                    c.pending=false; c.state='EXPIRED'; obj.contexts.set(id,c); continue;
+                end
                 switch c.state
                     case 'RAR_PENDING'
                         occasion=obj.occasions(c.occasionId);
@@ -275,6 +291,12 @@ classdef NBIoTSimulator < handle
         end
         function queueBsUl(obj,id,g,kind)
             obj.receiveQueue.push(g.endTick+obj.cfg.phy.processingTicks+1,'bs_ul',struct('contextId',id,'grant',g,'kind',kind));
+            if strcmp(kind,'Data')
+                c=obj.contexts.get(id); f=obj.harqIdentity(c);
+                f.startTick=g.startTick; f.endTick=g.endTick;
+                f.readyTick=g.endTick+obj.cfg.phy.processingTicks+1;
+                obj.harqJournal.append(obj.currentTick,'scheduled',f);
+            end
         end
         function queueMonitoring(obj)
             if mod(obj.currentTick,32)~=0, return; end
@@ -373,6 +395,20 @@ classdef NBIoTSimulator < handle
             [tx,d.encoderState]=nbiot.phy.npusch.buildTransmission(obj.cfg,g,packet.blocks{d.fragmentIndex+1},d.encoderState);
             tx.ueId=u; tx.timingAdvanceSeconds=d.timingAdvanceSeconds; obj.channel.add(tx); obj.devices.set(u,d);
             obj.logTx(g,u);
+            % Analyzer provenance only; never influences the waveform or state.
+            id=obj.contexts.findRnti(g.rnti);
+            if id>0
+                c=obj.contexts.get(id);
+                if strcmp(c.state,'DATA_RX') && isfield(c.schedule,'payloadGrant') && ...
+                        c.schedule.payloadGrant.startTick==g.startTick && c.schedule.payloadGrant.endTick==g.endTick
+                    f=obj.harqIdentity(c); f.startTick=g.startTick; f.endTick=g.endTick;
+                    f.transmitterSequence=double(packet.sequence); f.transmitterBlockIndex=d.fragmentIndex;
+                    obj.harqJournal.append(g.startTick,'emitted',f);
+                    return;
+                end
+            end
+            obj.harqJournal.append(g.startTick,'unmatchedEmission', ...
+                struct('rnti',g.rnti,'startTick',g.startTick,'endTick',g.endTick));
         end
         function ueAck(obj,u,dci,payload,phase)
             d=obj.devices.get(u); g=obj.scheduler.reconstructAck(dci,payload,d.rnti);
@@ -416,6 +452,7 @@ classdef NBIoTSimulator < handle
                         c.softBuffer=[]; c.receiptAttempts=0;
                     end
                 case 'Data'
+                    harqFields=obj.harqIdentity(c); accepted=false;
                     c.softBuffer=soft;
                     if decoded.crcError==0
                         b=decoded.decodedBits;
@@ -424,6 +461,7 @@ classdef NBIoTSimulator < handle
                             valid=f.sequence==c.sequence && f.index==c.nextFragment-1 && f.count==ceil(obj.cfg.traffic.packetBytes*8/208);
                         catch, valid=false; end
                         if valid
+                            accepted=true;
                             % Ground-truth mapping below is an analyzer side effect only;
                             % BS scheduling uses the decoded header/token, not PacketStore.
                             obj.analyzeDelivery(c,b,f.index);
@@ -436,6 +474,13 @@ classdef NBIoTSimulator < handle
                             c.deadlineTick=obj.currentTick+obj.cfg.phy.progressTimeoutTicks;
                         else, c=obj.failedTb(c); end
                     else, c=obj.failedTb(c); end
+                    harqFields.crcError=decoded.crcError; harqFields.accepted=accepted;
+                    obj.harqJournal.append(obj.currentTick,'decoded',harqFields);
+                    if accepted
+                        harqFields.outcome='accepted'; obj.harqJournal.append(obj.currentTick,'terminal',harqFields);
+                    elseif strcmp(c.state,'FAILED')
+                        harqFields.outcome='failed'; obj.harqJournal.append(obj.currentTick,'terminal',harqFields);
+                    end
                 case {'Msg4Ack','ReceiptAck'}
                     ack=~decoded.hasCrc && ~isempty(decoded.decodedBits) && decoded.decodedBits(1)==1 && ...
                         isfield(decoded.measurements,'uciDetected') && decoded.measurements.uciDetected;
@@ -459,6 +504,14 @@ classdef NBIoTSimulator < handle
         function c=failedTb(obj,c)
             if c.harqTry>=obj.cfg.phy.maxHarqTransmissions, c.state='FAILED'; c.pending=false;
             else, c.harqTry=c.harqTry+1; c.state='DATA_PENDING'; c.pending=true; end
+        end
+        function f=harqIdentity(~,c)
+            f=struct('contextId',c.id,'packetSequence',c.sequence, ...
+                'blockIndex',c.nextFragment-1,'attempt',c.harqTry);
+        end
+        function harqTerminal(obj,c,outcome)
+            f=obj.harqIdentity(c); f.outcome=outcome;
+            obj.harqJournal.append(obj.currentTick,'terminal',f);
         end
         function analyzeDelivery(obj,c,b,index)
             for u=1:obj.cfg.simulation.numUE

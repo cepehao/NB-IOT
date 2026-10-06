@@ -1,0 +1,4 @@
+windowId,startTick,endTick,created,deliveredInWindow,droppedInWindow,cohortDelivered,cohortDropped,cohortUnfinished,cohortDeliveryProbability,raStarted,raSucceededInWindow,raFailedInWindow,ulTbDecoded,ulCrcFailures,throughputBitsPerSecond
+1,0,500,1,0,0,1,0,0,1,1,1,0,7,0,0
+2,500,1000,0,1,0,0,0,0,NaN,0,0,0,2,0,3200
+3,1000,1200,0,0,0,0,0,0,NaN,0,0,0,0,0,0

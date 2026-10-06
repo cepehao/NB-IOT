@@ -1,0 +1,61 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+.......... .
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... .......
+Done TestRuntimeManifest
+__________
+
+STAGE1_TARGETED total=28 passed=28 failed=0 incomplete=0
+Running TestCaseResume
+.......... ...
+Done TestCaseResume
+__________
+
+Running TestParallelCases
+....
+Done TestParallelCases
+__________
+
+Running TestMetrics
+..
+Done TestMetrics
+__________
+
+Running TestRadioProtocol
+.......... ...
+Done TestRadioProtocol
+__________
+
+STAGE1_REGRESSION total=32 passed=32 failed=0 incomplete=0
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b SOURCE_ROOT=C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication LABEL=candidate
+PHYSICAL_SINGLE_UE created=1 delivered=1 bits=1600 dataDecoded=8 crcFailures=0
+PHYSICAL_HARQ blocks=8 accepted=8 firstDecoded=8 firstBler=0 retries=0 censored=0
+EXACT_FIELD_PASS config
+EXACT_FIELD_PASS scenario
+EXACT_FIELD_PASS randomness
+EXACT_FIELD_PASS status
+EXACT_FIELD_PASS actualTick
+EXACT_FIELD_PASS stopReason
+EXACT_FIELD_PASS error
+EXACT_FIELD_PASS packetLog
+EXACT_FIELD_PASS raLog
+EXACT_FIELD_PASS observedLog
+EXACT_FIELD_PASS truthLog
+EXACT_FIELD_PASS phyLog
+EXACT_FIELD_PASS ueSummary
+EXACT_FIELD_PASS resourceUsage
+EXACT_FIELD_PASS dataset
+EXACT_FIELD_PASS environment
+OLD_KPI_FIELDS_PASS count=35
+EXACT_LEGACY_MAT_PROJECTION_PASS excluded=new-fields,new-KPI-columns,wall-clock-elapsedSeconds
+CSV_PREFIX_PASS static-v1_n1_r0000_ue.csv columns=5 rows=1
+CSV_PREFIX_PASS static-v1_n1_r0000_kpi.csv columns=16 rows=3
+CSV_PREFIX_PASS static-v1_n1_r0000_observations.csv columns=13 rows=3
+CSV_PREFIX_PASS static-v1_n1_r0000_targets.csv columns=9 rows=3
+CSV_PREFIX_PASS static-v1_n1_r0000_resources.csv columns=11 rows=6
+CSV_PREFIX_PASS static-v1_n1_r0000_split.csv columns=2 rows=1
+STAGE1_PHYSICAL_EQUIVALENCE_PASS

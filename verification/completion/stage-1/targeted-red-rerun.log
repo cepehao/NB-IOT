@@ -1,0 +1,9 @@
+{Unrecognized function or variable 'setupProject'.
+
+Error in stage1Targeted (line 1)
+setupProject();
+^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

@@ -23,19 +23,34 @@ end
 
 function destination=saveCaseResult(result,folder,metadata)
 required={'caseKey','configSha256','sourceSha256','calibrationSha256','environment'};
+runtimeFields={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
+    'modelSha256','policySha256','inputSha256','runnerSha256'};
+if isfield(metadata,'runtimeVersion')
+    required=[required runtimeFields];
+end
 for k=1:numel(required)
     if ~isfield(metadata,required{k})
         error('nbiot:results:Metadata','Missing case metadata field %s.',required{k});
     end
 end
 hashFields={'configSha256','sourceSha256','calibrationSha256'};
+if isfield(metadata,'runtimeVersion')
+    if metadata.runtimeVersion~=1 || metadata.resultSchemaVersion~=2
+        error('nbiot:results:Metadata','Unsupported runtime or result schema.');
+    end
+    hashFields=[hashFields runtimeFields(3:end)];
+    if isfield(result,'resultSchemaVersion') && ~isequal(result.resultSchemaVersion,2)
+        error('nbiot:results:Metadata','Unsupported in-memory result schema.');
+    end
+    result.resultSchemaVersion=2;
+end
 for k=1:numel(hashFields)
     value=char(string(metadata.(hashFields{k})));
     if isempty(regexp(value,'^[0-9a-fA-F]{64}$','once'))
         error('nbiot:results:Metadata','%s must be a SHA-256 hex digest.',hashFields{k});
     end
 end
-if ~strcmp(nbiot.results.configSha256(result.config),metadata.configSha256)
+if ~strcmp(nbiot.results.configSha256(result.config,isfield(metadata,'runtimeVersion')),metadata.configSha256)
     error('nbiot:results:Metadata','Configuration hash does not match the result.');
 end
 if ~isfolder(folder), mkdir(folder); end
@@ -50,8 +65,10 @@ cleanup=onCleanup(@() removeTemporary(temporary)); %#ok<NASGU>
 caseMetadata=identity(metadata,result.status);
 configSnapshot=result.config; resultStatus=result.status;
 kpiSummary=result.kpiSummary; environmentSnapshot=result.environment;
+resultSchemaVersion=1;
+if isfield(metadata,'runtimeVersion'), resultSchemaVersion=2; end
 save(temporary,'result','caseMetadata','configSnapshot','resultStatus', ...
-    'kpiSummary','environmentSnapshot','-v7.3');
+    'kpiSummary','environmentSnapshot','resultSchemaVersion','-v7.3');
 check=whos('-file',temporary);
 requiredVariables={'result','caseMetadata','configSnapshot','resultStatus', ...
     'kpiSummary','environmentSnapshot'};
@@ -67,7 +84,9 @@ if ~report.passed
     error('nbiot:results:Verify','Staged case did not pass readback: %s',strjoin(report.errors,'; '));
 end
 marker=identity(metadata,result.status);
-marker.manifestVersion=1; marker.resultFile=[runName '.mat'];
+marker.manifestVersion=1;
+if isfield(metadata,'runtimeVersion'), marker.manifestVersion=2; end
+marker.resultFile=[runName '.mat'];
 marker.exportStem=runName; marker.tables=tables;
 marker.balances=balanceSnapshot(result.kpiSummary);
 marker.elapsedSeconds=elapsedSeconds(result);
@@ -121,6 +140,11 @@ metadata=struct('caseKey',char(string(input.caseKey)), ...
     'sourceSha256',char(string(input.sourceSha256)), ...
     'calibrationSha256',char(string(input.calibrationSha256)), ...
     'environment',input.environment,'status',char(string(status)));
+if isfield(input,'runtimeVersion')
+    names={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
+        'modelSha256','policySha256','inputSha256','runnerSha256'};
+    for k=1:numel(names), metadata.(names{k})=input.(names{k}); end
+end
 end
 
 function balances=balanceSnapshot(kpi)

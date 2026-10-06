@@ -2,6 +2,7 @@ function result=finalizeResult(cfg,scenario,packets,attempts,observed,truth,usag
 %FINALIZERESULT Export completed, partial and failed runs without fake drops.
 result=struct('config',cfg,'scenario',scenario,'status',status,'stopReason',stopReason, ...
     'actualTick',actualTick,'error',errorInfo,'randomness',scenario.randomManifest);
+result.resultSchemaVersion=2;
 result.environment=struct('matlabVersion',version,'release',version('-release'),'lteVersion',ver('lte'), ...
     'computer',computer,'validatedInMatlab',false,'sourceProfile','static-v1');
 result.packetLog=packets; result.raLog=attempts; result.observedLog=observed; result.truthLog=truth;

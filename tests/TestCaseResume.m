@@ -144,7 +144,8 @@ classdef TestCaseResume < matlab.unittest.TestCase
             counterFile=fullfile(folder,'runs.txt'); runner=countingRunner(counterFile);
             options=struct('counts',1,'burstDurations',100,'realizationIds',7, ...
                 'calibrationFile',calibrationFile,'outputFolder',fullfile(folder,'sweep'), ...
-                'resume',true,'runExperimentFcn',runner);
+                'resume',true,'runExperimentFcn',runner,'runnerDependenciesDeclared',true, ...
+                'runnerFiles',{{[mfilename('fullpath') '.m']}},'runnerInputs',struct('path',counterFile));
 
             first=runStaticSweep(options);
             firstResult=first.resultFile{1};

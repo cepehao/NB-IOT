@@ -12,32 +12,26 @@ addpath(root); addpath(fullfile(root,'experiments')); setupProject();
 options=defaults(options,struct('counts',[100 500 1000 2500 5000], ...
     'burstDurations',[10 100 500],'realizationIds',0:2, ...
     'calibrationFile',fullfile(root,'results','nprach-calibration.mat'), ...
-    'outputFolder',fullfile(root,'results','sweep-parallel'),'resume',true));
+    'outputFolder',fullfile(root,'results','sweep-parallel'),'resume',true,'runExperimentFcn',[]));
 validateCases(options);
 if ~isfolder(options.outputFolder), mkdir(options.outputFolder); end
-calibrationSha256=hashFile(options.calibrationFile);
-sourceManifest=optimizationSourceManifest(root);
-sourceSha256=sourceManifest.sha256;
-environment=struct('matlabVersion',version,'release',version('-release'), ...
-    'lteVersion',ver('lte'),'computer',computer, ...
-    'validatedInMatlab',false,'sourceProfile','static-v1');
+options.projectRoot=root; options.runner=options.runExperimentFcn;
 rows={}; jobs={}; jobRows=[];
 for count=options.counts
     for duration=options.burstDurations
         burstFolder=fullfile(options.outputFolder,sprintf('burst_%04dms',duration));
         if ~isfolder(burstFolder), mkdir(burstFolder); end
         for id=options.realizationIds
-            caseKey=sprintf('static-v1_n%04d_d%04d_r%04d',count,duration,id);
-            caseFolder=fullfile(burstFolder,caseKey);
-            if ~isfolder(caseFolder), mkdir(caseFolder); end
-            cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=count;
+            cfg=nbiot.config.defaultConfig();
+            if isfield(options,'config'), cfg=options.config; end
+            cfg.simulation.numUE=count;
             cfg.simulation.realizationId=id; cfg.traffic.burstDurationTicks=duration;
-            cfg.logging.outputFolder=caseFolder;
             cfg=nbiot.experiments.loadCalibration(cfg,options.calibrationFile);
-            metadata=struct('caseKey',caseKey, ...
-                'configSha256',nbiot.results.configSha256(cfg), ...
-                'sourceSha256',sourceSha256,'calibrationSha256',calibrationSha256, ...
-                'environment',environment);
+            metadata=nbiot.experiments.runtimeManifest(cfg,options);
+            caseKey=metadata.caseKey; caseFolder=fullfile(burstFolder,caseKey);
+            cfg.logging.outputFolder=caseFolder;
+            if ~isfolder(caseFolder), mkdir(caseFolder); end
+            sourceSha256=metadata.sourceSha256; calibrationSha256=metadata.calibrationSha256;
             [accepted,attemptFolder,marker]=findAcceptedCase(caseFolder,metadata,options.resume);
             rowIndex=size(rows,1)+1;
             if accepted
@@ -67,7 +61,7 @@ if ~isempty(jobs)
             job=jobs{k};
             try
                 workerMeta{k}=nbiot.experiments.runStaticCase( ...
-                    job.cfg,job.caseFolder,job.metadata);
+                    job.cfg,job.caseFolder,job.metadata,options.runExperimentFcn,options);
             catch exception
                 workerMeta{k}=struct('caseKey',job.caseKey,'status','worker-error', ...
                     'elapsedSeconds',NaN,'resultFile','', ...
@@ -169,19 +163,6 @@ temporary=[tempname(folder) '.csv']; cleanup=onCleanup(@() removeTemporary(tempo
 writetable(manifest,temporary);
 [ok,message]=movefile(temporary,destination,'f');
 if ~ok, error('nbiot:experiments:Manifest','Cannot atomically update manifest: %s',message); end
-end
-
-function hex=hashFile(path)
-fid=fopen(path,'rb');
-if fid<0, error('nbiot:experiments:Calibration','Cannot read calibration file %s.',path); end
-cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
-digest=java.security.MessageDigest.getInstance('SHA-256');
-while true
-    bytes=fread(fid,4*1024*1024,'*uint8');
-    if isempty(bytes), break; end
-    digest.update(typecast(bytes(:),'int8'));
-end
-hex=lower(reshape(dec2hex(typecast(digest.digest(),'uint8'),2).',1,[]));
 end
 
 function value=defaults(value,base)

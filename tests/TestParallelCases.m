@@ -36,16 +36,17 @@ classdef TestParallelCases < matlab.unittest.TestCase
             calibrationFile=fullfile(folder,'calibration.mat'); writeCalibration(calibrationFile);
             outputFolder=fullfile(folder,'sweep');
             burstFolder=fullfile(outputFolder,'burst_0100ms');
-            caseKey='static-v1_n0001_d0100_r0000'; caseFolder=fullfile(burstFolder,caseKey);
             cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=1;
             cfg.simulation.realizationId=0; cfg.traffic.burstDurationTicks=100;
-            cfg.logging.outputFolder=caseFolder;
             cfg=nbiot.experiments.loadCalibration(cfg,calibrationFile);
-            metadata=caseMetadata(cfg,caseKey,fileHash(calibrationFile));
-            created=nbiot.experiments.runStaticCase(cfg,caseFolder,metadata,@mockResult);
             options=struct('counts',1,'burstDurations',100,'realizationIds',0, ...
                 'calibrationFile',calibrationFile,'outputFolder',outputFolder, ...
-                'resume',true,'numWorkers',2);
+                'resume',true,'numWorkers',2,'runExperimentFcn',@mockResult, ...
+                'runner',@mockResult,'runnerDependenciesDeclared',true, ...
+                'runnerFiles',{{[mfilename('fullpath') '.m']}});
+            metadata=nbiot.experiments.runtimeManifest(cfg,options);
+            caseFolder=fullfile(burstFolder,metadata.caseKey); cfg.logging.outputFolder=caseFolder;
+            created=nbiot.experiments.runStaticCase(cfg,caseFolder,metadata,@mockResult,options);
 
             manifest=runStaticSweepParallel(options);
             attempts=dir(fullfile(caseFolder,'run-*'));

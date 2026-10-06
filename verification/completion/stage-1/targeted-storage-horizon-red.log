@@ -1,0 +1,114 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+.......... 
+================================================================================
+Verification failed in TestHarqMetrics/schedulingAtHorizonDoesNotStartAnAttempt.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.schedulingAtHorizonDoesNotStartAnAttempt) at 70
+================================================================================
+
+================================================================================
+Verification failed in TestHarqMetrics/schedulingAtHorizonDoesNotStartAnAttempt.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyEqual failed.
+    --> The numeric values are not equal using "isequaln".
+    --> Failure table:
+            Actual    Expected    Error    RelativeError
+            ______    ________    _____    _____________
+                                                        
+              1          0          1           Inf     
+    
+    Actual Value:
+         1
+    Expected Value:
+         0
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestHarqMetrics.m (TestHarqMetrics.schedulingAtHorizonDoesNotStartAnAttempt) at 70
+================================================================================
+..
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... .....
+================================================================================
+Verification failed in TestRuntimeManifest/capturedNumericStorageCannotAlias.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyNotEqual failed.
+    --> The character arrays are equal.
+    
+    Actual char:
+        93b24d966a3e5de6e510406847e516cdce24c9109f18eb454f917af51c13f1ef
+    Prohibited char:
+        93b24d966a3e5de6e510406847e516cdce24c9109f18eb454f917af51c13f1ef
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.capturedNumericStorageCannotAlias) at 166
+================================================================================
+
+================================================================================
+Verification failed in TestRuntimeManifest/capturedNumericStorageCannotAlias.
+    ---------------------
+    Framework Diagnostic:
+    ---------------------
+    verifyNotEqual failed.
+    --> The character arrays are equal.
+    
+    Actual char:
+        93b24d966a3e5de6e510406847e516cdce24c9109f18eb454f917af51c13f1ef
+    Prohibited char:
+        93b24d966a3e5de6e510406847e516cdce24c9109f18eb454f917af51c13f1ef
+    ------------------
+    Stack Information:
+    ------------------
+    In C:\Users\spart\Desktop\Projects Py\nbiot\work\github-v2-publication\tests\TestRuntimeManifest.m (TestRuntimeManifest.capturedNumericStorageCannotAlias) at 168
+================================================================================
+...
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                      Failed  Incomplete  Reason(s)
+    =======================================================================================================
+     TestHarqMetrics/schedulingAtHorizonDoesNotStartAnAttempt    X                 Failed by verification.
+    -------------------------------------------------------------------------------------------------------
+     TestRuntimeManifest/capturedNumericStorageCannotAlias       X                 Failed by verification.
+STAGE1_TARGETED total=30 passed=28 failed=2 incomplete=0
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

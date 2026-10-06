@@ -1,8 +1,11 @@
-function series=windowKpi(cfg,packets,attempts,observed,actualTick)
+function series=windowKpi(cfg,packets,attempts,observed,actualTick,queueSamples)
 %WINDOWKPI Interval events and arrival cohorts have distinct denominators.
 names={'windowId','startTick','endTick','created','deliveredInWindow','droppedInWindow', ...
     'cohortDelivered','cohortDropped','cohortUnfinished','cohortDeliveryProbability', ...
     'raStarted','raSucceededInWindow','raFailedInWindow','ulTbDecoded','ulCrcFailures','throughputBitsPerSecond'};
+names=[names,{'meanBsQueueLength','maxBsQueueLength','meanUeQueueLength', ...
+    'maxUeQueueLength','controllerApplicable','controllerDecisions','configurationSwitches'}];
+if nargin<6, queueSamples=zeros(0,3); end
 rows={};
 for first=0:cfg.dataset.windowTicks:actualTick-1
     last=min(first+cfg.dataset.windowTicks,actualTick);
@@ -32,8 +35,19 @@ for first=0:cfg.dataset.windowTicks:actualTick-1
     end
     if created==0, probability=NaN; else, probability=cohortDelivered/created; end
     throughput=delivered*cfg.traffic.packetBytes*8/((last-first)*cfg.simulation.tickSeconds);
+    queues=[];
+    for e=reshape(observed,1,[])
+        if e.tick>=first && e.tick<last && strcmp(e.kind,'bs_queue')
+            queues(end+1)=e.fields.pendingRequests; %#ok<AGROW>
+        end
+    end
+    q=queueSamples(queueSamples(:,1)>=first & queueSamples(:,1)<last,:);
+    meanUe=NaN; maxUe=NaN;
+    if ~isempty(q), meanUe=sum(q(:,2))/(size(q,1)*cfg.simulation.numUE); maxUe=max(q(:,3)); end
+    maxBs=NaN; if ~isempty(queues), maxBs=max(queues); end
     rows(end+1,:)={floor(first/cfg.dataset.windowTicks)+1,first,last,created,delivered,dropped, ...
-        cohortDelivered,cohortDropped,cohortUnfinished,probability,started,succeeded,failed,decoded,crcFailures,throughput}; %#ok<AGROW>
+        cohortDelivered,cohortDropped,cohortUnfinished,probability,started,succeeded,failed,decoded,crcFailures,throughput, ...
+        mean(queues),maxBs,meanUe,maxUe,false,NaN,NaN}; %#ok<AGROW>
 end
 if isempty(rows), series=array2table(zeros(0,numel(names)),'VariableNames',names);
 else, series=cell2table(rows,'VariableNames',names); end

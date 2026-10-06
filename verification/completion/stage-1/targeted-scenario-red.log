@@ -1,0 +1,56 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+.......... .
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... ......
+================================================================================
+Error occurred in TestRuntimeManifest/suppliedScenarioIsUsedBySequentialAndCaseRunners and it did not run to completion.
+    ---------
+    Error ID:
+    ---------
+    'MATLAB:json:UnsupportedComplexDataType'
+    --------------
+    Error Details:
+    --------------
+    Error using jsonencode
+    Unable to encode complex-valued objects of class double as JSON-formatted text.
+    
+    Error in nbiot.experiments.runtimeManifest>hashValue (line 79)
+    digest=hashBytes(unicode2native(jsonencode(canonical(value)),'UTF-8'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Error in nbiot.experiments.runtimeManifest (line 19)
+    model=hashFiles(options.modelFiles); inputs=hashValue(struct( ...
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Error in runStaticSweep (line 24)
+                metadata=nbiot.experiments.runtimeManifest(cfg,options);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Error in TestRuntimeManifest/suppliedScenarioIsUsedBySequentialAndCaseRunners (line 174)
+                a=runStaticSweep(options); saved=load(a.resultFile{1},'result');
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+================================================================================
+.
+Done TestRuntimeManifest
+__________
+
+Failure Summary:
+
+     Name                                                                  Failed  Incomplete  Reason(s)
+    =====================================================================================================
+     TestRuntimeManifest/suppliedScenarioIsUsedBySequentialAndCaseRunners    X         X       Errored.
+STAGE1_TARGETED total=28 passed=27 failed=1 incomplete=1
+{Error using assert
+At least one test failed in the test session.
+
+Error in matlab.unittest.internal.BaseTestResult/assertSuccess (line 126)
+             assert(~any([resultArray.Failed]),message('MATLAB:unittest:TestResult:UnsuccessfulRun'));
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in stage1Targeted (line 6)
+assertSuccess(r);
+^^^^^^^^^^^^^^^^
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

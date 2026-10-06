@@ -1,0 +1,33 @@
+MATLAB_VERSION=25.2.0.2998904 (R2025b) RELEASE=2025b
+Running TestHarqMetrics
+..........
+Done TestHarqMetrics
+__________
+
+Running TestRuntimeManifest
+.......... ....
+Done TestRuntimeManifest
+__________
+
+STAGE1_TARGETED total=24 passed=24 failed=0 incomplete=0
+Running TestCaseResume
+.......... ...
+Done TestCaseResume
+__________
+
+Running TestParallelCases
+....
+Done TestParallelCases
+__________
+
+Running TestMetrics
+..
+Done TestMetrics
+__________
+
+Running TestRadioProtocol
+.......... ..
+Done TestRadioProtocol
+__________
+
+STAGE1_REGRESSION total=31 passed=31 failed=0 incomplete=0
