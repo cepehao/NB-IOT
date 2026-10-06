@@ -1,0 +1,16 @@
+Static analysis, 2026-10-04. MATLAB was not installed or executed.
+
+Tool: MISS_HIT, https://github.com/florianschanda/miss_hit
+Scope: src tests examples configs experiments setupProject.m
+Excluded: original user test.m; temporary tool files in tmp.
+
+Command: mh_style --no-style --brief src tests examples configs experiments setupProject.m
+MISS_HIT Style Summary: 85 file(s) analysed, everything seems fine
+Exit code: 0
+
+Command: mh_lint --brief src tests examples configs experiments setupProject.m
+MISS_HIT Lint Summary: 85 file(s) analysed, everything seems fine
+Exit code: 0
+
+These checks parse source and inspect selected constructs. They do not run
+MATLAB, resolve LTE Toolbox outputs, verify PHY roundtrips or validate KPIs.

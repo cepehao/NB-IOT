@@ -1,0 +1,12 @@
+# Generated experiment outputs. The accepted calibration is required input.
+/results/*
+!/results/nprach-calibration.mat
+
+# MATLAB editor autosaves and OS metadata.
+*.asv
+*.m~
+.DS_Store
+Thumbs.db
+
+# Local scratch copies and rejected prototypes are not release inputs.
+/work/

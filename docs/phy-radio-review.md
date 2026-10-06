@@ -1,0 +1,35 @@
+# Static PHY, radio and scheduler review
+
+Reviewed 2026-10-04 against model-profile.md, offline-contracts.md and the implementation reports. This is source inspection and primary documentation comparison. MATLAB was unavailable: no numerical test, waveform acceptance or API execution is claimed. Source files were not modified by this reviewer. Concurrent fixes may supersede the locations below.
+
+## Scoped re-review after PHY fixes
+
+Fresh source inspection confirms findings 2 and 3 below are addressed in source: DL uses frequency window 25, UL uses 23, and Control also uses time window 3. These are valid positive odd averaging sizes under the documented estimator APIs; the Control path has three reference symbols to average. Actual noise-estimate accuracy on short grids still requires execution. NPDCCH now supplies `PDCCHFormat=1` and preserves `info.G`.
+
+Finding 4 is addressed as an explicitly documented implementation choice: timing and CFO now use bounded three-point interpolation of bank peaks. Every CFO-column peak is populated before its neighbors are read. Both timing and CFO accesses guard the first/last bins, reject a non-concave parabola and bound the correction to half a step. The configured CFO grid is uniformly spaced; nonuniform neighborhoods skip CFO refinement. The returned detection statistic is still the coarse searched maximum, so the threshold statistic is unchanged. CFO interpolation uses the correlation bank, rather than the profile's originally specified repeated-symbol phase estimator; the implementation reports now accurately identify this method. Numerical bias and collision behavior remain pending.
+
+The CFO pilot loop now carries the DRS state between slots. This removes its earlier reinitialization of sequence state. At this re-review's final source read, finding 1 remains open: Scheduler.m still contains `payload.endTick+k0-2`. The root implementer was notified; it must be checked again after that edit lands.
+
+No new confirmed defect was found in these scoped changes. This is static re-review only, not API or waveform acceptance.
+
+## Original actionable findings and rationale
+
+1. **ACK starts one subframe early.** `src/+nbiot/+scheduler/Scheduler.m:110` computes `payload.endTick+k0-2`. The standard defines the start after the end of subframe `n+k0-1`, where `n` is the final NPDSCH subframe. With the project's half-open convention, `n=payload.endTick-1`, hence start must be `payload.endTick+k0-1`. Both UE reconstruction and reservation presently share the same mistake, so their agreement will hide it in roundtrip tests. Correct the formula and assert an independently calculated absolute start. The 15 kHz ACK resource table itself agrees with [TS 36.213, section 16.4.2](https://www.etsi.org/deliver/etsi_ts/136200_136299/136213/13.13.00_60/ts_136213v131300p.pdf).
+
+2. **Noise estimation is disabled in the noisy receive path.** `src/+nbiot/+phy/dlReceiveGrid.m:24` configures a 1-by-1 UserDefined pilot averaging window. MathWorks explicitly uses this configuration when no noise estimation is required and demonstrates zero noise output. Clamping that output to `eps` does not estimate receiver noise; it changes MMSE/LLR weighting and makes the reported noise metric a numerical floor. `+npusch/receive.m:23` uses the same degenerate averaging configuration and needs the corresponding correction/validation. Use pilot averaging with actual neighboring pilots or a received-sample residual noise estimator, with normalization in the same units as the demodulated grid. Check the low-SNR case, not only an ideal roundtrip. See [lteDLChannelEstimate](https://www.mathworks.com/help/lte/ref/ltedlchannelestimate.html) and [lteULChannelEstimateNPUSCH](https://www.mathworks.com/help/lte/ref/lteulchannelestimatenpusch.html).
+
+3. **NPDCCH encoding omits a documented required field.** `src/+nbiot/+phy/+npdcch/buildTransmission.m:5` supplies only RNTI to lteDCIEncode. Its documented input structure also requires PDCCHFormat; the examples retain it with explicit output length. Add a valid PDCCHFormat while retaining `info.G` as the actual narrowband rate matching length. This is a documented-contract mismatch, not a demonstrated runtime crash: the target release may ignore the field when output length is supplied. See [lteDCIEncode](https://www.mathworks.com/help/lte/ref/ltedciencode.html).
+
+4. **NPRACH estimation omits profile-specified refinements.** `src/+nbiot/+phy/+nprach/detect.m:34` returns the winning integer sample and CFO grid point directly. The model profile promises parabolic timing refinement and CFO refinement from repeated symbols. This is a confirmed implementation/profile mismatch; no claim is made that the existing coarse estimates necessarily fail decoding. Implement bounded refinement from received samples, or explicitly record the narrower implemented model and its acceptance requirements. The current report should not imply those refinements exist.
+
+## Inspected without a confirmed defect
+
+The NPUSCH grid is correctly one 7-symbol slot via lteNBResourceGrid. Documented modulation, demodulation, NPUSCH decoding and channel-estimation overloads support the argument lists used. NULSCHDecode supports the configuration/length form for Control as well as Data; the absence of a CRC on UCI is handled explicitly. For the fixed two-repetition, three-tone profile, alternating RV 0/2 at EndOfBlk matches the selected standard block layout. Transport state is retained while NDI is unchanged.
+
+NPDCCH carries 23 payload bits and checks the recovered CRC mask against candidate RNTI. NPDSCH receiver preserves physical bundle state over its explicit tick list and performs transport decoding after the full bundle. Payload grids include Toolbox NRS. NPRACH correctly trims the Toolbox periodic buffer using its reported start and keeps 10752 active samples; the 6 ms calendar interval conservatively contains its 5.6 ms waveform. The public [NPRACH API](https://www.mathworks.com/help/lte/ref/ltenprach.html) supports the configured fields.
+
+N0 delay, RAR six-bit subcarrier indication, Msg3 MCS-index distinction, N1 delay counting over allowed DL subframes and two-repetition DCI indication match the inspected tables. Channel noise is summed once per receive window after signals, keyed by absolute tick. Fractional-delay timestamps compensate FIR latency while preserving tails. Calendar reservations commit atomically and check both phases' independent budgets.
+
+## Remaining numerical acceptance
+
+The newly added `+npusch/estimateTiming.m` restricts its search to margins actually present in the receive window and does not receive channel truth. Its practical acquisition accuracy, DMRS state handling across slots, interference behavior and CFO estimates still require MATLAB execution. SIB1 stateless phase/state initialization also needs comparison against a continuous Toolbox encoder. These are acceptance items, not confirmed failures. ACK presence gating requires independent noise/interference calibration before reliability claims.
