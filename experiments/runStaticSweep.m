@@ -7,7 +7,9 @@ options=defaults(options,struct('counts',[100 500 1000 2500 5000], ...
     'burstDurations',[10 100 500],'realizationIds',0:2, ...
     'calibrationFile',fullfile(root,'results','nprach-calibration.mat'), ...
     'outputFolder',fullfile(root,'results','sweep'),'resume',true, ...
-    'runExperimentFcn',[],'scenario',[]));
+    'runExperimentFcn',[],'scenario',[],'execution',struct()));
+options.execution=preflightExecution(options);
+suiteClock=tic;
 if ~isfolder(options.outputFolder), mkdir(options.outputFolder); end
 options.projectRoot=root; options.runner=options.runExperimentFcn;
 rows={};
@@ -16,6 +18,9 @@ for count=options.counts
         burstFolder=fullfile(options.outputFolder,sprintf('burst_%04dms',duration));
         if ~isfolder(burstFolder), mkdir(burstFolder); end
         for id=options.realizationIds
+            if toc(suiteClock)>=options.execution.maxSuiteSeconds
+                error('nbiot:experiments:ExecutionTimeout','Sweep suite wall-time budget exhausted.');
+            end
             cfg=nbiot.config.defaultConfig();
             if isfield(options,'config'), cfg=options.config; end
             cfg.simulation.numUE=count;
@@ -33,7 +38,7 @@ for count=options.counts
                 elapsedSeconds=double(acceptedMarker.elapsedSeconds);
                 resultFile=fullfile(acceptedFolder,char(string(acceptedMarker.resultFile)));
             else
-                [result,attemptFolder]=runCase(cfg,caseFolder,metadata,options.runExperimentFcn,options.scenario);
+                [result,attemptFolder]=runCase(cfg,caseFolder,metadata,options.runExperimentFcn,options.scenario,options.execution);
                 status=char(string(result.status));
                 elapsedSeconds=elapsed(result);
                 marker=jsondecode(fileread(fullfile(attemptFolder,'case-complete.json')));
@@ -42,7 +47,7 @@ for count=options.counts
             rows(end+1,:)={count,duration,id,status,elapsedSeconds,resultFile, ...
                 caseKey,metadata.configSha256,metadata.sourceSha256,metadata.calibrationSha256}; %#ok<AGROW>
             updateManifest(options.outputFolder,rows);
-            if strcmp(status,'failed')
+            if ~strcmp(status,'completed')
                 warning('nbiot:experiments:Failed','Stopped at %s.',resultFile);
                 manifest=makeManifest(rows); return
             end
@@ -67,7 +72,7 @@ for k=numel(attempts):-1:1
 end
 end
 
-function [result,finalFolder]=runCase(cfg,caseFolder,metadata,runner,scenario)
+function [result,finalFolder]=runCase(cfg,caseFolder,metadata,runner,scenario,execution)
 id=char(java.util.UUID.randomUUID());
 stage=fullfile(caseFolder,['.staging-' id]);
 finalFolder=fullfile(caseFolder,['run-' id]);
@@ -77,13 +82,22 @@ end
 [ok,message]=mkdir(stage);
 if ~ok, error('nbiot:experiments:Stage','Cannot create case staging directory: %s',message); end
 if isempty(runner)
-    result=nbiot.runExperiment(cfg,scenario);
+    result=nbiot.runExperiment(cfg,scenario,execution);
 else
     result=runner(cfg);
 end
 nbiot.results.saveResult(result,stage,metadata);
 [ok,message]=movefile(stage,finalFolder);
 if ~ok, error('nbiot:experiments:Commit','Cannot commit case directory: %s',message); end
+end
+
+function execution=preflightExecution(options)
+cfg=nbiot.config.defaultConfig();
+count=max(options.counts); cfg.simulation.numUE=count;
+budget=nbiot.experiments.validateExecutionBudget(cfg,options.execution, ...
+    numel(options.counts)*numel(options.burstDurations)*numel(options.realizationIds));
+% budget.numCases is derived, not an accepted user execution field.
+execution=rmfield(budget,'numCases');
 end
 
 function updateManifest(folder,rows)

@@ -1,0 +1,3 @@
+% Open the per-device table from the existing 100-device run.
+run(fullfile(fileparts(mfilename('fullpath')),'verification','local', ...
+    'meeting-20261015','showDevices100.m'));

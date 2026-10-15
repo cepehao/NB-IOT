@@ -16,6 +16,31 @@ k.raSuccessCompletedProbability=ratio(k.raSuccess,k.raSuccess+k.raFailed);
 k.deliveryProbability=ratio(k.delivered,k.created); k.dropProbability=ratio(k.dropped,k.created);
 k.deliveryCompletedProbability=ratio(k.delivered,k.delivered+k.dropped);
 k.collisionAttemptProbability=ratio(k.collidingAttempts,k.raStarted);
+k.logicalCollisionGroups=countLogicalCollisionGroups(attempts);
+k.captureEvents=0;
+if ~isempty(attempts)
+    if isfield(attempts,'capture')
+        k.captureEvents=sum(logical([attempts.capture]));
+    else
+        k.captureEvents=NaN;
+    end
+end
+k.detectedCandidates=0;
+for event=reshape(observed(strcmp({observed.kind},'nprach_detection')),1,[])
+    if isstruct(event.fields)&&isfield(event.fields,'count')&& ...
+            isnumeric(event.fields.count)&&isscalar(event.fields.count)&& ...
+            isfinite(event.fields.count)&&event.fields.count>=0
+        k.detectedCandidates=k.detectedCandidates+double(event.fields.count);
+    end
+end
+k.maxRaAttemptsPerPacket=NaN;
+if ~isempty(packets)&&isfield(packets,'attemptCount')
+    attemptCounts=double([packets.attemptCount]);
+    if all(isfinite(attemptCounts))&&all(attemptCounts>=0)&& ...
+            all(attemptCounts==fix(attemptCounts))
+        k.maxRaAttemptsPerPacket=max(attemptCounts);
+    end
+end
 k.deliveredPayloadBits=k.delivered*cfg.traffic.packetBytes*8;
 k.durationSeconds=actualTick*cfg.simulation.tickSeconds;
 k.throughputBitsPerSecond=ratio(k.deliveredPayloadBits,k.durationSeconds);
@@ -85,6 +110,20 @@ end
 
 function v=maximum(x)
 if isempty(x), v=NaN; else, v=max(x); end
+end
+function count=countLogicalCollisionGroups(attempts)
+count=NaN;
+if isempty(attempts)
+    if all(isfield(attempts,{'collision','occasionId','nInit'})), count=0; end
+    return;
+end
+if ~all(isfield(attempts,{'collision','occasionId','nInit'})), return; end
+mask=logical([attempts.collision]);
+if ~any(mask), count=0; return; end
+pairs=[double([attempts(mask).occasionId].'),double([attempts(mask).nInit].')];
+[~,~,groups]=unique(pairs,'rows');
+groupSizes=accumarray(groups,1);
+count=sum(groupSizes>1);
 end
 function value=ratio(a,b), if b==0, value=NaN; else, value=a/b; end, end
 function value=percentile(x,p)

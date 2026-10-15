@@ -3,18 +3,19 @@ threshold=cfg.phy.nprachThreshold;
 assert(isfinite(threshold) && threshold>0 && threshold<=1,...
     'nbiot:phy:Calibration','Set a calibrated NPRACH threshold before simulation.');
 [metrics,~]=nbiot.phy.nprach.groupMetrics(cfg,rx,occasion);
-detected=struct('nInit',{},'metric',{},'delaySeconds',{},'cfoHz',{},'threshold',{},'readyTick',{});
+detected=struct('nInit',{},'metric',{},'matchScore',{},'delaySeconds',{},'cfoHz',{},'threshold',{},'readyTick',{});
 selected=find(metrics>=threshold);
 if isempty(selected), return; end
-% Presence uses all twelve public templates on the original received samples.
-% Fitted stronger candidates are removed for delay/CFO estimation only.
-% Selection and fitted coefficients never use UE truth or actual tap values.
+% The group statistic proposes candidates; a full-waveform match at estimated
+% timing/CFO confirms them. Fitted stronger candidates are removed before the
+% next candidate is measured. No UE truth or actual channel taps are used.
 [~,order]=sort(metrics(selected),'descend'); selected=selected(order);
 bank=nbiot.phy.nprach.templates(cfg); fs=1920000;
 residual=rx; columns=complex(zeros(numel(rx.waveform),0));
 for index=selected'
-    [delay,cfo]=estimateParameters(cfg,residual,occasion,bank,index);
-    detected(end+1)=struct('nInit',index-1,'metric',metrics(index),...
+    [delay,cfo,matchScore]=estimateParameters(cfg,residual,occasion,bank,index);
+    if matchScore<threshold, continue; end
+    detected(end+1)=struct('nInit',index-1,'metric',metrics(index),'matchScore',matchScore,...
         'delaySeconds',delay,'cfoHz',cfo,'threshold',threshold,...
         'readyTick',occasion.startTick+6+cfg.phy.processingTicks); %#ok<AGROW>
     if numel(selected)>1
@@ -32,7 +33,7 @@ end
 [~,order]=sort([detected.nInit]); detected=detected(order);
 end
 
-function [bestDelay,bestCfo]=estimateParameters(cfg,rx,occasion,bank,index)
+function [bestDelay,bestCfo,best]=estimateParameters(cfg,rx,occasion,bank,index)
 fs=1920000; delays=round((-8e-6:1/fs:20e-6)*fs);
 delays=min(delays):max(delays)+ceil(cfg.channel.fractionalFilterLength/2);
 count=numel(bank{1}.waveform); first=occasion.startTick*1920+min(delays);

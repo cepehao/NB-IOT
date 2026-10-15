@@ -1,0 +1,3 @@
+% Open saved 100-device results without starting a simulation.
+run(fullfile(fileparts(mfilename('fullpath')),'verification','local', ...
+    'meeting-20261015','openSaved100.m'));

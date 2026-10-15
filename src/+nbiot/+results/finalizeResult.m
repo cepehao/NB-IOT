@@ -1,23 +1,26 @@
-function result=finalizeResult(cfg,scenario,packets,attempts,observed,truth,usage,actualTick,status,stopReason,errorInfo)
+function result=finalizeResult(cfg,scenario,packets,attempts,observed,truth,usage,actualTick,status,stopReason,errorInfo,deviceStates)
 %FINALIZERESULT Export completed, partial and failed runs without fake drops.
 result=struct('config',cfg,'scenario',scenario,'status',status,'stopReason',stopReason, ...
     'actualTick',actualTick,'error',errorInfo,'randomness',scenario.randomManifest);
 result.resultSchemaVersion=2;
+sourceProfile='static-v1';
+if isfield(cfg,'policy')&&isfield(cfg.policy,'name')&& ...
+        ~strcmp(char(string(cfg.policy.name)),'Static')
+    sourceProfile='adaptive-development';
+end
 result.environment=struct('matlabVersion',version,'release',version('-release'),'lteVersion',ver('lte'), ...
-    'computer',computer,'validatedInMatlab',false,'sourceProfile','static-v1');
+    'computer',computer,'validatedInMatlab',false,'sourceProfile',sourceProfile);
 result.packetLog=packets; result.raLog=attempts; result.observedLog=observed; result.truthLog=truth;
 result.phyLog=[observed(strcmp({observed.kind},'phy_decode'));truth(strcmp({truth.kind},'phy_decode'))];
 result.kpiSummary=nbiot.metrics.summarizeKpi(cfg,packets,attempts,observed,truth,usage,actualTick);
 result.kpiTimeSeries=nbiot.metrics.windowKpi(cfg,packets,attempts,observed,actualTick);
-ids=(1:cfg.simulation.numUE).'; created=zeros(size(ids)); delivered=created; dropped=created; unfinished=created;
-for p=packets
-    u=double(p.ueId); created(u)=created(u)+1;
-    switch p.status
-        case 'delivered', delivered(u)=delivered(u)+1;
-        case 'dropped', dropped(u)=dropped(u)+1;
-        case 'unfinished', unfinished(u)=unfinished(u)+1;
-    end
+result.ueSummary=nbiot.results.buildUeSummary(cfg,scenario,packets,attempts,deviceStates);
+referenceBands=unique(result.ueSummary.referenceBandwidthHz);
+if numel(referenceBands)~=1||~isfinite(referenceBands)||referenceBands<=0
+    error('nbiot:results:NetworkBandwidth', ...
+        'The result must have one finite positive network reference bandwidth.');
 end
-result.ueSummary=table(ids,created,delivered,dropped,unfinished,'VariableNames',{'ueId','created','delivered','dropped','unfinished'});
+result.network=struct('carrierFrequencyHz',double(cfg.channel.carrierHz), ...
+    'bandwidthHz',double(referenceBands));
 result.resourceUsage=usage;
 end

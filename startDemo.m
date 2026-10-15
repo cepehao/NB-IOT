@@ -1,0 +1,3 @@
+% Open the one-device demonstration. Press Run in the existing application.
+run(fullfile(fileparts(mfilename('fullpath')),'verification','local', ...
+    'meeting-20261015','openDemo.m'));

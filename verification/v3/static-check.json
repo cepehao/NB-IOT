@@ -1,0 +1,28 @@
+{
+  "checkedAtUtc": "2026-10-15T22:20:59.059433+00:00",
+  "status": "passed",
+  "scope": "Release static inventory and byte integrity; no simulation",
+  "sourceFiles": 119,
+  "sourceSha256": "0e95d51c2ad39259f07f3678abddfd46619b0ca6a36fc107b9099b47cb45a36b",
+  "cases": [
+    {
+      "case": "single-ue",
+      "files": 10,
+      "created": 1,
+      "delivered": 1,
+      "dropped": 0,
+      "unfinished": 0
+    },
+    {
+      "case": "100-ue",
+      "files": 10,
+      "created": 100,
+      "delivered": 6,
+      "dropped": 86,
+      "unfinished": 8
+    }
+  ],
+  "documentationLinks": "passed",
+  "requiredCalibration": true,
+  "testFixtureFiles": 2
+}

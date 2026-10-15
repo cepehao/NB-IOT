@@ -1,0 +1,3 @@
+% Open the radio journal from the one-device startDemo window.
+run(fullfile(fileparts(mfilename('fullpath')),'verification','local', ...
+    'meeting-20261015','showRadioLog.m'));

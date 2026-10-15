@@ -1,0 +1,46 @@
+[
+  {
+    "status": "completed",
+    "exitCode": 0,
+    "elapsedSeconds": 110.0993732,
+    "timeoutSeconds": 300.0,
+    "rootProcessId": 33144,
+    "processIds": [
+      2900,
+      9148,
+      9612,
+      16924,
+      22052,
+      28004,
+      29800,
+      29908,
+      32508,
+      32932,
+      33144
+    ],
+    "stdout": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\local\\meeting-20261015\\checks\\test-0\\process\\stdout.log",
+    "stderr": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\local\\meeting-20261015\\checks\\test-0\\process\\stderr.log"
+  },
+  {
+    "status": "completed",
+    "exitCode": 0,
+    "elapsedSeconds": 36.4676706,
+    "timeoutSeconds": 300.0,
+    "rootProcessId": 19124,
+    "processIds": [
+      4692,
+      5268,
+      13396,
+      13428,
+      19124,
+      24008,
+      24100,
+      25988,
+      26440,
+      28448,
+      31940
+    ],
+    "stdout": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\local\\meeting-20261015\\checks\\test-1\\process\\stdout.log",
+    "stderr": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\local\\meeting-20261015\\checks\\test-1\\process\\stderr.log"
+  }
+]

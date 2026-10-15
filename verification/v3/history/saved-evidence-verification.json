@@ -1,0 +1,2477 @@
+{
+  "capturedAtUtc": "2026-10-15T06:04:49.671482+00:00",
+  "scope": "Read-only file hashes, declared records and balances; not MATLAB reexecution or scientific acceptance",
+  "groups": {
+    "calibration": {
+      "total": 1,
+      "passed": 1
+    },
+    "completed-case": {
+      "total": 38,
+      "passed": 38
+    },
+    "latest-checkpoint": {
+      "total": 1,
+      "passed": 1
+    },
+    "stage2-case": {
+      "total": 232,
+      "passed": 232
+    },
+    "stage2-evidence": {
+      "total": 2,
+      "passed": 2
+    },
+    "stage2-progress": {
+      "total": 1,
+      "passed": 1
+    },
+    "stage2-source": {
+      "total": 34,
+      "passed": 34
+    }
+  },
+  "sourceManifest": {
+    "files": 119,
+    "actualSha256": "0e95d51c2ad39259f07f3678abddfd46619b0ca6a36fc107b9099b47cb45a36b",
+    "acceptedSha256": "0e95d51c2ad39259f07f3678abddfd46619b0ca6a36fc107b9099b47cb45a36b",
+    "matches": true
+  },
+  "stage2": {
+    "status": "completed",
+    "records": 232,
+    "completed": 232,
+    "humanReviewed": false
+  },
+  "completedCases": [
+    {
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\case-complete.json",
+      "status": "completed",
+      "balances": {
+        "created": 100,
+        "delivered": 6,
+        "dropped": 86,
+        "unfinished": 8,
+        "raStarted": 705,
+        "raSuccess": 23,
+        "raFailed": 682,
+        "raUnfinished": 0
+      },
+      "files": 7,
+      "elapsedSeconds": 2005.5307934
+    },
+    {
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\case-complete.json",
+      "status": "completed",
+      "balances": {
+        "created": 500,
+        "delivered": 5,
+        "dropped": 484,
+        "unfinished": 11,
+        "raStarted": 3901,
+        "raSuccess": 24,
+        "raFailed": 3875,
+        "raUnfinished": 2
+      },
+      "files": 7,
+      "elapsedSeconds": 5216.0641482
+    },
+    {
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\case-complete.json",
+      "status": "completed",
+      "balances": {
+        "created": 1000,
+        "delivered": 3,
+        "dropped": 970,
+        "unfinished": 27,
+        "raStarted": 7912,
+        "raSuccess": 22,
+        "raFailed": 7872,
+        "raUnfinished": 18
+      },
+      "files": 7,
+      "elapsedSeconds": 8631.3150404
+    },
+    {
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\case-complete.json",
+      "status": "completed",
+      "balances": {
+        "created": 2500,
+        "delivered": 5,
+        "dropped": 2458,
+        "unfinished": 37,
+        "raStarted": 19913,
+        "raSuccess": 22,
+        "raFailed": 19865,
+        "raUnfinished": 26
+      },
+      "files": 7,
+      "elapsedSeconds": 22853.083419
+    },
+    {
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\case-complete.json",
+      "status": "completed",
+      "balances": {
+        "created": 100,
+        "delivered": 6,
+        "dropped": 86,
+        "unfinished": 8,
+        "raStarted": 696,
+        "raSuccess": 23,
+        "raFailed": 673,
+        "raUnfinished": 0
+      },
+      "files": 10,
+      "elapsedSeconds": 1713.2506991999994
+    }
+  ],
+  "latestCheckpoint": {
+    "tick": 4454,
+    "bytes": 1456966482
+  },
+  "stoppedRun": {
+    "processStatus": "failed",
+    "resumedWorkerSeconds": 54314.2733401,
+    "settledLedgerSeconds": 10136.8822544,
+    "approximateCombinedSeconds": 64451.1555945,
+    "budgetSeconds": 57600,
+    "note": "Combined worker wall time is an audit estimate, not a rewritten budget ledger"
+  },
+  "gitStatus": [
+    " M README.md",
+    " M docs/acceptance-coverage.md",
+    " M docs/implementation-plan.md",
+    " M docs/implementation-status.md",
+    " M docs/metrics-contract.md",
+    " M docs/performance-report.md",
+    " M examples/calibrateNprach.m",
+    " M experiments/runStaticSweep.m",
+    " M experiments/runStaticSweepParallel.m",
+    " M results/nprach-calibration.mat",
+    " M src/+nbiot/+channel/RadioChannel.m",
+    " M src/+nbiot/+config/validateConfig.m",
+    " M src/+nbiot/+dataset/closeWindow.m",
+    " M src/+nbiot/+dataset/featureSchema.m",
+    " M src/+nbiot/+experiments/runStaticCase.m",
+    " M src/+nbiot/+experiments/runtimeManifest.m",
+    " M src/+nbiot/+metrics/summarizeKpi.m",
+    " M src/+nbiot/+metrics/windowKpi.m",
+    " M src/+nbiot/+phy/+nprach/detect.m",
+    " M src/+nbiot/+phy/+nprach/receiverRevision.m",
+    " M src/+nbiot/+results/EventLog.m",
+    " M src/+nbiot/+results/finalizeResult.m",
+    " M src/+nbiot/+results/saveResult.m",
+    " M src/+nbiot/+results/verifyCase.m",
+    " M src/+nbiot/+scenario/buildScenario.m",
+    " M src/+nbiot/+scheduler/ResourceCalendar.m",
+    " M src/+nbiot/+scheduler/Scheduler.m",
+    " M src/+nbiot/NBIoTSimulator.m",
+    " M src/+nbiot/runExperiment.m",
+    " M tests/TestCaseResume.m",
+    " M tests/TestDataset.m",
+    " M tests/TestMetrics.m",
+    " M tests/TestNprachInterference.m",
+    " M tests/TestRuntimeManifest.m",
+    "?? AGENTS.md",
+    "?? apps/",
+    "?? configs/adaptiveDefaults.m",
+    "?? configs/localDevelopment.m",
+    "?? configs/mlTrainingDefaults.m",
+    "?? docs/adaptive-control.md",
+    "?? docs/audit-handoff-2026-10-15.md",
+    "?? docs/collision-capture-validation.md",
+    "?? docs/comparison-protocol.md",
+    "?? docs/current-state.md",
+    "?? docs/experiment-budget.md",
+    "?? docs/external-machine-handoff.md",
+    "?? docs/final-acceptance-evidence.template.json",
+    "?? docs/final-acceptance.md",
+    "?? docs/final-report.md",
+    "?? docs/gui-guide.md",
+    "?? docs/gui-requirements-audit.md",
+    "?? docs/load-dataset.md",
+    "?? docs/local-checks.md",
+    "?? docs/ml-validation.md",
+    "?? docs/pilot-delivery-diagnosis.md",
+    "?? docs/professor-waveform-review-20261014.md",
+    "?? docs/section-47-results-audit.md",
+    "?? docs/section-50-readiness.md",
+    "?? docs/superpowers/",
+    "?? docs/work-audit-2026-10-13.md",
+    "?? examples/openNBIoTApp.m",
+    "?? experiments/buildLoadDataset.m",
+    "?? experiments/plotComparisonSummary.m",
+    "?? experiments/prepareExternalRun.m",
+    "?? experiments/realizationRegistry.json",
+    "?? experiments/runComparisonSweep.m",
+    "?? experiments/runFinalAcceptance.m",
+    "?? experiments/runLoadPilot.m",
+    "?? experiments/runLoadProbe.m",
+    "?? experiments/trainLoadModels.m",
+    "?? experiments/validateCollisionCapture.m",
+    "?? experiments/verifyStage2AcceptanceForLoadProbe.m",
+    "?? java.opts",
+    "?? src/+nbiot/+channel/evaluateLinks.m",
+    "?? src/+nbiot/+controller/",
+    "?? src/+nbiot/+dataset/assembleLoadDataset.m",
+    "?? src/+nbiot/+dataset/summarizeLoadDataset.m",
+    "?? src/+nbiot/+experiments/acquireRealizationRegistryLock.m",
+    "?? src/+nbiot/+experiments/analyzeCollisionTrial.m",
+    "?? src/+nbiot/+experiments/availableRealizationIds.m",
+    "?? src/+nbiot/+experiments/checkpointIdentityHash.m",
+    "?? src/+nbiot/+experiments/comparisonKpis.m",
+    "?? src/+nbiot/+experiments/loadCheckpoint.m",
+    "?? src/+nbiot/+experiments/loadVariant2BudgetLedger.m",
+    "?? src/+nbiot/+experiments/reconcileFailedRealizationUse.m",
+    "?? src/+nbiot/+experiments/registerRealizationUse.m",
+    "?? src/+nbiot/+experiments/runCheckpointedExperiment.m",
+    "?? src/+nbiot/+experiments/runComparisonCase.m",
+    "?? src/+nbiot/+experiments/saveCheckpoint.m",
+    "?? src/+nbiot/+experiments/saveVariant2BudgetLedger.m",
+    "?? src/+nbiot/+experiments/updateRealizationUseStatus.m",
+    "?? src/+nbiot/+experiments/validateExecutionBudget.m",
+    "?? src/+nbiot/+experiments/validateLoadProbeRuntime.m",
+    "?? src/+nbiot/+experiments/validateStage2ReceiverChecks.m",
+    "?? src/+nbiot/+metrics/countTransmittedPackets.m",
+    "?? src/+nbiot/+metrics/radioDiagnostics.m",
+    "?? src/+nbiot/+metrics/serviceKpi.m",
+    "?? src/+nbiot/+ml/",
+    "?? src/+nbiot/+results/buildKpiSummaryTable.m",
+    "?? src/+nbiot/+results/buildRadioDiagnosticsTable.m",
+    "?? src/+nbiot/+results/buildUeSummary.m",
+    "?? src/+nbiot/+ui/",
+    "?? tests/DialogSpy.m",
+    "?? tests/FailingSimulatorStub.m",
+    "?? tests/FixedRegressionPredictor.m",
+    "?? tests/NaNRegressionPredictor.m",
+    "?? tests/RadioEventSimulatorStub.m",
+    "?? tests/TestAdaptiveIntegration.m",
+    "?? tests/TestAdaptivePolicySelection.m",
+    "?? tests/TestCheckpointedExperimentRunner.m",
+    "?? tests/TestCheckpointedStaticCase.m",
+    "?? tests/TestCollisionCapture.m",
+    "?? tests/TestComparisonSummaryLoading.m",
+    "?? tests/TestComparisonSweep.m",
+    "?? tests/TestController.m",
+    "?? tests/TestControllerDisplayData.m",
+    "?? tests/TestDisplayRefresh.m",
+    "?? tests/TestEventLog.m",
+    "?? tests/TestExecutionBudget.m",
+    "?? tests/TestExperimentRegistry.m",
+    "?? tests/TestExternalRealizations.m",
+    "?? tests/TestExternalRunPackage.m",
+    "?? tests/TestFinalAcceptance.m",
+    "?? tests/TestFullAdaptiveChain.m",
+    "?? tests/TestKpiCsvLoading.m",
+    "?? tests/TestLinkBudget.m",
+    "?? tests/TestLiveStateSummaryFormatting.m",
+    "?? tests/TestLoadDataset.m",
+    "?? tests/TestLoadModels.m",
+    "?? tests/TestLoadPilot.m",
+    "?? tests/TestLoadProbe.m",
+    "?? tests/TestModelEvaluationMetrics.m",
+    "?? tests/TestModelInfoFormatting.m",
+    "?? tests/TestNBIoTAppAdaptive.m",
+    "?? tests/TestNBIoTAppChartExport.m",
+    "?? tests/TestNBIoTAppComparison.m",
+    "?? tests/TestNBIoTAppComparisonSummary.m",
+    "?? tests/TestNBIoTAppControllerCharts.m",
+    "?? tests/TestNBIoTAppDialogs.m",
+    "?? tests/TestNBIoTAppLiveCharts.m",
+    "?? tests/TestNBIoTAppModelInfo.m",
+    "?? tests/TestNBIoTAppPauseResumeEquivalence.m",
+    "?? tests/TestNBIoTAppUeDetails.m",
+    "?? tests/TestObservedEventFormatting.m",
+    "?? tests/TestPerUeSummary.m",
+    "?? tests/TestRadioDiagnostics.m",
+    "?? tests/TestRadioDiagnosticsExport.m",
+    "?? tests/TestResourceOccupancy.m",
+    "?? tests/TestResultMetadata.m",
+    "?? tests/TestResultSummaryFormatting.m",
+    "?? tests/TestScheduledExecutionBudget.m",
+    "?? tests/TestScheduledStage2Budget.m",
+    "?? tests/TestServiceKpi.m",
+    "?? tests/TestSimulationCheckpoint.m",
+    "?? tests/TestSimulationSession.m",
+    "?? tests/TestStage2Acceptance.m",
+    "?? tests/TestStage2PhysicalRunner.m",
+    "?? tests/TestStage2RealizationSeed.m",
+    "?? tests/TestStage2ScheduledResume.m",
+    "?? tests/TestStaticChartData.m",
+    "?? tests/TestStaticChartExport.m",
+    "?? tests/TestTransmittedPacketCount.m",
+    "?? tests/TestUeDetailFormatting.m",
+    "?? tests/verification/",
+    "?? tmp/",
+    "?? verification/completion/documentation-20261013.json",
+    "?? verification/completion/stage-2/",
+    "?? verification/completion/stage-3/",
+    "?? verification/external/",
+    "?? verification/local/"
+  ],
+  "checks": [
+    {
+      "group": "stage2-source",
+      "path": "experiments\\validateCollisionCapture.m",
+      "passed": true,
+      "expectedSha256": "ce8f45e353c395ee79d8b9c17d9ade8ea089bd095495f6bbc3e597a10b95b32a",
+      "actualSha256": "ce8f45e353c395ee79d8b9c17d9ade8ea089bd095495f6bbc3e597a10b95b32a"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\stage2Physical.m",
+      "passed": true,
+      "expectedSha256": "fcc11b68b2be6d64cf5559324081da1af2b192ab3bd9c30ad1219cefbc52aca0",
+      "actualSha256": "fcc11b68b2be6d64cf5559324081da1af2b192ab3bd9c30ad1219cefbc52aca0"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\stage2PhysicalProgress.m",
+      "passed": true,
+      "expectedSha256": "848771c2db15dd458e7e3ce0f9d2d6edd34ad18255413f9e84b0dfd7b2e712fe",
+      "actualSha256": "848771c2db15dd458e7e3ce0f9d2d6edd34ad18255413f9e84b0dfd7b2e712fe"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\runStage2Physical.ps1",
+      "passed": true,
+      "expectedSha256": "c92a48967a594aa3bc65fb7d3aef8fd634f29e1ac957b970176067eb5e646cb1",
+      "actualSha256": "c92a48967a594aa3bc65fb7d3aef8fd634f29e1ac957b970176067eb5e646cb1"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\stage2Targeted.m",
+      "passed": true,
+      "expectedSha256": "3eae297f9c3cd78f814fb03b960f10b84cbd0a8f636cc861dfee995bd028f877",
+      "actualSha256": "3eae297f9c3cd78f814fb03b960f10b84cbd0a8f636cc861dfee995bd028f877"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\acceptStage2Evidence.m",
+      "passed": true,
+      "expectedSha256": "03d856fd52eec5489d5db1074d01e23f8f0d5b5876b96bfaa4c3a356b90fdc4a",
+      "actualSha256": "03d856fd52eec5489d5db1074d01e23f8f0d5b5876b96bfaa4c3a356b90fdc4a"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\stage2ArtifactHashes.m",
+      "passed": true,
+      "expectedSha256": "479f533a65e9121403dee8bdaf60ecd27b71e2612044a27cd5fa0b8ca85fa6cd",
+      "actualSha256": "479f533a65e9121403dee8bdaf60ecd27b71e2612044a27cd5fa0b8ca85fa6cd"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\stage2ArtifactHashesMatch.m",
+      "passed": true,
+      "expectedSha256": "a0b6cd757c4e6e02c96c5faa5307fd174f4d9c68ff6f7a8542a1153d523d1f77",
+      "actualSha256": "a0b6cd757c4e6e02c96c5faa5307fd174f4d9c68ff6f7a8542a1153d523d1f77"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\recoverStage2Physical.m",
+      "passed": true,
+      "expectedSha256": "08c4305e78ebf39c20a1ddc7071fcd34b7c03d40444db4bafb3bd312ede8e996",
+      "actualSha256": "08c4305e78ebf39c20a1ddc7071fcd34b7c03d40444db4bafb3bd312ede8e996"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\validateStage2RevalidationProvenance.m",
+      "passed": true,
+      "expectedSha256": "515b39d6237ac10b84533c514be67df113f16425027bf91ce35a37d9d1c9b3cc",
+      "actualSha256": "515b39d6237ac10b84533c514be67df113f16425027bf91ce35a37d9d1c9b3cc"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\runStage2Calibration.m",
+      "passed": true,
+      "expectedSha256": "f67c4c4ca94d79f0e2166cc92b28fa6b28a920909cf1a590b30603666e8e6344",
+      "actualSha256": "f67c4c4ca94d79f0e2166cc92b28fa6b28a920909cf1a590b30603666e8e6344"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\runStage2Revalidation.m",
+      "passed": true,
+      "expectedSha256": "214adbbb35be3c142274da459eb76d76fa9d4ee7b34eaf244845ff1feb325d4a",
+      "actualSha256": "214adbbb35be3c142274da459eb76d76fa9d4ee7b34eaf244845ff1feb325d4a"
+    },
+    {
+      "group": "stage2-source",
+      "path": "verification\\completion\\stage-2\\runStage2ReceiverProbe.m",
+      "passed": true,
+      "expectedSha256": "a2dd24e48509bd4ad48cd0ae6562fba3b517888cc056f73c347e4e1a1f3c680f",
+      "actualSha256": "a2dd24e48509bd4ad48cd0ae6562fba3b517888cc056f73c347e4e1a1f3c680f"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestCollisionCapture.m",
+      "passed": true,
+      "expectedSha256": "702ba2b8798a5f0581a49f07c8205ddbcb6b48ed440ab2dc1541a7b5404ddf76",
+      "actualSha256": "702ba2b8798a5f0581a49f07c8205ddbcb6b48ed440ab2dc1541a7b5404ddf76"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestNprachInterference.m",
+      "passed": true,
+      "expectedSha256": "a81ead1f1ea66b2d16d54ff9922f9d8fa0b09c166ff8342779f1922bbde7cc4d",
+      "actualSha256": "a81ead1f1ea66b2d16d54ff9922f9d8fa0b09c166ff8342779f1922bbde7cc4d"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestStage2Acceptance.m",
+      "passed": true,
+      "expectedSha256": "69bfe7db04ec9baa400b19ec3072b1e68f9955fd91b13d304fe3a2bec173a930",
+      "actualSha256": "69bfe7db04ec9baa400b19ec3072b1e68f9955fd91b13d304fe3a2bec173a930"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestExperimentRegistry.m",
+      "passed": true,
+      "expectedSha256": "adeadff77be5a92ac7314fded9ed94e51f71fcccf986ceef99a35cfcf7afa17e",
+      "actualSha256": "adeadff77be5a92ac7314fded9ed94e51f71fcccf986ceef99a35cfcf7afa17e"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestLoadPilot.m",
+      "passed": true,
+      "expectedSha256": "0252fc087a6020f8a3cb5381b3372f552cde92bab075a43807346eaec5d85ad6",
+      "actualSha256": "0252fc087a6020f8a3cb5381b3372f552cde92bab075a43807346eaec5d85ad6"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestStage2PhysicalRunner.m",
+      "passed": true,
+      "expectedSha256": "25c755360b5de7f00ac77a826f7443a47da6d4cd3f3b42dbd8dcea07d42bdddf",
+      "actualSha256": "25c755360b5de7f00ac77a826f7443a47da6d4cd3f3b42dbd8dcea07d42bdddf"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestStage2RealizationSeed.m",
+      "passed": true,
+      "expectedSha256": "b3f9587d5f013075bd0e3b228f150ab38a42f44843c2806c53a74cb6ef6bd20a",
+      "actualSha256": "b3f9587d5f013075bd0e3b228f150ab38a42f44843c2806c53a74cb6ef6bd20a"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestStage2ScheduledResume.m",
+      "passed": true,
+      "expectedSha256": "78da36aab39ac5f119cc8048bf64b43a60d6547d3bb61feb60f28f9d54cf2ea5",
+      "actualSha256": "78da36aab39ac5f119cc8048bf64b43a60d6547d3bb61feb60f28f9d54cf2ea5"
+    },
+    {
+      "group": "stage2-source",
+      "path": "tests\\TestScheduledStage2Budget.m",
+      "passed": true,
+      "expectedSha256": "cc02e967583b3f62876484858d0d4e4b91f2e93d0a763c0f950baddbbe839ccd",
+      "actualSha256": "cc02e967583b3f62876484858d0d4e4b91f2e93d0a763c0f950baddbbe839ccd"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\availableRealizationIds.m",
+      "passed": true,
+      "expectedSha256": "e44ea751a34da6f6b0c2c9cfa5e24eabf240d75f512ec17cf8aec1e24bdd62f2",
+      "actualSha256": "e44ea751a34da6f6b0c2c9cfa5e24eabf240d75f512ec17cf8aec1e24bdd62f2"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\registerRealizationUse.m",
+      "passed": true,
+      "expectedSha256": "a88fd4b4a8eb45009f04f2cc252ab85b2110a0a21bd7d6edd4d10a3d2876ee7f",
+      "actualSha256": "a88fd4b4a8eb45009f04f2cc252ab85b2110a0a21bd7d6edd4d10a3d2876ee7f"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\updateRealizationUseStatus.m",
+      "passed": true,
+      "expectedSha256": "385c9883f74de045696a92dd198fa8dfa3a5247d1665e9a2f9575c2fb33a1173",
+      "actualSha256": "385c9883f74de045696a92dd198fa8dfa3a5247d1665e9a2f9575c2fb33a1173"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\reconcileFailedRealizationUse.m",
+      "passed": true,
+      "expectedSha256": "eb2354b79f0f2be40cc4544581fb5597ae1a85b215cf471b7d3890ed8e7b7b84",
+      "actualSha256": "eb2354b79f0f2be40cc4544581fb5597ae1a85b215cf471b7d3890ed8e7b7b84"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\analyzeCollisionTrial.m",
+      "passed": true,
+      "expectedSha256": "518c14aa7de20a57e7383694d3d39e2dccccb6858ea9b651b8f4ab68449396e7",
+      "actualSha256": "518c14aa7de20a57e7383694d3d39e2dccccb6858ea9b651b8f4ab68449396e7"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\acquireRealizationRegistryLock.m",
+      "passed": true,
+      "expectedSha256": "6e1b477bf4405dcf05d2cfe733f318429afb53f76a50fbba28ca5678a4ac3a68",
+      "actualSha256": "6e1b477bf4405dcf05d2cfe733f318429afb53f76a50fbba28ca5678a4ac3a68"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\loadVariant2BudgetLedger.m",
+      "passed": true,
+      "expectedSha256": "880605c74f2a3d71a5d2e92596ccc0bc30da5551af5f9fa805aeb8e519604853",
+      "actualSha256": "880605c74f2a3d71a5d2e92596ccc0bc30da5551af5f9fa805aeb8e519604853"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\saveVariant2BudgetLedger.m",
+      "passed": true,
+      "expectedSha256": "697fdcc590043a5999f926af50816e1bfbfe68f287f422844d26fb2afb9e5a64",
+      "actualSha256": "697fdcc590043a5999f926af50816e1bfbfe68f287f422844d26fb2afb9e5a64"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+experiments\\validateStage2ReceiverChecks.m",
+      "passed": true,
+      "expectedSha256": "d41a044034c2bd97a0b64a07832fc34a2b0553e90c9478cc0c4a672ad3719d87",
+      "actualSha256": "d41a044034c2bd97a0b64a07832fc34a2b0553e90c9478cc0c4a672ad3719d87"
+    },
+    {
+      "group": "stage2-source",
+      "path": "examples\\calibrateNprach.m",
+      "passed": true,
+      "expectedSha256": "ba78b61cb30757c887b9c838438c3da05c9c3bffbaf6b4c93c1e5b10bb02353c",
+      "actualSha256": "ba78b61cb30757c887b9c838438c3da05c9c3bffbaf6b4c93c1e5b10bb02353c"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+phy\\+nprach\\detect.m",
+      "passed": true,
+      "expectedSha256": "ee8de85e9012b5bc2af70adc357fbc8ff28cfd490f0b343969e6169c24a19497",
+      "actualSha256": "ee8de85e9012b5bc2af70adc357fbc8ff28cfd490f0b343969e6169c24a19497"
+    },
+    {
+      "group": "stage2-source",
+      "path": "src\\+nbiot\\+phy\\+nprach\\receiverRevision.m",
+      "passed": true,
+      "expectedSha256": "c52faa3e4e5f579ec4e716b9156b50f76c2a66319bbf635cd63472b62a4da7bc",
+      "actualSha256": "c52faa3e4e5f579ec4e716b9156b50f76c2a66319bbf635cd63472b62a4da7bc"
+    },
+    {
+      "group": "stage2-evidence",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\stage2-report.mat",
+      "passed": true,
+      "expectedSha256": "8e92d24de0202c0e8f5ba9553d4c1e0a82e7ff17f8907df0049c705092960458",
+      "actualSha256": "8e92d24de0202c0e8f5ba9553d4c1e0a82e7ff17f8907df0049c705092960458"
+    },
+    {
+      "group": "stage2-evidence",
+      "path": "verification\\completion\\stage-2\\targeted-run-20261014-145209-604\\stage2-targeted.log",
+      "passed": true,
+      "expectedSha256": "ee42e0894b1396ba6086b10ff66e9b029907b8665589ac531b0d94949580b7fd",
+      "actualSha256": "ee42e0894b1396ba6086b10ff66e9b029907b8665589ac531b0d94949580b7fd"
+    },
+    {
+      "group": "calibration",
+      "path": "results\\nprach-calibration.mat",
+      "passed": true,
+      "expectedSha256": "a35b66d094a9158ab3d6e50e9a8194afa1f8802eb74c68570cf5bdd71ebdc3d3",
+      "actualSha256": "a35b66d094a9158ab3d6e50e9a8194afa1f8802eb74c68570cf5bdd71ebdc3d3"
+    },
+    {
+      "group": "stage2-progress",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\progress.json",
+      "passed": true,
+      "expectedSha256": "f4fba9805f0c712f5d35dceefa24386b6201e2abfde17dc629eb1b09d2dce656",
+      "actualSha256": "f4fba9805f0c712f5d35dceefa24386b6201e2abfde17dc629eb1b09d2dce656"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "c294d716a297e2edd4895a8403e2858eff2091f4e4828720b7b268f7365f71dd",
+      "actualSha256": "c294d716a297e2edd4895a8403e2858eff2091f4e4828720b7b268f7365f71dd"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "369fb4f59065e31cb33ff9dff90234820b99c3a7adc1475e002b2a2fd8fa5d4f",
+      "actualSha256": "369fb4f59065e31cb33ff9dff90234820b99c3a7adc1475e002b2a2fd8fa5d4f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "f2a45eba6c395839180b39f5bcc77ac1be024319c2e8bc1e063b96f02de96141",
+      "actualSha256": "f2a45eba6c395839180b39f5bcc77ac1be024319c2e8bc1e063b96f02de96141"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "541d887678655a70c2e86fbca49750c98da9c3ea4f8dfea941f286382ab5c574",
+      "actualSha256": "541d887678655a70c2e86fbca49750c98da9c3ea4f8dfea941f286382ab5c574"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "f611d8806ac8c6be14e64f16e764cdd5b0656f5bcff12eed715cf898be9cbc8d",
+      "actualSha256": "f611d8806ac8c6be14e64f16e764cdd5b0656f5bcff12eed715cf898be9cbc8d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "f61fface2db7f560b94f3d1d48feabeb999bc7f2602cfc7cde3856330c99e4e4",
+      "actualSha256": "f61fface2db7f560b94f3d1d48feabeb999bc7f2602cfc7cde3856330c99e4e4"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "37c33afa482c8c15d4321b3e7b9651439c73692b765f7c0e977070bc7515f1ce",
+      "actualSha256": "37c33afa482c8c15d4321b3e7b9651439c73692b765f7c0e977070bc7515f1ce"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "49f80224b7eb60cd0d44dff998b66a433583664f7bb5139dc3ad0dfed119b261",
+      "actualSha256": "49f80224b7eb60cd0d44dff998b66a433583664f7bb5139dc3ad0dfed119b261"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "a4e8c6984f3eda5ea7b35202d17c881e9365a79b3f718445e9d3dfbad3a0c6de",
+      "actualSha256": "a4e8c6984f3eda5ea7b35202d17c881e9365a79b3f718445e9d3dfbad3a0c6de"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-01-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "b30bb7c5542c60650c6eaaba7f032d31efa7b0ca026a47c896cc1bee212c7e3c",
+      "actualSha256": "b30bb7c5542c60650c6eaaba7f032d31efa7b0ca026a47c896cc1bee212c7e3c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "f1e09058a5bc33b18791b922f21e3cf1294c87e4aa54d76577d989cc8eae187d",
+      "actualSha256": "f1e09058a5bc33b18791b922f21e3cf1294c87e4aa54d76577d989cc8eae187d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "99db4e57e841c91e69d7fa4f4e50c5d2fabbf87c87cc1d2ffd757c341cd4fccd",
+      "actualSha256": "99db4e57e841c91e69d7fa4f4e50c5d2fabbf87c87cc1d2ffd757c341cd4fccd"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "8efb9986bad8bd9238ea221c3c6c2c32d523e914737d5b988a8ffb89e618b995",
+      "actualSha256": "8efb9986bad8bd9238ea221c3c6c2c32d523e914737d5b988a8ffb89e618b995"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "3c01a05b142db55035631a3eb4596cc7ba8fb53cb291ecb3fe90de32cd197e23",
+      "actualSha256": "3c01a05b142db55035631a3eb4596cc7ba8fb53cb291ecb3fe90de32cd197e23"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "e7f634dde7f61020c2c541137c95b8e76286321cdbea40f8d7ee55371fc579c7",
+      "actualSha256": "e7f634dde7f61020c2c541137c95b8e76286321cdbea40f8d7ee55371fc579c7"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "780416773ff34c52bd363073602a8ec9e5c0d5c15cad3d1d8ba605359cb03b72",
+      "actualSha256": "780416773ff34c52bd363073602a8ec9e5c0d5c15cad3d1d8ba605359cb03b72"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "57063ccb46f2584f8ceddb5f68e8c6dd8eaa1b66438c7a98134e67c56e14f1a3",
+      "actualSha256": "57063ccb46f2584f8ceddb5f68e8c6dd8eaa1b66438c7a98134e67c56e14f1a3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "e50985cd629f1e7ac3580ce550249481705597aaae5e9883b4a83dea5e4ae147",
+      "actualSha256": "e50985cd629f1e7ac3580ce550249481705597aaae5e9883b4a83dea5e4ae147"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "60de06a068ff1248db66cbe1b597108ee1d009890a8c2605302f7c7fb5559cc9",
+      "actualSha256": "60de06a068ff1248db66cbe1b597108ee1d009890a8c2605302f7c7fb5559cc9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-02-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "6fbfca70a37cf1363cca3faa3df68bc4e84eedb88896fb6c6d9719bd6d3cd84a",
+      "actualSha256": "6fbfca70a37cf1363cca3faa3df68bc4e84eedb88896fb6c6d9719bd6d3cd84a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "0204ea8d20bff9e91639ea711913493c197b090167eca794d50a6b343fdbfc8c",
+      "actualSha256": "0204ea8d20bff9e91639ea711913493c197b090167eca794d50a6b343fdbfc8c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "21c74abe7aff98bc5adf3c825b118f06d80e8d86678b31c07f1e421fd1d67181",
+      "actualSha256": "21c74abe7aff98bc5adf3c825b118f06d80e8d86678b31c07f1e421fd1d67181"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "8822d18e1e1e5c00f70ff4bf51189f0929dfd265becaec5ccfa5bc53ed2a45c7",
+      "actualSha256": "8822d18e1e1e5c00f70ff4bf51189f0929dfd265becaec5ccfa5bc53ed2a45c7"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "d24d2f1d0cc5a7ef88e6e9f74730a8ef825824490758453e5f57628fc37af08d",
+      "actualSha256": "d24d2f1d0cc5a7ef88e6e9f74730a8ef825824490758453e5f57628fc37af08d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "091042c0779f858350e5c6beeb8138f66187fc768f6a98d6ce29e45bd2900632",
+      "actualSha256": "091042c0779f858350e5c6beeb8138f66187fc768f6a98d6ce29e45bd2900632"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "525b58630cabc398fa536f27a2d0ab2cc8f929550ebee63ea15cb7152f524a54",
+      "actualSha256": "525b58630cabc398fa536f27a2d0ab2cc8f929550ebee63ea15cb7152f524a54"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "b69aeb06c0e52f545f909d6968e71714e40e6b53c773461ba35be661f6838d2d",
+      "actualSha256": "b69aeb06c0e52f545f909d6968e71714e40e6b53c773461ba35be661f6838d2d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "de3936273162c2caec354fe6873e326e593fda56d8fb0c8c0c978cc7b339b993",
+      "actualSha256": "de3936273162c2caec354fe6873e326e593fda56d8fb0c8c0c978cc7b339b993"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "70ef75abf9fa89920fefa65ee258107a484af730fc513b18ee19fa4d0f165c0a",
+      "actualSha256": "70ef75abf9fa89920fefa65ee258107a484af730fc513b18ee19fa4d0f165c0a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-03-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "3c1fbe8a58ea4d6c96a95e621b3f6bf4c28037d47e69353f0dc0c1c4be35a214",
+      "actualSha256": "3c1fbe8a58ea4d6c96a95e621b3f6bf4c28037d47e69353f0dc0c1c4be35a214"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "6e4e1813781848d8605dc0e005ac42d4dacecd4f23fc54773e968a6d98b6d88e",
+      "actualSha256": "6e4e1813781848d8605dc0e005ac42d4dacecd4f23fc54773e968a6d98b6d88e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "abffb6acc5cc393d1d95234cebaf3f37e6a8f7d507421b528b8b8509bf49fa78",
+      "actualSha256": "abffb6acc5cc393d1d95234cebaf3f37e6a8f7d507421b528b8b8509bf49fa78"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "c7b0ab634d5ecabbec78f069721e1e097ec9c48b7209b1554e6716013bf299df",
+      "actualSha256": "c7b0ab634d5ecabbec78f069721e1e097ec9c48b7209b1554e6716013bf299df"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "0339b429449a7606c4196b88273b9977489502d93ff417fa7be7b26ff6916152",
+      "actualSha256": "0339b429449a7606c4196b88273b9977489502d93ff417fa7be7b26ff6916152"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "d9a4ad37a5c5e7afd2e4c1ac819a18f5e9fec80c3f4afa05c143fd9b72df72a0",
+      "actualSha256": "d9a4ad37a5c5e7afd2e4c1ac819a18f5e9fec80c3f4afa05c143fd9b72df72a0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "359c84b0c5ff86e18894ffe3782df97152d00de248178ff780fbe3e868e16beb",
+      "actualSha256": "359c84b0c5ff86e18894ffe3782df97152d00de248178ff780fbe3e868e16beb"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "12ac1f245d9c78faf34863f90bc7ce6c06c9461d7c4923767e4d974bd2dfa4ac",
+      "actualSha256": "12ac1f245d9c78faf34863f90bc7ce6c06c9461d7c4923767e4d974bd2dfa4ac"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "ac86e0ece37ad1d1c6a1e1a4596e4c96bba31b19b512269853416c890244eb41",
+      "actualSha256": "ac86e0ece37ad1d1c6a1e1a4596e4c96bba31b19b512269853416c890244eb41"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "65f78a558cd1bf84cd81148f75395fe72cb82dd658c0472d266656e3e49dddd3",
+      "actualSha256": "65f78a558cd1bf84cd81148f75395fe72cb82dd658c0472d266656e3e49dddd3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-04-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "244caea2fdfa4f98a19cbbb05d836f8b84144db6149ae280c063446244ad08fa",
+      "actualSha256": "244caea2fdfa4f98a19cbbb05d836f8b84144db6149ae280c063446244ad08fa"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "0b1b2c0910503a64d71269dd26377d65c666d8c7cf89334f398eaa208e4f7df1",
+      "actualSha256": "0b1b2c0910503a64d71269dd26377d65c666d8c7cf89334f398eaa208e4f7df1"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "bb21bd02b2fcddf13716921bd55adbb8e7eea22f18a40c042a93d34230753f6e",
+      "actualSha256": "bb21bd02b2fcddf13716921bd55adbb8e7eea22f18a40c042a93d34230753f6e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "2826d1b4df0c92fadb50fe2623b534e5fdb0c5e894206699ca8a8f21db589418",
+      "actualSha256": "2826d1b4df0c92fadb50fe2623b534e5fdb0c5e894206699ca8a8f21db589418"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "cf51cd3d84591807ed20069226352910bb6258837213a04ac9c3f1cb97e6c871",
+      "actualSha256": "cf51cd3d84591807ed20069226352910bb6258837213a04ac9c3f1cb97e6c871"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "a302785c3b00dfd8db2d626cb3bb59ae61ade9e7d94872c20355be0fe40b4865",
+      "actualSha256": "a302785c3b00dfd8db2d626cb3bb59ae61ade9e7d94872c20355be0fe40b4865"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "03a1afd0f90989eaea546b48353f6b1cda5e9d61122a77483cceff763ad683e0",
+      "actualSha256": "03a1afd0f90989eaea546b48353f6b1cda5e9d61122a77483cceff763ad683e0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "be97f75df1b991421005d5d4984e209137ff80cdefc8ee678172a76ada2885bf",
+      "actualSha256": "be97f75df1b991421005d5d4984e209137ff80cdefc8ee678172a76ada2885bf"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "8de3b398024185c0c8b88d0470647f20ed40eedfdac5eededa471559050fabbc",
+      "actualSha256": "8de3b398024185c0c8b88d0470647f20ed40eedfdac5eededa471559050fabbc"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "d9a636daef5d6620d3028cdb7cd276876037110e8291cdc1bf08abf13201b7e0",
+      "actualSha256": "d9a636daef5d6620d3028cdb7cd276876037110e8291cdc1bf08abf13201b7e0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-05-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "b59a30cb1fc062913decd0c19e7d289c2d7b879e6f80965fd6068e105c0d7176",
+      "actualSha256": "b59a30cb1fc062913decd0c19e7d289c2d7b879e6f80965fd6068e105c0d7176"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "ccc31108debbef4339fdcba10f3c2305c4dc45bbb03112381e2323fb9b049c45",
+      "actualSha256": "ccc31108debbef4339fdcba10f3c2305c4dc45bbb03112381e2323fb9b049c45"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "b19fab6613c3d7a34c053c42da4b2c3cb653c786c7865721b8f04afe2d70e506",
+      "actualSha256": "b19fab6613c3d7a34c053c42da4b2c3cb653c786c7865721b8f04afe2d70e506"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "70385a6151bdd61a311a4fcf0d34edfb97d981c782eb0b2c7824a3bdef14afe4",
+      "actualSha256": "70385a6151bdd61a311a4fcf0d34edfb97d981c782eb0b2c7824a3bdef14afe4"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "f1182181e85b88f5be7d9df089132c0114fd866b2a9d1e8f27e1dae37f89e65a",
+      "actualSha256": "f1182181e85b88f5be7d9df089132c0114fd866b2a9d1e8f27e1dae37f89e65a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "465d4e68ae9e01f58e71d9292ad6f4f4c3779b82877094473552762800222c7e",
+      "actualSha256": "465d4e68ae9e01f58e71d9292ad6f4f4c3779b82877094473552762800222c7e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "6c2d5f84ff472f0f8fcf081725c5093ebf196cdf32f3b2bea45751db4ac49e8b",
+      "actualSha256": "6c2d5f84ff472f0f8fcf081725c5093ebf196cdf32f3b2bea45751db4ac49e8b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "4e08b17e55f9d52f573f9166d38c11d910aeb944563375580967c11e56e87b59",
+      "actualSha256": "4e08b17e55f9d52f573f9166d38c11d910aeb944563375580967c11e56e87b59"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "7a156229303b8f1b4dcc5feafc24aea48c95808b43352dd936801e20a81a2efe",
+      "actualSha256": "7a156229303b8f1b4dcc5feafc24aea48c95808b43352dd936801e20a81a2efe"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "85058f78bb9efbebe0b57a2ea69b029427a277c82c1325d76c3db349ef1ec19c",
+      "actualSha256": "85058f78bb9efbebe0b57a2ea69b029427a277c82c1325d76c3db349ef1ec19c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-06-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "35aa4e40d457e5bf950fccb642f689115ac5430862c46d75251b5e70f28a2543",
+      "actualSha256": "35aa4e40d457e5bf950fccb642f689115ac5430862c46d75251b5e70f28a2543"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1065.mat",
+      "passed": true,
+      "expectedSha256": "7b0b284efc6aac3389f9dcc3bf9657197c1dfe5d44862290f07fcc4bda82f052",
+      "actualSha256": "7b0b284efc6aac3389f9dcc3bf9657197c1dfe5d44862290f07fcc4bda82f052"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1066.mat",
+      "passed": true,
+      "expectedSha256": "d9da9a4f4c327cb93d523c375f15e841d5d41a5b95296173d5d012b817f4730e",
+      "actualSha256": "d9da9a4f4c327cb93d523c375f15e841d5d41a5b95296173d5d012b817f4730e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1067.mat",
+      "passed": true,
+      "expectedSha256": "fc9cfdfd1eb387bd5b99db60fa3efade1fb6232b2c67dab64f5257f0cf2f4ce0",
+      "actualSha256": "fc9cfdfd1eb387bd5b99db60fa3efade1fb6232b2c67dab64f5257f0cf2f4ce0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1069.mat",
+      "passed": true,
+      "expectedSha256": "7ee6a283d2970c2bf346e2468d72aef945fb17535c67d1e2ebef8166f46b80ba",
+      "actualSha256": "7ee6a283d2970c2bf346e2468d72aef945fb17535c67d1e2ebef8166f46b80ba"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1070.mat",
+      "passed": true,
+      "expectedSha256": "c7e0a5d8bc5a5e225a5f26a6c8050192b728fa1ca361b1da9221cc25ce447c16",
+      "actualSha256": "c7e0a5d8bc5a5e225a5f26a6c8050192b728fa1ca361b1da9221cc25ce447c16"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1071.mat",
+      "passed": true,
+      "expectedSha256": "a78f08a78fa6652a94a116cedd9fcf755f495e73335941988afe384ad6eec4f2",
+      "actualSha256": "a78f08a78fa6652a94a116cedd9fcf755f495e73335941988afe384ad6eec4f2"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1072.mat",
+      "passed": true,
+      "expectedSha256": "3b239e6cf3cc60eea2b57399c78702c4bf798ee55307afb523544d0be8ead0b2",
+      "actualSha256": "3b239e6cf3cc60eea2b57399c78702c4bf798ee55307afb523544d0be8ead0b2"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1073.mat",
+      "passed": true,
+      "expectedSha256": "f4cb5f040dd8d8f1b0262a6ad52bc68fced3cd1cb292729a038644e6f70870ca",
+      "actualSha256": "f4cb5f040dd8d8f1b0262a6ad52bc68fced3cd1cb292729a038644e6f70870ca"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1075.mat",
+      "passed": true,
+      "expectedSha256": "3f2909a7df891503a8904862504509dc0f5ead610236bbb6fb141019bbb9f07b",
+      "actualSha256": "3f2909a7df891503a8904862504509dc0f5ead610236bbb6fb141019bbb9f07b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-07-id-1076.mat",
+      "passed": true,
+      "expectedSha256": "f16a086fd772d888d8beb892ea9260fb49df993008cb19cc3b1ccb6bbd2d833d",
+      "actualSha256": "f16a086fd772d888d8beb892ea9260fb49df993008cb19cc3b1ccb6bbd2d833d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1065.mat",
+      "passed": true,
+      "expectedSha256": "f918ec297d21cad51a0cc23be11f5c54f8a4de4b0b10ec710d2b1450e98a3e96",
+      "actualSha256": "f918ec297d21cad51a0cc23be11f5c54f8a4de4b0b10ec710d2b1450e98a3e96"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1066.mat",
+      "passed": true,
+      "expectedSha256": "21e2b264c25b9212790189e4115f6f0146fda482aa2853c5387108bd26578d91",
+      "actualSha256": "21e2b264c25b9212790189e4115f6f0146fda482aa2853c5387108bd26578d91"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1067.mat",
+      "passed": true,
+      "expectedSha256": "f1304cb68bfcfcb718673cba2375839d1cd2253c797c412d3776e5e63638b573",
+      "actualSha256": "f1304cb68bfcfcb718673cba2375839d1cd2253c797c412d3776e5e63638b573"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1069.mat",
+      "passed": true,
+      "expectedSha256": "1df6bb48556f76fbb504a869690434922d80a47ae28e2b5d30535fb35ea503f3",
+      "actualSha256": "1df6bb48556f76fbb504a869690434922d80a47ae28e2b5d30535fb35ea503f3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1070.mat",
+      "passed": true,
+      "expectedSha256": "df52cea00e8f0656ff181a730458628244555da61765871742e06f05e645c3c7",
+      "actualSha256": "df52cea00e8f0656ff181a730458628244555da61765871742e06f05e645c3c7"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1071.mat",
+      "passed": true,
+      "expectedSha256": "596d4a067caf57ea20dd5167830cbd4eeac8726e2feac85bfed9d286d9978180",
+      "actualSha256": "596d4a067caf57ea20dd5167830cbd4eeac8726e2feac85bfed9d286d9978180"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1072.mat",
+      "passed": true,
+      "expectedSha256": "e715e088eeeba441d568371cef505e84c3f736b14005e6832be9f7b459d2b8e4",
+      "actualSha256": "e715e088eeeba441d568371cef505e84c3f736b14005e6832be9f7b459d2b8e4"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1073.mat",
+      "passed": true,
+      "expectedSha256": "8844259474e0eb5d656c4240bc6c5d6d0e0628d194549352c4f04739c92ed2ca",
+      "actualSha256": "8844259474e0eb5d656c4240bc6c5d6d0e0628d194549352c4f04739c92ed2ca"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1075.mat",
+      "passed": true,
+      "expectedSha256": "7d9d8ff163174f691751b45da8f6cad51cd3db9cbb2f8d30b4ee38c69bff21f9",
+      "actualSha256": "7d9d8ff163174f691751b45da8f6cad51cd3db9cbb2f8d30b4ee38c69bff21f9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-08-id-1076.mat",
+      "passed": true,
+      "expectedSha256": "8f5521295969b2eab7c6178b54bc5b8af374a51492cc685cb4ef75974ec5ecdf",
+      "actualSha256": "8f5521295969b2eab7c6178b54bc5b8af374a51492cc685cb4ef75974ec5ecdf"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1065.mat",
+      "passed": true,
+      "expectedSha256": "600a019ac0916c7a884403ff15ba8dc0456487ab6dd270c961628d78a5d6db08",
+      "actualSha256": "600a019ac0916c7a884403ff15ba8dc0456487ab6dd270c961628d78a5d6db08"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1066.mat",
+      "passed": true,
+      "expectedSha256": "38f7eb6ef263cf32de3940894294bd6654e9e5d39d189c7aa7d369e4f1367e72",
+      "actualSha256": "38f7eb6ef263cf32de3940894294bd6654e9e5d39d189c7aa7d369e4f1367e72"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1067.mat",
+      "passed": true,
+      "expectedSha256": "bc8341c63df22293cd0a4ddbf3793ec05851fab0901788a0705f823eee50b038",
+      "actualSha256": "bc8341c63df22293cd0a4ddbf3793ec05851fab0901788a0705f823eee50b038"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1069.mat",
+      "passed": true,
+      "expectedSha256": "da9162e65fb3982368ce36b4ae66d75035e014711417096295521187934825e6",
+      "actualSha256": "da9162e65fb3982368ce36b4ae66d75035e014711417096295521187934825e6"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1070.mat",
+      "passed": true,
+      "expectedSha256": "6b3512c123600cf16aefd6af06161a4ec8d3424c0fc131a425bbef7139851f70",
+      "actualSha256": "6b3512c123600cf16aefd6af06161a4ec8d3424c0fc131a425bbef7139851f70"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1071.mat",
+      "passed": true,
+      "expectedSha256": "7cbb7c7c22716274cd694720ecb61507639637345ec62939bf4a7bc538ba5e41",
+      "actualSha256": "7cbb7c7c22716274cd694720ecb61507639637345ec62939bf4a7bc538ba5e41"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1072.mat",
+      "passed": true,
+      "expectedSha256": "494ad30969f8ddd8eee73c1278d4b874c8880c5b9f764851c8a1a8bec812fb29",
+      "actualSha256": "494ad30969f8ddd8eee73c1278d4b874c8880c5b9f764851c8a1a8bec812fb29"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1073.mat",
+      "passed": true,
+      "expectedSha256": "db6898c480f3a489e1483b504c71d1799d82fd9821f76f8479805bec777ccb91",
+      "actualSha256": "db6898c480f3a489e1483b504c71d1799d82fd9821f76f8479805bec777ccb91"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1075.mat",
+      "passed": true,
+      "expectedSha256": "3b05c0684cd55e2453eaa859adb8892997154d35525b656816046398475f570c",
+      "actualSha256": "3b05c0684cd55e2453eaa859adb8892997154d35525b656816046398475f570c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-09-id-1076.mat",
+      "passed": true,
+      "expectedSha256": "bb07b48cc60f9c9a3d1387ec0249b5d5a463904fae413a1c678caa708de6f974",
+      "actualSha256": "bb07b48cc60f9c9a3d1387ec0249b5d5a463904fae413a1c678caa708de6f974"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1065.mat",
+      "passed": true,
+      "expectedSha256": "46243e24bd88c8b8ec5d53b4646360d2473704cc348816ffb14e0a2a79b1d3b1",
+      "actualSha256": "46243e24bd88c8b8ec5d53b4646360d2473704cc348816ffb14e0a2a79b1d3b1"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1066.mat",
+      "passed": true,
+      "expectedSha256": "bb25f504c53aea1b7291e78832bfb2c8ce5179733778fdb245426bf41d76e0c2",
+      "actualSha256": "bb25f504c53aea1b7291e78832bfb2c8ce5179733778fdb245426bf41d76e0c2"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1067.mat",
+      "passed": true,
+      "expectedSha256": "ac41b19c1fb4e5a9a62b966ede2dfb07191131ba56d73016f746eb02e4f833de",
+      "actualSha256": "ac41b19c1fb4e5a9a62b966ede2dfb07191131ba56d73016f746eb02e4f833de"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1069.mat",
+      "passed": true,
+      "expectedSha256": "6bb4f0c9bd995320e2c9570a6ebcff69ea9859b1e095e676b69a31646ddfd308",
+      "actualSha256": "6bb4f0c9bd995320e2c9570a6ebcff69ea9859b1e095e676b69a31646ddfd308"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1070.mat",
+      "passed": true,
+      "expectedSha256": "fa6613ef8b7be442f20b68d5de8f4cc796c5517a8564a346ca84cc34c1c8f95a",
+      "actualSha256": "fa6613ef8b7be442f20b68d5de8f4cc796c5517a8564a346ca84cc34c1c8f95a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1071.mat",
+      "passed": true,
+      "expectedSha256": "6c5437abfb326eb0a9380cbc23ecbc9b889eb7e423a94e6e02ddf8c952d40e8b",
+      "actualSha256": "6c5437abfb326eb0a9380cbc23ecbc9b889eb7e423a94e6e02ddf8c952d40e8b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1072.mat",
+      "passed": true,
+      "expectedSha256": "eadc952acd0672ff106b815d7fb32edbed24be35c6e45afcd342283d292e35cb",
+      "actualSha256": "eadc952acd0672ff106b815d7fb32edbed24be35c6e45afcd342283d292e35cb"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1073.mat",
+      "passed": true,
+      "expectedSha256": "390c19a8ee793bcde42d77202e40b2e5202bf1aad9f4d25717cf2fb4b261b5ac",
+      "actualSha256": "390c19a8ee793bcde42d77202e40b2e5202bf1aad9f4d25717cf2fb4b261b5ac"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1075.mat",
+      "passed": true,
+      "expectedSha256": "0ad2506e8a7bdbaf5eb3474a033b116aa380aa3a1965882cc290825b37b3854c",
+      "actualSha256": "0ad2506e8a7bdbaf5eb3474a033b116aa380aa3a1965882cc290825b37b3854c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-10-id-1076.mat",
+      "passed": true,
+      "expectedSha256": "35bfabbd9e410bd22a558aa01677b8cb7d49031631dea61c8558226e85f24a1d",
+      "actualSha256": "35bfabbd9e410bd22a558aa01677b8cb7d49031631dea61c8558226e85f24a1d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1065.mat",
+      "passed": true,
+      "expectedSha256": "4480fd2e36684115cd3f38d048385c1e6a4c74298774e5467170f0e4ab5341af",
+      "actualSha256": "4480fd2e36684115cd3f38d048385c1e6a4c74298774e5467170f0e4ab5341af"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1066.mat",
+      "passed": true,
+      "expectedSha256": "d6aedc382227fa301c18830c0bcad09213c7fcb97afb57496e09bb9e6d8a2e3f",
+      "actualSha256": "d6aedc382227fa301c18830c0bcad09213c7fcb97afb57496e09bb9e6d8a2e3f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1067.mat",
+      "passed": true,
+      "expectedSha256": "092b7e5692aaa1419af795d036e22fe0e0454db4d5ee78397a21658e0fd09e92",
+      "actualSha256": "092b7e5692aaa1419af795d036e22fe0e0454db4d5ee78397a21658e0fd09e92"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1069.mat",
+      "passed": true,
+      "expectedSha256": "6a341e34c307da3a3fdeb2dd4650107c5bd1c234a6efa59fdbd0bd6d74c22c76",
+      "actualSha256": "6a341e34c307da3a3fdeb2dd4650107c5bd1c234a6efa59fdbd0bd6d74c22c76"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1070.mat",
+      "passed": true,
+      "expectedSha256": "e70e7c4cdd7fe82da078f989904f8da0d3f6f3ace631d79f3f0ac59205a7cb30",
+      "actualSha256": "e70e7c4cdd7fe82da078f989904f8da0d3f6f3ace631d79f3f0ac59205a7cb30"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1071.mat",
+      "passed": true,
+      "expectedSha256": "d07ba117c33a6a72f0b490f4d4ca05b86c866f1881fc056f0881b4a0a1ca6a4c",
+      "actualSha256": "d07ba117c33a6a72f0b490f4d4ca05b86c866f1881fc056f0881b4a0a1ca6a4c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1072.mat",
+      "passed": true,
+      "expectedSha256": "d1c3467d5a442c31f2ae3938648dd2bb0dfcba78114735a832fbba91208cbfa0",
+      "actualSha256": "d1c3467d5a442c31f2ae3938648dd2bb0dfcba78114735a832fbba91208cbfa0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1073.mat",
+      "passed": true,
+      "expectedSha256": "6399d9d3e4709a6d297c0bbebaebb0e2285e8e465bf4d855dc141a5aaaffccd8",
+      "actualSha256": "6399d9d3e4709a6d297c0bbebaebb0e2285e8e465bf4d855dc141a5aaaffccd8"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1075.mat",
+      "passed": true,
+      "expectedSha256": "3f245e741d5dd665f5be4465f8a66fbbdc285621e943627743ff35efcd4598d8",
+      "actualSha256": "3f245e741d5dd665f5be4465f8a66fbbdc285621e943627743ff35efcd4598d8"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-11-id-1076.mat",
+      "passed": true,
+      "expectedSha256": "36448f533af35a0a026c1665f1c1e5d9e4ad422b16f4895a44efd8c6f915503e",
+      "actualSha256": "36448f533af35a0a026c1665f1c1e5d9e4ad422b16f4895a44efd8c6f915503e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1065.mat",
+      "passed": true,
+      "expectedSha256": "acd3b11640a393019f6749d19841ed3d82f4389cc498f6b7b3f6e9231e2c947b",
+      "actualSha256": "acd3b11640a393019f6749d19841ed3d82f4389cc498f6b7b3f6e9231e2c947b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1066.mat",
+      "passed": true,
+      "expectedSha256": "14c3e0adcf45b821004c5cb6a36f73437751871e70633c616f82f1b165585965",
+      "actualSha256": "14c3e0adcf45b821004c5cb6a36f73437751871e70633c616f82f1b165585965"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1067.mat",
+      "passed": true,
+      "expectedSha256": "54155fe72220bbede573d69db155d13e115bb98b165f2450901c65884f9a8c00",
+      "actualSha256": "54155fe72220bbede573d69db155d13e115bb98b165f2450901c65884f9a8c00"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1069.mat",
+      "passed": true,
+      "expectedSha256": "0cbfcc396ee5a6cf9ed30036eb6d68fe1847fba43302225c034f488ce2c11a77",
+      "actualSha256": "0cbfcc396ee5a6cf9ed30036eb6d68fe1847fba43302225c034f488ce2c11a77"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1070.mat",
+      "passed": true,
+      "expectedSha256": "f8cb74ad923e01b0e32cc0ae86f4541da8a45d90f52df9f7f7436d7bed5d15eb",
+      "actualSha256": "f8cb74ad923e01b0e32cc0ae86f4541da8a45d90f52df9f7f7436d7bed5d15eb"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1071.mat",
+      "passed": true,
+      "expectedSha256": "b4e4dc532fcb267c6233465e53e6f5635cbdbb2991a281a41408eea37647009b",
+      "actualSha256": "b4e4dc532fcb267c6233465e53e6f5635cbdbb2991a281a41408eea37647009b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1072.mat",
+      "passed": true,
+      "expectedSha256": "2e07ace0bb69380a8393c0780e7c3a18f72bb62ba81a3a9bc24d3e2a091440eb",
+      "actualSha256": "2e07ace0bb69380a8393c0780e7c3a18f72bb62ba81a3a9bc24d3e2a091440eb"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1073.mat",
+      "passed": true,
+      "expectedSha256": "87e1a71a0403eec017311f7bf3191306ec9579a8c8cdbd8aeb867f160417007b",
+      "actualSha256": "87e1a71a0403eec017311f7bf3191306ec9579a8c8cdbd8aeb867f160417007b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1075.mat",
+      "passed": true,
+      "expectedSha256": "dd648afc6769cf79f424a67908ced94852e05d67158bf3b444adddb3c971020b",
+      "actualSha256": "dd648afc6769cf79f424a67908ced94852e05d67158bf3b444adddb3c971020b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-12-id-1076.mat",
+      "passed": true,
+      "expectedSha256": "0dc66daf083dd8fc2c480c4e919708928b74107b53fc70ba43fe4094db294abf",
+      "actualSha256": "0dc66daf083dd8fc2c480c4e919708928b74107b53fc70ba43fe4094db294abf"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1211.mat",
+      "passed": true,
+      "expectedSha256": "7e6dfc67b5484db4a563ef6d6a690462d7e688b058949a8cdc8b3cbeee924a7b",
+      "actualSha256": "7e6dfc67b5484db4a563ef6d6a690462d7e688b058949a8cdc8b3cbeee924a7b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1297.mat",
+      "passed": true,
+      "expectedSha256": "e7b92c575cf099aa4388ffc443b0a8c16191ea3fb1358c60256f299b78f0e1df",
+      "actualSha256": "e7b92c575cf099aa4388ffc443b0a8c16191ea3fb1358c60256f299b78f0e1df"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1306.mat",
+      "passed": true,
+      "expectedSha256": "7f437cea6718ff51168096dd62d2e180cb4e4c988ddbf958d9754487cf811a9f",
+      "actualSha256": "7f437cea6718ff51168096dd62d2e180cb4e4c988ddbf958d9754487cf811a9f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1573.mat",
+      "passed": true,
+      "expectedSha256": "12f2caa42e47cc3d67e0f1daba86aef529cb47634d62a2933d86292f58174072",
+      "actualSha256": "12f2caa42e47cc3d67e0f1daba86aef529cb47634d62a2933d86292f58174072"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1680.mat",
+      "passed": true,
+      "expectedSha256": "73804aee0064d191a89bb2a266e6ed930bddff6626d7725ea3093b79c732d889",
+      "actualSha256": "73804aee0064d191a89bb2a266e6ed930bddff6626d7725ea3093b79c732d889"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1742.mat",
+      "passed": true,
+      "expectedSha256": "207679361a76e1db565f6740f67e92b633999c266e158c19724a083e78321393",
+      "actualSha256": "207679361a76e1db565f6740f67e92b633999c266e158c19724a083e78321393"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1796.mat",
+      "passed": true,
+      "expectedSha256": "561b8ed57edff5e0e1e924b3be15c14a1f141db34cf190675298ffddd2648c80",
+      "actualSha256": "561b8ed57edff5e0e1e924b3be15c14a1f141db34cf190675298ffddd2648c80"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1857.mat",
+      "passed": true,
+      "expectedSha256": "b497c88c9089cdc00788ba557cee41479d27147d0b4e20bb0c8157804c1eb757",
+      "actualSha256": "b497c88c9089cdc00788ba557cee41479d27147d0b4e20bb0c8157804c1eb757"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-1943.mat",
+      "passed": true,
+      "expectedSha256": "0afdfcca77a1b48d36dabc34c974cb99d622e514e3fd7dab3138a84d9826a2bd",
+      "actualSha256": "0afdfcca77a1b48d36dabc34c974cb99d622e514e3fd7dab3138a84d9826a2bd"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-13-id-2711.mat",
+      "passed": true,
+      "expectedSha256": "2d6806d8dd61464c9b61f4b1a2166257224694bf26cb741dee4655e505d5c717",
+      "actualSha256": "2d6806d8dd61464c9b61f4b1a2166257224694bf26cb741dee4655e505d5c717"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "07171d9260888a347e36f3e929ee6ed34c54070b5e6e4058ebf839d2a49f111d",
+      "actualSha256": "07171d9260888a347e36f3e929ee6ed34c54070b5e6e4058ebf839d2a49f111d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "89d3a850954974d0536ef73957b1b72e4381e845bd614a331d6a0ae42cd70711",
+      "actualSha256": "89d3a850954974d0536ef73957b1b72e4381e845bd614a331d6a0ae42cd70711"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "f192b9c54a6477bc68d95ad18c45ed4b8f509b3be571f1c71b0f2ce05f821d2a",
+      "actualSha256": "f192b9c54a6477bc68d95ad18c45ed4b8f509b3be571f1c71b0f2ce05f821d2a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "c1766a9cd4fe40d753434f1b9ad5c12528df28eafdd170bf37f77f1b9899c5c8",
+      "actualSha256": "c1766a9cd4fe40d753434f1b9ad5c12528df28eafdd170bf37f77f1b9899c5c8"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "ebe49d449b42922b3cb005ab87730901bf0bef47867a3ecfdb1fd3c08c963ed3",
+      "actualSha256": "ebe49d449b42922b3cb005ab87730901bf0bef47867a3ecfdb1fd3c08c963ed3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "1bc86684f9506ad062539a549a5a474f78666c5f3f77209b5aafd7fe987d4117",
+      "actualSha256": "1bc86684f9506ad062539a549a5a474f78666c5f3f77209b5aafd7fe987d4117"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "b74f165ec0e15b4558f268efab78e67815053297ba287684f01e16fdbd495337",
+      "actualSha256": "b74f165ec0e15b4558f268efab78e67815053297ba287684f01e16fdbd495337"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "2459b1d30743fc6cfcbd93032d65eb9058b0265bdaae92d13f6b7d694815aab3",
+      "actualSha256": "2459b1d30743fc6cfcbd93032d65eb9058b0265bdaae92d13f6b7d694815aab3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "eebcb3d7082a17825011c0153699c142174622f6bc965ba416adb1c8726e4157",
+      "actualSha256": "eebcb3d7082a17825011c0153699c142174622f6bc965ba416adb1c8726e4157"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-14-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "49d4dc43ff6858a3522250c6bc7e2d11dff1945b2dcb7417e64376622b938402",
+      "actualSha256": "49d4dc43ff6858a3522250c6bc7e2d11dff1945b2dcb7417e64376622b938402"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1068.mat",
+      "passed": true,
+      "expectedSha256": "68913dca48ed1d84823124d466570cc5f54153ce77101b3e2bbaef611d94b3cc",
+      "actualSha256": "68913dca48ed1d84823124d466570cc5f54153ce77101b3e2bbaef611d94b3cc"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1080.mat",
+      "passed": true,
+      "expectedSha256": "68b3f2cd723c1aaff4249cdcdf837e37f15c65e9c4418646f2771ba334085d8a",
+      "actualSha256": "68b3f2cd723c1aaff4249cdcdf837e37f15c65e9c4418646f2771ba334085d8a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1095.mat",
+      "passed": true,
+      "expectedSha256": "80c475a1bd8f71339f7a7504fd5f560d1edb0da1b073ec03d97a666e26be3d3f",
+      "actualSha256": "80c475a1bd8f71339f7a7504fd5f560d1edb0da1b073ec03d97a666e26be3d3f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1097.mat",
+      "passed": true,
+      "expectedSha256": "40d38f15fe28057430f4b51e290a36af667fb7664520a88fde203cf18da6d32b",
+      "actualSha256": "40d38f15fe28057430f4b51e290a36af667fb7664520a88fde203cf18da6d32b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1109.mat",
+      "passed": true,
+      "expectedSha256": "28d507e33f54db415361d6511c2c2e682ce2239496f5839042e6c97ce912d7c5",
+      "actualSha256": "28d507e33f54db415361d6511c2c2e682ce2239496f5839042e6c97ce912d7c5"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1132.mat",
+      "passed": true,
+      "expectedSha256": "4c0f687c48b436c7378acdbe2cd69aa63f99ac6cc4086c73bac70b0e5676ef08",
+      "actualSha256": "4c0f687c48b436c7378acdbe2cd69aa63f99ac6cc4086c73bac70b0e5676ef08"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1142.mat",
+      "passed": true,
+      "expectedSha256": "5126eb0135587fd44608e3efc77b85b6ea46458388623c25b9113b8c028fc74d",
+      "actualSha256": "5126eb0135587fd44608e3efc77b85b6ea46458388623c25b9113b8c028fc74d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1147.mat",
+      "passed": true,
+      "expectedSha256": "cf81c081952f86a83290220de387b8f19ee6cd9e52445dd20c03ad1fe270e823",
+      "actualSha256": "cf81c081952f86a83290220de387b8f19ee6cd9e52445dd20c03ad1fe270e823"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1159.mat",
+      "passed": true,
+      "expectedSha256": "7d6b8f287e8a6f74429637ef6b98f30a1998105ed423643ecb82b2879df96b2d",
+      "actualSha256": "7d6b8f287e8a6f74429637ef6b98f30a1998105ed423643ecb82b2879df96b2d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\condition-15-id-1182.mat",
+      "passed": true,
+      "expectedSha256": "b039ac92d00fac953b8745a5988b745e8cee4b4906de9f722aa215ff25ba8976",
+      "actualSha256": "b039ac92d00fac953b8745a5988b745e8cee4b4906de9f722aa215ff25ba8976"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "ad865a5128fc12244b58e0177ee70c952bfc17ced4764342e4e0f88dfeaad237",
+      "actualSha256": "ad865a5128fc12244b58e0177ee70c952bfc17ced4764342e4e0f88dfeaad237"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "3c6bfd25f0f4eccd9211cbeec6a27898cce529ddf4239fd3f22ab13f13e977ed",
+      "actualSha256": "3c6bfd25f0f4eccd9211cbeec6a27898cce529ddf4239fd3f22ab13f13e977ed"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "2e236ad304f4112039f9ff7b4645d373ae7e270c9625375ce5ecc41924eb1e30",
+      "actualSha256": "2e236ad304f4112039f9ff7b4645d373ae7e270c9625375ce5ecc41924eb1e30"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "322c94057db6fce67a4adfdc8958b1a609961b8d9f52df62d977d24b35db6059",
+      "actualSha256": "322c94057db6fce67a4adfdc8958b1a609961b8d9f52df62d977d24b35db6059"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "1df6e58b111e7a58c904f4d85fd0a88c39df7ee474e76dfcd9899b5950e75048",
+      "actualSha256": "1df6e58b111e7a58c904f4d85fd0a88c39df7ee474e76dfcd9899b5950e75048"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "659419406487589389aa0734b72919f834c78a5c95c96bea6b201b23fc739b1d",
+      "actualSha256": "659419406487589389aa0734b72919f834c78a5c95c96bea6b201b23fc739b1d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "2dca1840f1d19ff60c189b602dbca6c3f8982a161a92facbd8f15e16bac49797",
+      "actualSha256": "2dca1840f1d19ff60c189b602dbca6c3f8982a161a92facbd8f15e16bac49797"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "dd86fb5f9405f313f54ccc48bb7e4b702be58b1007a2920393b6dcbcd0b6430e",
+      "actualSha256": "dd86fb5f9405f313f54ccc48bb7e4b702be58b1007a2920393b6dcbcd0b6430e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "31673df88e20d0df3134f8d68ac0bdd70441d73abc9247318c323affde683e8a",
+      "actualSha256": "31673df88e20d0df3134f8d68ac0bdd70441d73abc9247318c323affde683e8a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-clean-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "e2c9175a91242a531d86e5bf32843c327af9b590880f77149e3c9af8ce9575fb",
+      "actualSha256": "e2c9175a91242a531d86e5bf32843c327af9b590880f77149e3c9af8ce9575fb"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "378d2c675a12446b866419f5f0bbd9c7307a1cb94b1ffc46b8e21a8385fad95c",
+      "actualSha256": "378d2c675a12446b866419f5f0bbd9c7307a1cb94b1ffc46b8e21a8385fad95c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "2a03cf0b18c1c11ea571707ba7ffe44f64d32911fd7c4cd717a58625b7b36cc1",
+      "actualSha256": "2a03cf0b18c1c11ea571707ba7ffe44f64d32911fd7c4cd717a58625b7b36cc1"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "db96d96082f7a675ecf2266603fbce36f4db3a33bd030a4c111f34571a20999f",
+      "actualSha256": "db96d96082f7a675ecf2266603fbce36f4db3a33bd030a4c111f34571a20999f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "44e320ba268993eaba09e77e03ac9e79fcaaef428fb51eb5a52b7528a5ac3c67",
+      "actualSha256": "44e320ba268993eaba09e77e03ac9e79fcaaef428fb51eb5a52b7528a5ac3c67"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "629fc01d3ccf72109cf9cd42a1c904812d4c5b2db61df3494c3ae0a8a15ec809",
+      "actualSha256": "629fc01d3ccf72109cf9cd42a1c904812d4c5b2db61df3494c3ae0a8a15ec809"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "207863d4e2f40e3f5d2b4c21ed0e898216cfe51f349a9be6009ccc0e34eac316",
+      "actualSha256": "207863d4e2f40e3f5d2b4c21ed0e898216cfe51f349a9be6009ccc0e34eac316"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "d4536aa9ef265b00c76e3104f46c5a18984e7a4bc5f5b4998c32d0dc7c05b9a0",
+      "actualSha256": "d4536aa9ef265b00c76e3104f46c5a18984e7a4bc5f5b4998c32d0dc7c05b9a0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "e551f1f6c69b926b0197de814ed91209af9b7ae31b977bb3f9ad9e99105d53e3",
+      "actualSha256": "e551f1f6c69b926b0197de814ed91209af9b7ae31b977bb3f9ad9e99105d53e3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "b09610e7ec9a3c9dcec746c15d3ea98164454f7be89d997837112cf5da4b94fd",
+      "actualSha256": "b09610e7ec9a3c9dcec746c15d3ea98164454f7be89d997837112cf5da4b94fd"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noise20-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "25f84bb1ee365334245acb6ff3cb5f4db827499395a63d96db480da9181724ef",
+      "actualSha256": "25f84bb1ee365334245acb6ff3cb5f4db827499395a63d96db480da9181724ef"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "8b4dfc80003f91bb3f74dbfcc5ccd3a3227d8a1fda119e14671e4a04173c1b7c",
+      "actualSha256": "8b4dfc80003f91bb3f74dbfcc5ccd3a3227d8a1fda119e14671e4a04173c1b7c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "ddd6a6a288fe475a23ec7b462c5af6d8cae44014850d102af6b6d566acdd0185",
+      "actualSha256": "ddd6a6a288fe475a23ec7b462c5af6d8cae44014850d102af6b6d566acdd0185"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "a86cc714d09d558bf618dc9ac89ea9d52b967aafe9a2c06237925b2d7e339208",
+      "actualSha256": "a86cc714d09d558bf618dc9ac89ea9d52b967aafe9a2c06237925b2d7e339208"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "b46b6b7afa84f3a00083b2737cf9b8bacf9de9a11f7bdb4c7f2336abd58145ef",
+      "actualSha256": "b46b6b7afa84f3a00083b2737cf9b8bacf9de9a11f7bdb4c7f2336abd58145ef"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "fb916d05fe4857b751f7b4b15026b91acc0076719407dc87047fbc05545214ea",
+      "actualSha256": "fb916d05fe4857b751f7b4b15026b91acc0076719407dc87047fbc05545214ea"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "92ee90bc8ecf1fc972bd83ad5a0cd0beed29860592872bd5931520170fc3b3ce",
+      "actualSha256": "92ee90bc8ecf1fc972bd83ad5a0cd0beed29860592872bd5931520170fc3b3ce"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "3e307f2814b117c299ef3021e4dfb7efff3ee0ce20d8dc9f9895b595bdb3b485",
+      "actualSha256": "3e307f2814b117c299ef3021e4dfb7efff3ee0ce20d8dc9f9895b595bdb3b485"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "336b995c40183ee23c9446f9c08afe9c31a76130ac58fdb6200d81056ac12554",
+      "actualSha256": "336b995c40183ee23c9446f9c08afe9c31a76130ac58fdb6200d81056ac12554"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "76a9805a4a6b5aed199a6d6e79ca4d61911f576aa1cdb1c2a9d06f8a3b430ea8",
+      "actualSha256": "76a9805a4a6b5aed199a6d6e79ca4d61911f576aa1cdb1c2a9d06f8a3b430ea8"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseMinus20-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "b0a221c448b2ec4b9445b144ab72e738339b21310c2f335acb059b35c1162af1",
+      "actualSha256": "b0a221c448b2ec4b9445b144ab72e738339b21310c2f335acb059b35c1162af1"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "2463d5e00c9cc46c65272cfeb250c76baf0a1a089d0c4f35ba4ecb7883741187",
+      "actualSha256": "2463d5e00c9cc46c65272cfeb250c76baf0a1a089d0c4f35ba4ecb7883741187"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "b6a2265bf4d2ab3ef1dfbd431b1047bdfc39f83763afff6fa0aeed9e387a2b8d",
+      "actualSha256": "b6a2265bf4d2ab3ef1dfbd431b1047bdfc39f83763afff6fa0aeed9e387a2b8d"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "afff77838991bc3c614535c2dd13d7a9987678deb57b9d1a029f1c5b7d8168e0",
+      "actualSha256": "afff77838991bc3c614535c2dd13d7a9987678deb57b9d1a029f1c5b7d8168e0"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "5f230065ab3656e8e8bf9745d29d410f733c10256ff9e49e5814c80ed48b7f44",
+      "actualSha256": "5f230065ab3656e8e8bf9745d29d410f733c10256ff9e49e5814c80ed48b7f44"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "02c8ee01528ba118c9e6cf8901297c64fe5746c3a2d1e7f9337285ceef04140b",
+      "actualSha256": "02c8ee01528ba118c9e6cf8901297c64fe5746c3a2d1e7f9337285ceef04140b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "9a2a4d83cff3e9e16b4d024b95ad5262e824fa9989971717624619b1be3f8996",
+      "actualSha256": "9a2a4d83cff3e9e16b4d024b95ad5262e824fa9989971717624619b1be3f8996"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "8c51232f54b0e308d044dbb7aa172d5dcb4c336114c60716a59c332c51396db9",
+      "actualSha256": "8c51232f54b0e308d044dbb7aa172d5dcb4c336114c60716a59c332c51396db9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "225bc269c47814e42665ae2b1236c09c1b0d592dfa927148a1948b8f4a2b885e",
+      "actualSha256": "225bc269c47814e42665ae2b1236c09c1b0d592dfa927148a1948b8f4a2b885e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "c0c1c048aa7c9273a4f371e4b36d3648674ee53bb644de2be2a56e06a019418e",
+      "actualSha256": "c0c1c048aa7c9273a4f371e4b36d3648674ee53bb644de2be2a56e06a019418e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoMinus200-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "46efd51aace5ae2fc27535a47c0652aa76c098244e69b02e3c93d9e830f6142e",
+      "actualSha256": "46efd51aace5ae2fc27535a47c0652aa76c098244e69b02e3c93d9e830f6142e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "6e8541c67f13c7879bf0b2238b0227947cc462b77061f2801161471dcdd4e36f",
+      "actualSha256": "6e8541c67f13c7879bf0b2238b0227947cc462b77061f2801161471dcdd4e36f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "6c0f6bdac226f8ba3952ebf76446379822addede8651799a752be8eeb1e97ca7",
+      "actualSha256": "6c0f6bdac226f8ba3952ebf76446379822addede8651799a752be8eeb1e97ca7"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "813f82b3136fc9773592a63641108f2beb9333f55a4e75ad1f933cda22922974",
+      "actualSha256": "813f82b3136fc9773592a63641108f2beb9333f55a4e75ad1f933cda22922974"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "cf2f25c27679d019b88b6fd8e470368a5a7f2cd45fd6c06841018b5e6ffd4503",
+      "actualSha256": "cf2f25c27679d019b88b6fd8e470368a5a7f2cd45fd6c06841018b5e6ffd4503"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "9ce9cc30663c329db77e078f97d001c6633c72bd6dfc9d60629afc41facc98a8",
+      "actualSha256": "9ce9cc30663c329db77e078f97d001c6633c72bd6dfc9d60629afc41facc98a8"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "768c5868fc118800005fceed4bb4255df2b080a8466dccfbf55f987dfa993700",
+      "actualSha256": "768c5868fc118800005fceed4bb4255df2b080a8466dccfbf55f987dfa993700"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "52d8bd68f9171d8ba0ab9b3283092714b0b531eedd1dc35a1066f1b860b435c9",
+      "actualSha256": "52d8bd68f9171d8ba0ab9b3283092714b0b531eedd1dc35a1066f1b860b435c9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "2374b68e19039e3a22062b3b85fd0b70787b3c1684e5830de1dccb6cbdd2fbbb",
+      "actualSha256": "2374b68e19039e3a22062b3b85fd0b70787b3c1684e5830de1dccb6cbdd2fbbb"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "7bb3d3264c3e031569ba0bdddd947134cad72d72be30ec1fa7041aae5c494cb3",
+      "actualSha256": "7bb3d3264c3e031569ba0bdddd947134cad72d72be30ec1fa7041aae5c494cb3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-cfoPlus200-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "d204684af1b26a57fb000510dfe0ad9caf67ab49a401003062195c62f9c42709",
+      "actualSha256": "d204684af1b26a57fb000510dfe0ad9caf67ab49a401003062195c62f9c42709"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "be234d99b8b687f05a827fb93ae0a9ae4a3ced7b0ac484e4a9e370eec6f22e3a",
+      "actualSha256": "be234d99b8b687f05a827fb93ae0a9ae4a3ced7b0ac484e4a9e370eec6f22e3a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "76a548a52555fa814cb168de99c9214e30ba012027254e82b585956ac74b2479",
+      "actualSha256": "76a548a52555fa814cb168de99c9214e30ba012027254e82b585956ac74b2479"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "0872c6a19e82fe6866fd204b2d86bfa7d37935e98654fa4d8e18329c6cdb479a",
+      "actualSha256": "0872c6a19e82fe6866fd204b2d86bfa7d37935e98654fa4d8e18329c6cdb479a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "ff5263545ff19accc04c1b140b736d5e5355ff0d9c2fda586ef1ac2b1232191c",
+      "actualSha256": "ff5263545ff19accc04c1b140b736d5e5355ff0d9c2fda586ef1ac2b1232191c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "1378e2de4bd45433bef7a622584264bd606b526289947a70a7085ad214c42d0a",
+      "actualSha256": "1378e2de4bd45433bef7a622584264bd606b526289947a70a7085ad214c42d0a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "2f282e294b56c30d0b682e58eb3b7413af3411f5c6db9a670caff9ad4d2e44c3",
+      "actualSha256": "2f282e294b56c30d0b682e58eb3b7413af3411f5c6db9a670caff9ad4d2e44c3"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "8c489790a50de6c9f69ef9a061e32fcc243bc9a38a3f6df85412a6763cce8cf7",
+      "actualSha256": "8c489790a50de6c9f69ef9a061e32fcc243bc9a38a3f6df85412a6763cce8cf7"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "ca4af19268fe0e691c2b84cf7873adb356e4e4a5c0c496ea319cb43a04e45751",
+      "actualSha256": "ca4af19268fe0e691c2b84cf7873adb356e4e4a5c0c496ea319cb43a04e45751"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "c23e5c2dbdf60bdc34c0ba27612fd5807dab63d417c8bfca7f400e9f65f75faf",
+      "actualSha256": "c23e5c2dbdf60bdc34c0ba27612fd5807dab63d417c8bfca7f400e9f65f75faf"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayMinus2us-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "2240ab39164b0df14c58e3552ddda9bd391aae1f1e4221d4fbaaf1078ede1ad2",
+      "actualSha256": "2240ab39164b0df14c58e3552ddda9bd391aae1f1e4221d4fbaaf1078ede1ad2"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "eb30cd5eef8f03e34a00b5bbbc39cefab047ac1e0d860ca81715f12773d4bee9",
+      "actualSha256": "eb30cd5eef8f03e34a00b5bbbc39cefab047ac1e0d860ca81715f12773d4bee9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "47251223796394a91fa468833160544d26c8aba3ed52d640f3e6decccbc1c6f9",
+      "actualSha256": "47251223796394a91fa468833160544d26c8aba3ed52d640f3e6decccbc1c6f9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "941e3232883308a0462c5cbb1a629be91bb298de6db3cd023b92af4533b5f396",
+      "actualSha256": "941e3232883308a0462c5cbb1a629be91bb298de6db3cd023b92af4533b5f396"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "122f043e69a51b61d302520dcd7530f8f29d00af94f230ab02495399a0c7746f",
+      "actualSha256": "122f043e69a51b61d302520dcd7530f8f29d00af94f230ab02495399a0c7746f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "74195054e0830b8af006e5354d44b635f2862daa25923c1a4e741c0a8bbf5581",
+      "actualSha256": "74195054e0830b8af006e5354d44b635f2862daa25923c1a4e741c0a8bbf5581"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "f273425bf7e03ad81af459d7f8a695290326d766f4777369ccb3841e93f56876",
+      "actualSha256": "f273425bf7e03ad81af459d7f8a695290326d766f4777369ccb3841e93f56876"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "e28542af454e24916ef65cab85811326315f031913ed3d7bbcc9c6b32936725c",
+      "actualSha256": "e28542af454e24916ef65cab85811326315f031913ed3d7bbcc9c6b32936725c"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "548f1dcd36760b75e2d48bd2a7e4aa38e1c09fe6d6d4b0a3709ec827f90c8097",
+      "actualSha256": "548f1dcd36760b75e2d48bd2a7e4aa38e1c09fe6d6d4b0a3709ec827f90c8097"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "a5121482adbc24eff18152a0a88f79e5df2b9885b224c61fdaa5b0aa8f9e128a",
+      "actualSha256": "a5121482adbc24eff18152a0a88f79e5df2b9885b224c61fdaa5b0aa8f9e128a"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-delayPlus2us-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "fd9532316a11ba1c33e3c412cd75c149750f50f21b6d3aa281d5bb00130bcb2b",
+      "actualSha256": "fd9532316a11ba1c33e3c412cd75c149750f50f21b6d3aa281d5bb00130bcb2b"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1077.mat",
+      "passed": true,
+      "expectedSha256": "af4aef2d5696e0d50f39601afa04b35cab475e05395edc308df68695f6405b70",
+      "actualSha256": "af4aef2d5696e0d50f39601afa04b35cab475e05395edc308df68695f6405b70"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1078.mat",
+      "passed": true,
+      "expectedSha256": "35bce032d806709d7cf31ca838f8f485088700228893423bea0cd38628a39207",
+      "actualSha256": "35bce032d806709d7cf31ca838f8f485088700228893423bea0cd38628a39207"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1079.mat",
+      "passed": true,
+      "expectedSha256": "60cfe0f641f6b581cbd01c982aa4a85cf223c8603b0662aeaa439b8d2f54a7df",
+      "actualSha256": "60cfe0f641f6b581cbd01c982aa4a85cf223c8603b0662aeaa439b8d2f54a7df"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1081.mat",
+      "passed": true,
+      "expectedSha256": "b53753849379af8a7ff3c6dfe9ea96ff2850a8be988267431242574d0dacfc42",
+      "actualSha256": "b53753849379af8a7ff3c6dfe9ea96ff2850a8be988267431242574d0dacfc42"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1082.mat",
+      "passed": true,
+      "expectedSha256": "7b85372027b24811640d2be8b92c4b54dafdf742609a70424a674ae42dabd907",
+      "actualSha256": "7b85372027b24811640d2be8b92c4b54dafdf742609a70424a674ae42dabd907"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1083.mat",
+      "passed": true,
+      "expectedSha256": "b40ea414afae83959e9b8fdf7554c33ac28fe870e49416dc2cdaabd5c9627aaa",
+      "actualSha256": "b40ea414afae83959e9b8fdf7554c33ac28fe870e49416dc2cdaabd5c9627aaa"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1084.mat",
+      "passed": true,
+      "expectedSha256": "2732705e8a354c458574d5343c94df7bf75e83ecf6a6ae29305445af3f6033f9",
+      "actualSha256": "2732705e8a354c458574d5343c94df7bf75e83ecf6a6ae29305445af3f6033f9"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1085.mat",
+      "passed": true,
+      "expectedSha256": "1ee77bad070a9cb498bfac03663099b1519a289cb813a74c2d294cbdb4931a1f",
+      "actualSha256": "1ee77bad070a9cb498bfac03663099b1519a289cb813a74c2d294cbdb4931a1f"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1086.mat",
+      "passed": true,
+      "expectedSha256": "453286ec2ecf93b92113c706a62da9a73f2a8742df934cf10e1fbf2eb03e5f67",
+      "actualSha256": "453286ec2ecf93b92113c706a62da9a73f2a8742df934cf10e1fbf2eb03e5f67"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\receiver-noiseOnly-id-1087.mat",
+      "passed": true,
+      "expectedSha256": "757c75fa773bdace0ca274b45ff2bf448b0b85d6821edf6738cba3084c86eb4e",
+      "actualSha256": "757c75fa773bdace0ca274b45ff2bf448b0b85d6821edf6738cba3084c86eb4e"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\interference-replay-00.mat",
+      "passed": true,
+      "expectedSha256": "309f0be54d310b878d2760992a97eb50808ec246dab409fde669066176d6fbf4",
+      "actualSha256": "309f0be54d310b878d2760992a97eb50808ec246dab409fde669066176d6fbf4"
+    },
+    {
+      "group": "stage2-case",
+      "path": "verification\\completion\\stage-2\\host-run-20261014-145455-264-a60dcedd\\physical-evidence\\interference-replay-40.mat",
+      "passed": true,
+      "expectedSha256": "3fe81296a4a798cb593e6f43ea339e27bc21c3417060fb3c7494ed40ed4f0a02",
+      "actualSha256": "3fe81296a4a798cb593e6f43ea339e27bc21c3417060fb3c7494ed40ed4f0a02"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064.mat",
+      "passed": true,
+      "expectedSha256": "64409b5a536d543b72f3c32cc2998999c88f8b6f9fd8ede2e01507c3caab9f31",
+      "actualSha256": "64409b5a536d543b72f3c32cc2998999c88f8b6f9fd8ede2e01507c3caab9f31"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064_ue.csv",
+      "passed": true,
+      "expectedSha256": "0656999870ed1599fa0d9a40a3088359bb0143cebdcb5da840be8dbbbbeb54a4",
+      "actualSha256": "0656999870ed1599fa0d9a40a3088359bb0143cebdcb5da840be8dbbbbeb54a4"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064_kpi.csv",
+      "passed": true,
+      "expectedSha256": "ef39fc614441db6d0fc1b25aa092046278c48a020c1fdbaaa66fe0de27d25b2e",
+      "actualSha256": "ef39fc614441db6d0fc1b25aa092046278c48a020c1fdbaaa66fe0de27d25b2e"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064_observations.csv",
+      "passed": true,
+      "expectedSha256": "86778d66f296ff09961483aa6060e2b7cbe5b672cd3a97582a29f6a6523030db",
+      "actualSha256": "86778d66f296ff09961483aa6060e2b7cbe5b672cd3a97582a29f6a6523030db"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064_targets.csv",
+      "passed": true,
+      "expectedSha256": "91e5203e7c99abf67a0a32c00c805a7e6d89c46a707d1bd29e2fd0077ee4df43",
+      "actualSha256": "91e5203e7c99abf67a0a32c00c805a7e6d89c46a707d1bd29e2fd0077ee4df43"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064_resources.csv",
+      "passed": true,
+      "expectedSha256": "0d1d0fb3ec04b40d2a4dc401c4f9dbfbd802cb2ca672a664b2f57f6f65a0cfe8",
+      "actualSha256": "0d1d0fb3ec04b40d2a4dc401c4f9dbfbd802cb2ca672a664b2f57f6f65a0cfe8"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00100-id1064\\run-1663f5bf-8442-40d5-bc56-e96e3b74982c\\static-v1_n100_r1064_split.csv",
+      "passed": true,
+      "expectedSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2",
+      "actualSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064.mat",
+      "passed": true,
+      "expectedSha256": "a97d2bc2231ba0c8b357ed4e8a69551423d338d6c420f9a202418e81e397c9d6",
+      "actualSha256": "a97d2bc2231ba0c8b357ed4e8a69551423d338d6c420f9a202418e81e397c9d6"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064_ue.csv",
+      "passed": true,
+      "expectedSha256": "90841ee7227d0376764c0b739f36f8a749d7989fc147eabbfa07a52d230bbbe9",
+      "actualSha256": "90841ee7227d0376764c0b739f36f8a749d7989fc147eabbfa07a52d230bbbe9"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064_kpi.csv",
+      "passed": true,
+      "expectedSha256": "8592417f2657869e8887de4f1d5a8b97a73d0654104b10cd79367fdefe084d2f",
+      "actualSha256": "8592417f2657869e8887de4f1d5a8b97a73d0654104b10cd79367fdefe084d2f"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064_observations.csv",
+      "passed": true,
+      "expectedSha256": "45c6165d55ec7498c202df0a4101a757a958634242dbc161da4e6ee59557cbfd",
+      "actualSha256": "45c6165d55ec7498c202df0a4101a757a958634242dbc161da4e6ee59557cbfd"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064_targets.csv",
+      "passed": true,
+      "expectedSha256": "0ece09d28bd9c5a7974ee5cf185c3f773d906e228f3369f2cb70c27a2f62f6db",
+      "actualSha256": "0ece09d28bd9c5a7974ee5cf185c3f773d906e228f3369f2cb70c27a2f62f6db"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064_resources.csv",
+      "passed": true,
+      "expectedSha256": "1d680d2d4d158ea093fb8f5c24b91d728aa67ee4be3482a5c82baa002a134df4",
+      "actualSha256": "1d680d2d4d158ea093fb8f5c24b91d728aa67ee4be3482a5c82baa002a134df4"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n00500-id1064\\run-b3f62cf3-5313-4a8b-973b-ed6acb177710\\static-v1_n500_r1064_split.csv",
+      "passed": true,
+      "expectedSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2",
+      "actualSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064.mat",
+      "passed": true,
+      "expectedSha256": "a6880f09edaa63e8aecef856f51ff07c352b1d74f101b30dbb8ac246a285622e",
+      "actualSha256": "a6880f09edaa63e8aecef856f51ff07c352b1d74f101b30dbb8ac246a285622e"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064_ue.csv",
+      "passed": true,
+      "expectedSha256": "317a263b30fd26a8dfece6e67a9b44a1b03d5a6f0e1c4ffe0446385558087e56",
+      "actualSha256": "317a263b30fd26a8dfece6e67a9b44a1b03d5a6f0e1c4ffe0446385558087e56"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064_kpi.csv",
+      "passed": true,
+      "expectedSha256": "1a8bdd8445f42f49fbede75b90c53f82d31ed205488d4630414bac1e9504c9d3",
+      "actualSha256": "1a8bdd8445f42f49fbede75b90c53f82d31ed205488d4630414bac1e9504c9d3"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064_observations.csv",
+      "passed": true,
+      "expectedSha256": "723148e855cd53977d0aea605b11cce19314998558f472d9bdd15305a473055b",
+      "actualSha256": "723148e855cd53977d0aea605b11cce19314998558f472d9bdd15305a473055b"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064_targets.csv",
+      "passed": true,
+      "expectedSha256": "5ddb7a56eeae54022c3d514a761391d217269677292644ccd0ce3be31f841a44",
+      "actualSha256": "5ddb7a56eeae54022c3d514a761391d217269677292644ccd0ce3be31f841a44"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064_resources.csv",
+      "passed": true,
+      "expectedSha256": "d33c703b4b7e53708645bc89451c50393f4e78c555af5ca880b2df1d42a1ae8c",
+      "actualSha256": "d33c703b4b7e53708645bc89451c50393f4e78c555af5ca880b2df1d42a1ae8c"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n01000-id1064\\run-7f54de41-184e-49de-b7cd-56abfb81080a\\static-v1_n1000_r1064_split.csv",
+      "passed": true,
+      "expectedSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2",
+      "actualSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064.mat",
+      "passed": true,
+      "expectedSha256": "4341d8a12b1572b79618a01b4796893bc59d77a2a2e146df151e351c48fa2963",
+      "actualSha256": "4341d8a12b1572b79618a01b4796893bc59d77a2a2e146df151e351c48fa2963"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064_ue.csv",
+      "passed": true,
+      "expectedSha256": "b7202c2d20f94cd3dfcf468743779b1ddb4667f00f72c200c454c44306423ac2",
+      "actualSha256": "b7202c2d20f94cd3dfcf468743779b1ddb4667f00f72c200c454c44306423ac2"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064_kpi.csv",
+      "passed": true,
+      "expectedSha256": "abc0b6aeb347ba7d21e5d031aef82dee85a26c763858ef9e011e27d59f354462",
+      "actualSha256": "abc0b6aeb347ba7d21e5d031aef82dee85a26c763858ef9e011e27d59f354462"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064_observations.csv",
+      "passed": true,
+      "expectedSha256": "e063a5b0b0eacaf6aec781eec4047d07adb1f50e9cc4a51de974a8061d0e495e",
+      "actualSha256": "e063a5b0b0eacaf6aec781eec4047d07adb1f50e9cc4a51de974a8061d0e495e"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064_targets.csv",
+      "passed": true,
+      "expectedSha256": "fd3ad37828dd28bcb8c175db660e2fd9b2cedd3b431078e17d23dfbbef890457",
+      "actualSha256": "fd3ad37828dd28bcb8c175db660e2fd9b2cedd3b431078e17d23dfbbef890457"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064_resources.csv",
+      "passed": true,
+      "expectedSha256": "eb6eeb2b188e1c195b2049159d3c749981fe3719ea0a309e126e6ee4f10be260",
+      "actualSha256": "eb6eeb2b188e1c195b2049159d3c749981fe3719ea0a309e126e6ee4f10be260"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\pilot-20261008-005640-821\\simulation\\n02500-id1064\\run-c3ee75ef-8846-4ae4-ad2d-4e40258ac0b2\\static-v1_n2500_r1064_split.csv",
+      "passed": true,
+      "expectedSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2",
+      "actualSha256": "b23f3b07ec7d25a3d983a92304d744a99ec72745a42fa948dcdb165391f417b2"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088.mat",
+      "passed": true,
+      "expectedSha256": "c07cbe72364bb878b5977097ff7d8be5363e80fdb3113706b012f208913669ef",
+      "actualSha256": "c07cbe72364bb878b5977097ff7d8be5363e80fdb3113706b012f208913669ef"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_ue.csv",
+      "passed": true,
+      "expectedSha256": "d59a06b206238ea1e91cd211f4caea3427b18df902a0830ed7a7e2535cba6019",
+      "actualSha256": "d59a06b206238ea1e91cd211f4caea3427b18df902a0830ed7a7e2535cba6019"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_kpi.csv",
+      "passed": true,
+      "expectedSha256": "4e0784fc7706100538faf5aab5541d97850db7994e4a5bdb7da7a9d0d3afc8ef",
+      "actualSha256": "4e0784fc7706100538faf5aab5541d97850db7994e4a5bdb7da7a9d0d3afc8ef"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_observations.csv",
+      "passed": true,
+      "expectedSha256": "4697b2f5b28ab2361e6958e1f16805fb33b6f13987d0cee0b8709d99668d40d9",
+      "actualSha256": "4697b2f5b28ab2361e6958e1f16805fb33b6f13987d0cee0b8709d99668d40d9"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_targets.csv",
+      "passed": true,
+      "expectedSha256": "f478bd606d70642078089f420aecee17be6b9b84c2b645401fb6e0fbd0ee536e",
+      "actualSha256": "f478bd606d70642078089f420aecee17be6b9b84c2b645401fb6e0fbd0ee536e"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_resources.csv",
+      "passed": true,
+      "expectedSha256": "8e9223793473bcdf7c233bb6fa14a8088d770849107b2b63272e37795a5bc425",
+      "actualSha256": "8e9223793473bcdf7c233bb6fa14a8088d770849107b2b63272e37795a5bc425"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_split.csv",
+      "passed": true,
+      "expectedSha256": "3f0220c0970b987cb7984aa79109505b54de8702b241d60fdc35ea154d192e3d",
+      "actualSha256": "3f0220c0970b987cb7984aa79109505b54de8702b241d60fdc35ea154d192e3d"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_summary.csv",
+      "passed": true,
+      "expectedSha256": "a993d4beb9d83c8fd0c942fb33561ee4680c33f0139253bff4eef4e86853e153",
+      "actualSha256": "a993d4beb9d83c8fd0c942fb33561ee4680c33f0139253bff4eef4e86853e153"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_radio.csv",
+      "passed": true,
+      "expectedSha256": "6807472ccea132ca4649a6239fb3c64eb5f5f0c7be51fd0226368b46ee251c78",
+      "actualSha256": "6807472ccea132ca4649a6239fb3c64eb5f5f0c7be51fd0226368b46ee251c78"
+    },
+    {
+      "group": "completed-case",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22\\static-v1_n100_r1088_groups.csv",
+      "passed": true,
+      "expectedSha256": "76fffe62f05eeeae0a57d35effb773b9233843570c09850f7ff2b61ed1b7bd68",
+      "actualSha256": "76fffe62f05eeeae0a57d35effb773b9233843570c09850f7ff2b61ed1b7bd68"
+    },
+    {
+      "group": "latest-checkpoint",
+      "path": "verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00500-id1088\\.checkpoint-b7bd6f2f-8cd2-4056-8348-59ce32324eab\\checkpoint-tick-0000004454-4c54d308-692b-476c-9ba7-d3327fd5bca0.mat",
+      "passed": true,
+      "expectedSha256": "c99f6af069251a31bd4bdf65c7b6b2a0b4b6c02147f0d1bb6377a7384a6d0e4d",
+      "actualSha256": "c99f6af069251a31bd4bdf65c7b6b2a0b4b6c02147f0d1bb6377a7384a6d0e4d"
+    }
+  ]
+}

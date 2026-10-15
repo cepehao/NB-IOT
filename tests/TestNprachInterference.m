@@ -1,5 +1,21 @@
 classdef TestNprachInterference < matlab.unittest.TestCase
     methods (Test)
+        function singleToneCfoDoesNotCreateOtherPreambleDetections(t)
+            cfg=nbiot.config.defaultConfig(); cfg.phy.nprachThreshold=.005;
+            occasion=struct('occasionId',1,'startTick',8);
+            tx=nbiot.phy.nprach.buildTransmission(cfg,occasion,5);
+            samples=tx.startSample+(0:numel(tx.waveform)-1)';
+            for cfo=[-200 200]
+                wave=tx.waveform.*exp(1i*2*pi*cfo*samples/1920000);
+                rx=struct('waveform',[complex(zeros(128,1));wave;complex(zeros(128,1))], ...
+                    'sampleRateHz',tx.sampleRateHz,'startSample',tx.startSample-128);
+                detected=nbiot.phy.nprach.detect(cfg,rx,occasion);
+                diagnostic=sprintf('CFO %g produced nInit=%s matchScore=%s.', ...
+                    cfo,mat2str([detected.nInit]),mat2str([detected.matchScore],6));
+                t.verifyEqual([detected.nInit],5,diagnostic);
+            end
+        end
+
         function weakNearFarToneIsNotNormalizedByStrongTone(t)
             cfg=nbiot.config.defaultConfig(); cfg.phy.nprachThreshold=.004;
             occasion=struct('occasionId',1,'startTick',8);

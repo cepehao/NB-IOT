@@ -12,6 +12,12 @@ function destination=saveLegacyResult(result,folder)
 if ~isfolder(folder), mkdir(folder); end
 runName=exportStem(result);
 destination=fullfile(folder,[runName '.mat']); temporary=[tempname(folder) '.mat'];
+if isAdaptiveResult(result) && any(cellfun(@(name) isfile(fullfile(folder,name)), ...
+        exportFiles(runName,true,isfield(result,'radioDiagnostics'), ...
+        isfield(result,'groupKpi'))))
+    error('nbiot:results:DuplicateRun', ...
+        'Refusing to overwrite an existing Adaptive result with stem %s.',runName);
+end
 cleanup=onCleanup(@() removeTemporary(temporary)); %#ok<NASGU>
 save(temporary,'result','-v7.3');
 check=whos('-file',temporary);
@@ -26,6 +32,9 @@ required={'caseKey','configSha256','sourceSha256','calibrationSha256','environme
 runtimeFields={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
     'modelSha256','policySha256','inputSha256','runnerSha256'};
 if isfield(metadata,'runtimeVersion')
+    if isfield(metadata,'resultSchemaVersion')&&metadata.resultSchemaVersion==3
+        runtimeFields=[runtimeFields {'controllerPolicy'}];
+    end
     required=[required runtimeFields];
 end
 for k=1:numel(required)
@@ -35,14 +44,21 @@ for k=1:numel(required)
 end
 hashFields={'configSha256','sourceSha256','calibrationSha256'};
 if isfield(metadata,'runtimeVersion')
-    if metadata.runtimeVersion~=1 || metadata.resultSchemaVersion~=2
+    expectedSchema=2+double(isAdaptiveResult(result));
+    if metadata.runtimeVersion~=1 || metadata.resultSchemaVersion~=expectedSchema
         error('nbiot:results:Metadata','Unsupported runtime or result schema.');
     end
-    hashFields=[hashFields runtimeFields(3:end)];
-    if isfield(result,'resultSchemaVersion') && ~isequal(result.resultSchemaVersion,2)
+    hashFields=[hashFields {'canonicalConfigSha256','modelSha256','policySha256', ...
+        'inputSha256','runnerSha256'}];
+    if isfield(result,'resultSchemaVersion') && ~isequal(result.resultSchemaVersion,expectedSchema)
         error('nbiot:results:Metadata','Unsupported in-memory result schema.');
     end
-    result.resultSchemaVersion=2;
+    if expectedSchema==3 && (~isfield(result,'controllerPolicy') || ...
+            ~isequaln(result.controllerPolicy,metadata.controllerPolicy) || ...
+            ~isfield(result,'controllerLogSchemaVersion') || result.controllerLogSchemaVersion~=1)
+        error('nbiot:results:Metadata','Adaptive result and controller policy metadata must agree.');
+    end
+    result.resultSchemaVersion=expectedSchema;
 end
 for k=1:numel(hashFields)
     value=char(string(metadata.(hashFields{k})));
@@ -65,10 +81,12 @@ cleanup=onCleanup(@() removeTemporary(temporary)); %#ok<NASGU>
 caseMetadata=identity(metadata,result.status);
 configSnapshot=result.config; resultStatus=result.status;
 kpiSummary=result.kpiSummary; environmentSnapshot=result.environment;
+datasetSchema=struct();
+if isfield(result.dataset,'schema'), datasetSchema=result.dataset.schema; end
 resultSchemaVersion=1;
-if isfield(metadata,'runtimeVersion'), resultSchemaVersion=2; end
+if isfield(metadata,'runtimeVersion'), resultSchemaVersion=metadata.resultSchemaVersion; end
 save(temporary,'result','caseMetadata','configSnapshot','resultStatus', ...
-    'kpiSummary','environmentSnapshot','resultSchemaVersion','-v7.3');
+    'kpiSummary','environmentSnapshot','resultSchemaVersion','datasetSchema','-v7.3');
 check=whos('-file',temporary);
 requiredVariables={'result','caseMetadata','configSnapshot','resultStatus', ...
     'kpiSummary','environmentSnapshot'};
@@ -86,6 +104,14 @@ end
 marker=identity(metadata,result.status);
 marker.manifestVersion=1;
 if isfield(metadata,'runtimeVersion'), marker.manifestVersion=2; end
+if isfield(metadata,'runtimeVersion')&&metadata.resultSchemaVersion==3
+    marker.manifestVersion=3;
+    marker.resultSchemaVersion=3;
+    marker.controllerLogSchemaVersion=result.controllerLogSchemaVersion;
+end
+marker.tableExportVersion=2;
+if isfield(result,'radioDiagnostics'), marker.tableExportVersion=3; end
+if isfield(result,'groupKpi'), marker.tableExportVersion=4; end
 marker.resultFile=[runName '.mat'];
 marker.exportStem=runName; marker.tables=tables;
 marker.balances=balanceSnapshot(result.kpiSummary);
@@ -117,7 +143,17 @@ end
 end
 
 function runName=exportStem(result)
-runName=sprintf('static-v1_n%d_r%04d', ...
+method='Static';
+if isfield(result.config,'policy')&&isfield(result.config.policy,'name')
+    method=char(string(result.config.policy.name));
+end
+switch method
+    case 'Static', prefix='static-v1';
+    case 'Adaptive-P', prefix='adaptive-p-v1';
+    case 'Adaptive-RA/DT', prefix='adaptive-ra-dt-v1';
+    otherwise, error('nbiot:results:Method','Unsupported result method %s.',method);
+end
+runName=sprintf('%s_n%d_r%04d',prefix, ...
     result.config.simulation.numUE,result.config.simulation.realizationId);
 end
 
@@ -126,12 +162,47 @@ tableData={result.ueSummary,result.kpiTimeSeries,result.dataset.observations, ..
     result.dataset.targets,result.resourceUsage,result.dataset.manifest};
 suffixes={'_ue.csv','_kpi.csv','_observations.csv','_targets.csv', ...
     '_resources.csv','_split.csv'};
+if isAdaptiveResult(result)
+    if ~isfield(result,'controllerLog')||~isfield(result,'controllerLogSchemaVersion')|| ...
+            result.controllerLogSchemaVersion~=1
+        error('nbiot:results:ControllerSchema','Adaptive export requires controller log schema version 1.');
+    end
+    tableData{end+1}=struct2table(result.controllerLog,'AsArray',true);
+    suffixes{end+1}='_controller.csv';
+end
+tableData{end+1}=nbiot.results.buildKpiSummaryTable(result);
+suffixes{end+1}='_summary.csv';
+if isfield(result,'radioDiagnostics')
+    tableData{end+1}=nbiot.results.buildRadioDiagnosticsTable(result);
+    suffixes{end+1}='_radio.csv';
+end
+if isfield(result,'groupKpi')
+    tableData{end+1}=result.groupKpi;
+    suffixes{end+1}='_groups.csv';
+end
 tables=repmat(struct('file','','variableNames',{{}},'rows',0),numel(suffixes),1);
 for k=1:numel(suffixes)
     file=[runName suffixes{k}]; writetable(tableData{k},fullfile(folder,file));
     tables(k)=struct('file',file,'variableNames',{tableData{k}.Properties.VariableNames}, ...
         'rows',height(tableData{k}));
 end
+end
+
+function files=exportFiles(runName,includeController,includeRadio,includeGroups)
+if nargin<3, includeRadio=false; end
+if nargin<4, includeGroups=false; end
+suffixes={'_ue.csv','_kpi.csv','_observations.csv','_targets.csv', ...
+    '_resources.csv','_split.csv','_summary.csv'};
+if includeController, suffixes{end+1}='_controller.csv'; end
+if includeRadio, suffixes{end+1}='_radio.csv'; end
+if includeGroups, suffixes{end+1}='_groups.csv'; end
+files=[{[runName '.mat']},cellfun(@(suffix) [runName suffix],suffixes,'UniformOutput',false)];
+end
+
+function yes=isAdaptiveResult(result)
+yes=isfield(result,'config')&&isfield(result.config,'policy')&& ...
+    isfield(result.config.policy,'name')&& ...
+    any(strcmp(char(string(result.config.policy.name)),{'Adaptive-P','Adaptive-RA/DT'}));
 end
 
 function metadata=identity(input,status)
@@ -144,6 +215,7 @@ if isfield(input,'runtimeVersion')
     names={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
         'modelSha256','policySha256','inputSha256','runnerSha256'};
     for k=1:numel(names), metadata.(names{k})=input.(names{k}); end
+    if isfield(input,'controllerPolicy'), metadata.controllerPolicy=input.controllerPolicy; end
 end
 end
 

@@ -1,0 +1,17 @@
+Running TestV3Package
+..Meeting preset: Static, 1 device, 200 bytes, strong link, 5 model seconds.
+The simulation has NOT started. Press Запуск in the application.
+Expected after completion: 1 packet delivered, 1600 payload bits.
+This is a favorable-link demonstration, not network-wide performance.
+    numUE    durationTicks    kpi_created    kpi_delivered    kpi_dropped    kpi_unfinished
+    _____    _____________    ___________    _____________    ___________    ______________
+
+     100         5000             100              6              86               8       
+
+SAVED run, not a new simulation: 100 devices, 5 model seconds.
+6 delivered, 86 dropped, 8 unfinished. One scenario, not general statistics.
+.
+Done TestV3Package
+__________
+
+BOUNDED_TEST total=3 passed=3 failed=0 incomplete=0

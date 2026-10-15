@@ -1,4 +1,4 @@
-function series=windowKpi(cfg,packets,attempts,observed,actualTick,queueSamples)
+function series=windowKpi(cfg,packets,attempts,observed,actualTick,queueSamples,controllerLog)
 %WINDOWKPI Interval events and arrival cohorts have distinct denominators.
 names={'windowId','startTick','endTick','created','deliveredInWindow','droppedInWindow', ...
     'cohortDelivered','cohortDropped','cohortUnfinished','cohortDeliveryProbability', ...
@@ -6,6 +6,7 @@ names={'windowId','startTick','endTick','created','deliveredInWindow','droppedIn
 names=[names,{'meanBsQueueLength','maxBsQueueLength','meanUeQueueLength', ...
     'maxUeQueueLength','controllerApplicable','controllerDecisions','configurationSwitches'}];
 if nargin<6, queueSamples=zeros(0,3); end
+if nargin<7, controllerLog=struct([]); end
 rows={};
 for first=0:cfg.dataset.windowTicks:actualTick-1
     last=min(first+cfg.dataset.windowTicks,actualTick);
@@ -45,9 +46,21 @@ for first=0:cfg.dataset.windowTicks:actualTick-1
     meanUe=NaN; maxUe=NaN;
     if ~isempty(q), meanUe=sum(q(:,2))/(size(q,1)*cfg.simulation.numUE); maxUe=max(q(:,3)); end
     maxBs=NaN; if ~isempty(queues), maxBs=max(queues); end
+    controllerApplicable=~strcmp(char(string(cfg.policy.name)),'Static');
+    controllerDecisions=NaN; configurationSwitches=NaN;
+    if controllerApplicable
+        controllerDecisions=0; configurationSwitches=0;
+        if ~isempty(controllerLog)
+            decisionTicks=[controllerLog.decisionTick];
+            inWindow=decisionTicks>=first&decisionTicks<last;
+            controllerDecisions=sum(inWindow);
+            switchTicks=decisionTicks([controllerLog.switched]);
+            configurationSwitches=sum(switchTicks>=first&switchTicks<last);
+        end
+    end
     rows(end+1,:)={floor(first/cfg.dataset.windowTicks)+1,first,last,created,delivered,dropped, ...
         cohortDelivered,cohortDropped,cohortUnfinished,probability,started,succeeded,failed,decoded,crcFailures,throughput, ...
-        mean(queues),maxBs,meanUe,maxUe,false,NaN,NaN}; %#ok<AGROW>
+        mean(queues),maxBs,meanUe,maxUe,controllerApplicable,controllerDecisions,configurationSwitches}; %#ok<AGROW>
 end
 if isempty(rows), series=array2table(zeros(0,numel(names)),'VariableNames',names);
 else, series=cell2table(rows,'VariableNames',names); end

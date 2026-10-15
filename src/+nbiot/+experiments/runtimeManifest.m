@@ -7,7 +7,8 @@ rejectUnknownHooks(cfg,{});
 root=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 options=defaults(options,struct('projectRoot',root,'calibrationFile','', ...
     'modelFiles',{{}},'policyFiles',{{}},'inputFiles',{{}},'scenario',[], ...
-    'runner',[],'runnerFiles',{{}},'runnerInputs',struct(),'runnerDependenciesDeclared',false));
+    'runner',[],'runnerFiles',{{}},'runnerInputs',struct(),'runnerDependenciesDeclared',false, ...
+    'controllerPolicy',[]));
 source=optimizationSourceManifest(options.projectRoot);
 canonicalCfg=cfg;
 if isfield(canonicalCfg,'logging'), canonicalCfg.logging.outputFolder='<case-output>'; end
@@ -18,7 +19,23 @@ if isempty(options.calibrationFile)
 else, calibration=hashFile(options.calibrationFile); end
 model=hashFiles(options.modelFiles); inputs=hashValue(struct( ...
     'files',hashFiles(options.inputFiles),'scenario',options.scenario));
-policy=hashValue(struct('configuration',cfg.policy,'files',hashFiles(options.policyFiles)));
+controllerPolicy=[];
+if isfield(cfg,'policy')&&isfield(cfg.policy,'name')&& ...
+        ~strcmp(char(string(cfg.policy.name)),'Static')
+    controllerPolicy=adaptiveDefaults();
+    if ~isempty(options.controllerPolicy)
+        if ~isstruct(options.controllerPolicy)||~isscalar(options.controllerPolicy)
+            error('nbiot:experiments:ControllerPolicy','Controller policy must be a scalar structure.');
+        end
+        names=fieldnames(options.controllerPolicy);
+        if ~all(ismember(names,fieldnames(controllerPolicy)))
+            error('nbiot:experiments:ControllerPolicy','Controller policy contains unsupported fields.');
+        end
+        for k=1:numel(names), controllerPolicy.(names{k})=options.controllerPolicy.(names{k}); end
+    end
+end
+policy=hashValue(struct('configuration',cfg.policy,'files',hashFiles(options.policyFiles), ...
+    'controllerPolicy',controllerPolicy));
 if isempty(options.runner)
     runner=hashValue(struct('function','nbiot.runExperiment','source',source.sha256));
 else
@@ -49,17 +66,27 @@ else
     runner=hashValue(struct('function',info.function,'files',hashFiles(registered), ...
         'capturedInputs',captured,'registeredInputs',options.runnerInputs));
 end
+sourceProfile='static-v1';
+if isfield(cfg,'policy')&&isfield(cfg.policy,'name')&& ...
+        ~strcmp(char(string(cfg.policy.name)),'Static')
+    sourceProfile='adaptive-development';
+end
 environment=struct('matlabVersion',version,'release',version('-release'), ...
-    'lteVersion',ver('lte'),'computer',computer,'validatedInMatlab',false,'sourceProfile','static-v1');
-metadata=struct('runtimeVersion',1,'resultSchemaVersion',2, ...
+    'lteVersion',ver('lte'),'computer',computer,'validatedInMatlab',false,'sourceProfile',sourceProfile);
+resultSchemaVersion=2;
+if ~isempty(controllerPolicy), resultSchemaVersion=3; end
+metadata=struct('runtimeVersion',1,'resultSchemaVersion',resultSchemaVersion, ...
     'configSha256',nbiot.results.configSha256(cfg,true), ...
     'canonicalConfigSha256',hashValue(canonicalCfg),'sourceSha256',source.sha256, ...
     'calibrationSha256',calibration,'modelSha256',model,'policySha256',policy, ...
     'inputSha256',inputs,'runnerSha256',runner,'environment',environment);
+if ~isempty(controllerPolicy), metadata.controllerPolicy=controllerPolicy; end
 identity=struct('method',cfg.policy.name,'configuration',metadata.canonicalConfigSha256, ...
     'traffic',cfg.traffic,'realization',cfg.simulation.realizationId, ...
     'calibration',calibration,'model',model,'policy',policy,'inputs',inputs,'runner',runner);
-metadata.caseKey=['case-v2-' hashValue(identity)];
+caseVersion='case-v2';
+if resultSchemaVersion==3, caseVersion='case-v3'; end
+metadata.caseKey=[caseVersion '-' hashValue(identity)];
 end
 
 function value=canonical(value)

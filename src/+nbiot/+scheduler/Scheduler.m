@@ -28,6 +28,12 @@ classdef Scheduler < handle
             assert(obj.calendar.reserveTransaction(plans),'nbiot:NprachQuota','NPRACH exceeds the fixed RA budget.');
             obj.occasions=occasions;
         end
+        function applied=applyShareFrom(obj,effectiveTick,raShare)
+            applied=obj.calendar.applyShareFrom(effectiveTick,raShare);
+        end
+        function matches=referencesCalendar(obj,calendar)
+            matches=(obj.calendar==calendar);
+        end
         function schedule=uplink(obj,kind,phase,earliestTick,deadlineTick,rnti,ndi,rv)
             schedule=[]; earliestTick=max(earliestTick,obj.contextAvailable(rnti));
             for base=ceil(earliestTick/32)*32:32:min(deadlineTick,obj.cfg.simulation.durationTicks)-1

@@ -21,7 +21,65 @@ classdef TestCaseResume < matlab.unittest.TestCase
             t.verifyTrue(isfile(fullfile(folder,'static-v1_n1_r0007_targets.csv')));
             t.verifyTrue(isfile(fullfile(folder,'static-v1_n1_r0007_resources.csv')));
             t.verifyTrue(isfile(fullfile(folder,'static-v1_n1_r0007_split.csv')));
+            t.verifyTrue(isfile(fullfile(folder,'static-v1_n1_r0007_summary.csv')));
             t.verifyFalse(isfile(fullfile(folder,'case-complete.json')));
+        end
+
+        function adaptiveLegacySaveUsesItsOwnStemAndRefusesOverwrite(t)
+            [folder,staticResult]=makeFixture(t);
+            staticPath=nbiot.results.saveResult(staticResult,folder);
+            staticHash=fileHash(staticPath);
+            adaptiveResult=makeAdaptiveResult(staticResult);
+
+            adaptivePath=nbiot.results.saveResult(adaptiveResult,folder);
+
+            t.verifyNotEqual(adaptivePath,staticPath);
+            t.verifyTrue(contains(adaptivePath,'adaptive-p-v1_n1_r0007.mat'));
+            t.verifyEqual(fileHash(staticPath),staticHash);
+            controllerCsv=fullfile(folder,'adaptive-p-v1_n1_r0007_controller.csv');
+            t.verifyTrue(isfile(controllerCsv));
+            table=readtable(controllerCsv,'VariableNamingRule','preserve');
+            t.verifyTrue(ismember('proposedAccessProbability',table.Properties.VariableNames));
+            t.verifyEqual(table.proposedAccessProbability(1),0.5);
+            t.verifyError(@() nbiot.results.saveResult(adaptiveResult,folder), ...
+                'nbiot:results:DuplicateRun');
+            t.verifyEqual(fileHash(staticPath),staticHash);
+        end
+
+        function adaptiveCaseWritesVersionedControllerTable(t)
+            [folder,result,metadata]=makeAdaptiveCaseFixture(t);
+
+            nbiot.results.saveResult(result,folder,metadata);
+
+            marker=jsondecode(fileread(fullfile(folder,'case-complete.json')));
+            t.verifyEqual(marker.manifestVersion,3);
+            t.verifyEqual(marker.resultSchemaVersion,3);
+            t.verifyEqual(marker.controllerLogSchemaVersion,1);
+            t.verifyEqual(marker.tableExportVersion,2);
+            t.verifyEqual(numel(marker.tables),8);
+            t.verifyTrue(any(strcmp({marker.tables.file}, ...
+                'adaptive-p-v1_n1_r0007_controller.csv')));
+            t.verifyTrue(any(strcmp({marker.tables.file}, ...
+                'adaptive-p-v1_n1_r0007_summary.csv')));
+            report=nbiot.results.verifyCase(folder,metadata);
+            t.verifyTrue(report.passed,evalc('disp(report.checks)'));
+        end
+
+        function olderCaseWithoutFinalSummaryCsvStillPassesReadback(t)
+            [folder,result,metadata]=makeFixture(t);
+            nbiot.results.saveResult(result,folder,metadata);
+            markerPath=fullfile(folder,'case-complete.json');
+            marker=jsondecode(fileread(markerPath));
+            summaryFile='static-v1_n1_r0007_summary.csv';
+            delete(fullfile(folder,summaryFile));
+            marker=rmfield(marker,'tableExportVersion');
+            marker.tables=marker.tables(~strcmp({marker.tables.file},summaryFile));
+            marker.files=marker.files(~strcmp({marker.files.name},summaryFile));
+            writeJson(markerPath,marker);
+
+            report=nbiot.results.verifyCase(folder,metadata);
+
+            t.verifyTrue(report.passed,evalc('disp(report.checks)'));
         end
 
         function matWithoutCompletionMarkerIsRejected(t)
@@ -166,6 +224,39 @@ classdef TestCaseResume < matlab.unittest.TestCase
             t.verifyTrue(isfile(third.resultFile{1}));
         end
     end
+end
+
+function result=makeAdaptiveResult(result)
+result.config.policy=struct('name','Adaptive-P','accessProbability',1, ...
+    'raShare',0.1,'windowTicks',500);
+result.controllerLog=controllerLogFixture();
+result.controllerLogSchemaVersion=1;
+result.controllerPolicy=struct('windowTicks',500,'maximumLoad',100000);
+end
+
+function [folder,result,metadata]=makeAdaptiveCaseFixture(t)
+[folder,result,metadata]=makeFixture(t);
+result=makeAdaptiveResult(result);
+metadata.caseKey='case-v3-adaptive-p-fixture';
+metadata.configSha256=nbiot.results.configSha256(result.config,true);
+metadata.runtimeVersion=1;
+metadata.resultSchemaVersion=3;
+metadata.canonicalConfigSha256=repmat('c',1,64);
+metadata.modelSha256=repmat('d',1,64);
+metadata.policySha256=repmat('e',1,64);
+metadata.inputSha256=repmat('f',1,64);
+metadata.runnerSha256=repmat('a',1,64);
+metadata.controllerPolicy=result.controllerPolicy;
+end
+
+function log=controllerLogFixture()
+log=struct('decisionTick',0,'effectiveTick',0,'featureWindowEndTick',0, ...
+    'method','Adaptive-P','estimateValue',4,'estimateValid',true, ...
+    'proposedAccessProbability',0.5,'proposedRaShare',0.1, ...
+    'appliedAccessProbability',0.5,'appliedRaShare',0.1,'applied',true, ...
+    'switched',true,'reason','load-threshold','estimateReason','valid', ...
+    'featureValuesJson','{"detectedCandidates":2}', ...
+    'errorIdentifier','','errorMessage','');
 end
 
 function [folder,result,metadata]=makeFixture(t)

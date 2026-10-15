@@ -27,16 +27,29 @@ elseif requireMarker
     report=addCheck(report,'completion-marker',false,'Completion marker is missing.');
     report=finish(report); return
 end
+includeSummary=~isempty(marker)&&isfield(marker,'tableExportVersion');
+includeRadioDiagnostics=markerHasTable(marker,'_radio.csv');
+includeGroupKpi=markerHasTable(marker,'_groups.csv');
+if includeSummary
+    tableExportVersionOk=isnumeric(marker.tableExportVersion)&& ...
+        isscalar(marker.tableExportVersion)&&any(double(marker.tableExportVersion)==[2 3 4]);
+    report=addCheck(report,'table-export-version',tableExportVersionOk, ...
+        'Unsupported final KPI summary table export version.');
+    if ~tableExportVersionOk, report=finish(report); return; end
+end
 
 if ~isempty(marker)
     markerFields={'manifestVersion','caseKey','configSha256','sourceSha256', ...
         'calibrationSha256','environment','status','resultFile','exportStem', ...
         'files','tables','balances','elapsedSeconds'};
+    if isfield(marker,'manifestVersion')&&isequal(double(marker.manifestVersion),3)
+        markerFields=[markerFields {'resultSchemaVersion','controllerLogSchemaVersion'}];
+    end
     missing=markerFields(~isfield(marker,markerFields));
     report=addCheck(report,'marker-fields',isempty(missing),strjoin(missing,', '));
     if ~isempty(missing), report=finish(report); return; end
     report.status=char(string(marker.status)); report.caseKey=char(string(marker.caseKey));
-    versionOk=isequal(double(marker.manifestVersion),1) || isequal(double(marker.manifestVersion),2);
+    versionOk=any(double(marker.manifestVersion)==[1 2 3]);
     report=addCheck(report,'marker-version',versionOk, ...
         sprintf('manifestVersion=%s',string(marker.manifestVersion)));
     if ~versionOk, report=finish(report); return; end
@@ -44,9 +57,19 @@ if ~isempty(marker)
         report=addCheck(report,'marker-runtime-version',false,'Legacy marker cannot contain schema-2 runtime identity.');
         report=finish(report); return;
     end
-    if marker.manifestVersion==2
-        report=addCheck(report,'runtime-schema',runtimeValid(marker),'Runtime identity schema 1 / result schema 2 required.');
+    if marker.manifestVersion==2||marker.manifestVersion==3
+        report=addCheck(report,'runtime-schema',runtimeValid(marker),'Runtime identity must have a supported result schema.');
         if ~runtimeValid(marker), report=finish(report); return; end
+    end
+    if marker.manifestVersion==3
+        controllerSchemaOk=isequal(double(marker.resultSchemaVersion),3)&& ...
+            isequal(double(marker.controllerLogSchemaVersion),1)&&isfield(marker,'controllerPolicy');
+        report=addCheck(report,'controller-schema',controllerSchemaOk, ...
+            'Adaptive marker requires result schema 3, controller log schema 1 and its effective policy.');
+        if ~controllerSchemaOk, report=finish(report); return; end
+    elseif marker.manifestVersion==2&&double(marker.resultSchemaVersion)~=2
+        report=addCheck(report,'runtime-schema-version',false,'Manifest version 2 requires result schema 2.');
+        report=finish(report); return;
     end
 else
     report.status='staging';
@@ -88,21 +111,30 @@ end
 caseMetadata=loaded.caseMetadata;
 if isfield(caseMetadata,'runtimeVersion')
     versionSnapshot=load(matPath,'resultSchemaVersion');
+    expectedSchema=2+double(isfield(caseMetadata,'controllerPolicy'));
     schemaOk=runtimeValid(caseMetadata) && isfield(versionSnapshot,'resultSchemaVersion') && ...
-        isequal(versionSnapshot.resultSchemaVersion,2);
+        isequal(versionSnapshot.resultSchemaVersion,expectedSchema);
     report=addCheck(report,'result-schema',schemaOk,'MAT result schema must be supported and agree with runtime identity.');
 end
 if isempty(marker)
     marker=caseMetadata;
     marker.resultFile=resultFile; marker.exportStem=exportStem;
     marker.balances=balanceSnapshot(loaded.kpiSummary);
-    marker.tables=memoryTables(memoryResult,exportStem);
+    includeSummary=true;
+    marker.tableExportVersion=2;
+    includeRadioDiagnostics=isfield(memoryResult,'radioDiagnostics');
+    includeGroupKpi=isfield(memoryResult,'groupKpi');
+    marker.tables=memoryTables(memoryResult,exportStem,includeSummary, ...
+        includeRadioDiagnostics,includeGroupKpi);
     report.caseKey=char(string(marker.caseKey)); report.status=char(string(marker.status));
 end
 
 identityFields={'caseKey','configSha256','sourceSha256','calibrationSha256','environment'};
 runtimeFields={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
     'modelSha256','policySha256','inputSha256','runnerSha256'};
+if isfield(marker,'controllerPolicy')
+    runtimeFields=[runtimeFields {'controllerPolicy'}];
+end
 identityFields=[identityFields runtimeFields];
 for k=1:numel(identityFields)
     name=identityFields{k};
@@ -129,8 +161,7 @@ report=addCheck(report,'mat-identity',matched,'MAT identity snapshot must match 
 try
     computed=nbiot.results.configSha256(loaded.configSnapshot,isfield(marker,'runtimeVersion'));
     configOk=strcmp(computed,char(string(marker.configSha256)));
-    expectedStem=sprintf('static-v1_n%d_r%04d', ...
-        loaded.configSnapshot.simulation.numUE,loaded.configSnapshot.simulation.realizationId);
+    expectedStem=stemFromConfig(loaded.configSnapshot);
     nameOk=strcmp(exportStem,expectedStem) && strcmp(resultFile,[expectedStem '.mat']);
 catch
     configOk=false;
@@ -160,18 +191,24 @@ end
 statusOk=strcmp(char(string(loaded.resultStatus)),char(string(marker.status)));
 report=addCheck(report,'result-status',statusOk,'MAT status must match marker.');
 
+includeController=~isempty(marker)&&isfield(marker,'manifestVersion')&&marker.manifestVersion==3;
+if isempty(markerPath)||~isfile(markerPath), includeController=isAdaptiveResult(memoryResult); end
 if ~isempty(markerPath) && isfile(markerPath)
     fileRecords=marker.files; if iscell(fileRecords), fileRecords=[fileRecords{:}]; end
-    expectedFiles=[{resultFile},cellstr(memoryTableFiles(exportStem))];
+    expectedFiles=[{resultFile},cellstr(memoryTableFiles(exportStem,includeController, ...
+        includeSummary,includeRadioDiagnostics,includeGroupKpi))];
     actualNames=cellstr(string({fileRecords.name}));
     listOk=numel(unique(actualNames))==numel(expectedFiles) && ...
         isequal(sort(actualNames),sort(expectedFiles));
-    report=addCheck(report,'file-list',listOk,'Marker must list MAT and all six CSV exports exactly once.');
+    report=addCheck(report,'file-list',listOk,'Marker must list the MAT result and all CSV exports exactly once.');
 else
-    expectedFiles=[{resultFile},cellstr(memoryTableFiles(exportStem))];
+    includeRadioDiagnostics=~isempty(memoryResult)&&isfield(memoryResult,'radioDiagnostics');
+    includeGroupKpi=~isempty(memoryResult)&&isfield(memoryResult,'groupKpi');
+    expectedFiles=[{resultFile},cellstr(memoryTableFiles(exportStem,includeController, ...
+        includeSummary,includeRadioDiagnostics,includeGroupKpi))];
     present=cellfun(@(name) isfile(fullfile(caseFolder,name)),expectedFiles);
     report=addCheck(report,'file-list',all(present), ...
-        'Staged case must contain MAT and all six CSV exports before commit.');
+        'Staged case must contain MAT and all CSV exports before commit.');
     fileRecords=repmat(struct('name','','sha256','','bytes',0),0,1);
     for k=1:numel(expectedFiles)
         path=fullfile(caseFolder,expectedFiles{k});
@@ -199,7 +236,9 @@ try
     tables=marker.tables; if iscell(tables), tables=[tables{:}]; end
     tableListOk=isstruct(tables) && all(isfield(tables,{'file','variableNames','rows'}));
     if tableListOk
-        expectedTableFiles=reshape(cellstr(memoryTableFiles(exportStem)),1,[]);
+        expectedTableFiles=reshape(cellstr(memoryTableFiles( ...
+            exportStem,includeController,includeSummary,includeRadioDiagnostics, ...
+            includeGroupKpi)),1,[]);
         actualTableFiles=reshape(cellstr(string({tables.file})),1,[]);
         tableListOk=numel(actualTableFiles)==numel(expectedTableFiles) && ...
             numel(unique(actualTableFiles))==numel(expectedTableFiles) && ...
@@ -209,7 +248,7 @@ catch
     tableListOk=false;
 end
 report=addCheck(report,'table-list',tableListOk, ...
-    'Marker must describe all six CSV table schemas exactly once.');
+    'Marker must describe every CSV table schema exactly once.');
 if ~tableListOk, report=finish(report); return; end
 for k=1:numel(tables)
     tableInfo=tables(k); name=char(string(tableInfo.file)); path=fullfile(caseFolder,name);
@@ -225,7 +264,8 @@ for k=1:numel(tables)
         report=addCheck(report,['rows-' name],rowsOk, ...
             sprintf('Expected %d rows; read %d.',double(tableInfo.rows),height(actual)));
         if ~isempty(memoryResult)
-            expectedTable=memoryTable(memoryResult,name);
+            expectedTable=memoryTable(memoryResult,name,includeSummary, ...
+                includeRadioDiagnostics,includeGroupKpi);
             same=strcmp(tableHash(expectedTable),hashFile(path));
             report=addCheck(report,['readback-' name],same, ...
                 'CSV bytes must match a fresh export of the in-memory table.');
@@ -242,10 +282,26 @@ end
 report=finish(report);
 end
 
-function tables=memoryTables(result,exportStem)
+function tables=memoryTables(result,exportStem,includeSummary,includeRadioDiagnostics,includeGroupKpi)
 data={result.ueSummary,result.kpiTimeSeries,result.dataset.observations, ...
     result.dataset.targets,result.resourceUsage,result.dataset.manifest};
 suffixes={'_ue.csv','_kpi.csv','_observations.csv','_targets.csv','_resources.csv','_split.csv'};
+if isAdaptiveResult(result)
+    data{end+1}=struct2table(result.controllerLog,'AsArray',true);
+    suffixes{end+1}='_controller.csv';
+end
+if includeSummary
+    data{end+1}=nbiot.results.buildKpiSummaryTable(result);
+    suffixes{end+1}='_summary.csv';
+end
+if includeRadioDiagnostics
+    data{end+1}=nbiot.results.buildRadioDiagnosticsTable(result);
+    suffixes{end+1}='_radio.csv';
+end
+if includeGroupKpi
+    data{end+1}=result.groupKpi;
+    suffixes{end+1}='_groups.csv';
+end
 tables=repmat(struct('file','','variableNames',{{}},'rows',0),numel(suffixes),1);
 for k=1:numel(suffixes)
     tables(k)=struct('file',[exportStem suffixes{k}], ...
@@ -253,32 +309,61 @@ for k=1:numel(suffixes)
 end
 end
 
-function files=memoryTableFiles(exportStem)
+function files=memoryTableFiles(exportStem,includeController,includeSummary, ...
+    includeRadioDiagnostics,includeGroupKpi)
 files=string({[exportStem '_ue.csv'],[exportStem '_kpi.csv'], ...
     [exportStem '_observations.csv'],[exportStem '_targets.csv'], ...
     [exportStem '_resources.csv'],[exportStem '_split.csv']});
+if includeController, files(end+1)=[exportStem '_controller.csv']; end
+if includeSummary, files(end+1)=[exportStem '_summary.csv']; end
+if includeRadioDiagnostics, files(end+1)=[exportStem '_radio.csv']; end
+if includeGroupKpi, files(end+1)=[exportStem '_groups.csv']; end
 end
 
-function value=memoryTable(result,file)
+function value=memoryTable(result,file,includeSummary,includeRadioDiagnostics,includeGroupKpi)
 tables={result.ueSummary,result.kpiTimeSeries,result.dataset.observations, ...
     result.dataset.targets,result.resourceUsage,result.dataset.manifest};
 suffixes={'_ue.csv','_kpi.csv','_observations.csv','_targets.csv','_resources.csv','_split.csv'};
-value=[];
+if isAdaptiveResult(result)
+    tables{end+1}=struct2table(result.controllerLog,'AsArray',true);
+    suffixes{end+1}='_controller.csv';
+end
+if includeSummary
+    tables{end+1}=nbiot.results.buildKpiSummaryTable(result);
+    suffixes{end+1}='_summary.csv';
+end
+if includeRadioDiagnostics
+    tables{end+1}=nbiot.results.buildRadioDiagnosticsTable(result);
+    suffixes{end+1}='_radio.csv';
+end
+if includeGroupKpi
+    tables{end+1}=result.groupKpi;
+    suffixes{end+1}='_groups.csv';
+end
 for k=1:numel(suffixes)
     if endsWith(file,suffixes{k}), value=tables{k}; return; end
 end
 error('nbiot:results:Verify','Unknown table export %s.',file);
 end
 
+function included=markerHasTable(marker,suffix)
+included=false;
+if isempty(marker)||~isfield(marker,'tables')||isempty(marker.tables), return; end
+tables=marker.tables;
+if iscell(tables), tables=[tables{:}]; end
+if ~isstruct(tables)||~all(isfield(tables,'file')), return; end
+included=any(endsWith(string({tables.file}),suffix));
+end
+
 function hex=tableHash(value)
-path=[tempname '.csv']; cleanup=onCleanup(@() removeTemporary(path)); %#ok<NASGU>
+path=[tempname '.csv']; cleanup=onCleanup(@() removeTemporary(path));
 writetable(value,path); hex=hashFile(path);
 end
 
 function hex=hashFile(path)
 fid=fopen(path,'rb');
 if fid<0, error('nbiot:results:Hash','Cannot read %s.',path); end
-cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
+cleanup=onCleanup(@() fclose(fid));
 digest=java.security.MessageDigest.getInstance('SHA-256');
 while true
     bytes=fread(fid,4*1024*1024,'*uint8');
@@ -311,7 +396,35 @@ end
 function ok=equivalent(a,b)
 if ischar(a) || isstring(a), a=char(string(a)); end
 if ischar(b) || isstring(b), b=char(string(b)); end
-try, ok=isequaln(a,b); catch, ok=false; end
+if (isnumeric(a)||islogical(a))&&(isnumeric(b)||islogical(b))
+    if ~strcmp(class(a),class(b)), ok=false; return; end
+    if isvector(a)&&isvector(b)&&numel(a)==numel(b)
+        ok=isequaln(a(:),b(:));
+    else
+        ok=isequaln(a,b);
+    end
+    return;
+end
+if isstruct(a)||isstruct(b)
+    ok=false;
+    if ~isstruct(a)||~isstruct(b)||numel(a)~=numel(b), return; end
+    fieldsA=sort(fieldnames(a)); fieldsB=sort(fieldnames(b));
+    if ~isequal(fieldsA,fieldsB), return; end
+    if ~isequal(size(a),size(b))&&~(isvector(a)&&isvector(b)), return; end
+    a=a(:); b=b(:);
+    for row=1:numel(a)
+        for field=1:numel(fieldsA)
+            name=fieldsA{field};
+            if ~equivalent(a(row).(name),b(row).(name)), return; end
+        end
+    end
+    ok=true; return;
+end
+try
+    ok=isequaln(a,b);
+catch
+    ok=false;
+end
 end
 
 function report=addCheck(report,name,passed,detail)
@@ -325,8 +438,25 @@ report.passed=~isempty(report.checks) && all([report.checks.passed]) && isempty(
 end
 
 function name=stem(result)
-name=sprintf('static-v1_n%d_r%04d', ...
-    result.config.simulation.numUE,result.config.simulation.realizationId);
+name=stemFromConfig(result.config);
+end
+
+function name=stemFromConfig(cfg)
+method='Static';
+if isfield(cfg,'policy')&&isfield(cfg.policy,'name'), method=char(string(cfg.policy.name)); end
+switch method
+    case 'Static', prefix='static-v1';
+    case 'Adaptive-P', prefix='adaptive-p-v1';
+    case 'Adaptive-RA/DT', prefix='adaptive-ra-dt-v1';
+    otherwise, error('nbiot:results:Method','Unsupported result method %s.',method);
+end
+name=sprintf('%s_n%d_r%04d',prefix,cfg.simulation.numUE,cfg.simulation.realizationId);
+end
+
+function yes=isAdaptiveResult(result)
+yes=isstruct(result)&&isscalar(result)&&isfield(result,'config')&& ...
+    isfield(result.config,'policy')&&isfield(result.config.policy,'name')&& ...
+    any(strcmp(char(string(result.config.policy.name)),{'Adaptive-P','Adaptive-RA/DT'}));
 end
 
 function value=ternary(condition,yes,no)
@@ -342,7 +472,12 @@ names={'runtimeVersion','resultSchemaVersion','canonicalConfigSha256', ...
     'modelSha256','policySha256','inputSha256','runnerSha256'};
 ok=isstruct(value) && isscalar(value) && all(isfield(value,names));
 if ~ok, return; end
-ok=isequal(double(value.runtimeVersion),1) && isequal(double(value.resultSchemaVersion),2);
+schema=double(value.resultSchemaVersion);
+ok=isequal(double(value.runtimeVersion),1) && any(schema==[2 3]);
+if schema==3
+    ok=ok&&isfield(value,'controllerPolicy')&&isstruct(value.controllerPolicy)&& ...
+        isscalar(value.controllerPolicy);
+end
 hashes=[{'configSha256','sourceSha256','calibrationSha256'} names(3:end)];
 for k=1:numel(hashes)
     ok=ok && isfield(value,hashes{k}) && ...

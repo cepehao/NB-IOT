@@ -12,15 +12,19 @@ addpath(root); addpath(fullfile(root,'experiments')); setupProject();
 options=defaults(options,struct('counts',[100 500 1000 2500 5000], ...
     'burstDurations',[10 100 500],'realizationIds',0:2, ...
     'calibrationFile',fullfile(root,'results','nprach-calibration.mat'), ...
-    'outputFolder',fullfile(root,'results','sweep-parallel'),'resume',true,'runExperimentFcn',[]));
+    'outputFolder',fullfile(root,'results','sweep-parallel'),'resume',true,'runExperimentFcn',[], ...
+    'execution',struct()));
 validateCases(options);
-if ~isfolder(options.outputFolder), mkdir(options.outputFolder); end
+cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=max(options.counts);
+budget=nbiot.experiments.validateExecutionBudget(cfg,options.execution, ...
+    numel(options.counts)*numel(options.burstDurations)*numel(options.realizationIds));
+options.execution=rmfield(budget,'numCases');
+suiteClock=tic;
 options.projectRoot=root; options.runner=options.runExperimentFcn;
 rows={}; jobs={}; jobRows=[];
 for count=options.counts
     for duration=options.burstDurations
         burstFolder=fullfile(options.outputFolder,sprintf('burst_%04dms',duration));
-        if ~isfolder(burstFolder), mkdir(burstFolder); end
         for id=options.realizationIds
             cfg=nbiot.config.defaultConfig();
             if isfield(options,'config'), cfg=options.config; end
@@ -30,7 +34,6 @@ for count=options.counts
             metadata=nbiot.experiments.runtimeManifest(cfg,options);
             caseKey=metadata.caseKey; caseFolder=fullfile(burstFolder,caseKey);
             cfg.logging.outputFolder=caseFolder;
-            if ~isfolder(caseFolder), mkdir(caseFolder); end
             sourceSha256=metadata.sourceSha256; calibrationSha256=metadata.calibrationSha256;
             [accepted,attemptFolder,marker]=findAcceptedCase(caseFolder,metadata,options.resume);
             rowIndex=size(rows,1)+1;
@@ -51,24 +54,40 @@ for count=options.counts
 end
 
 if ~isempty(jobs)
+    if strcmp(options.execution.profile,'local-development')
+        error('nbiot:experiments:ExecutionBudget', ...
+            'Local development uses sequential cases; new parallel jobs belong on the external machine.');
+    end
+    if toc(suiteClock)>=options.execution.maxSuiteSeconds
+        error('nbiot:experiments:ExecutionTimeout','Parallel suite time budget exhausted before pool startup.');
+    end
     pool=processPool(options.numWorkers);
     ownsPool=pool.created; pool=pool.value;
     poolCleanup=[];
     if ownsPool, poolCleanup=onCleanup(@() closePool(pool)); end %#ok<NASGU>
     workerMeta=cell(size(jobs));
+    futures=parallel.FevalFuture.empty(0,1);
     try
-        parfor k=1:numel(jobs)
-            job=jobs{k};
-            try
-                workerMeta{k}=nbiot.experiments.runStaticCase( ...
-                    job.cfg,job.caseFolder,job.metadata,options.runExperimentFcn,options);
-            catch exception
-                workerMeta{k}=struct('caseKey',job.caseKey,'status','worker-error', ...
-                    'elapsedSeconds',NaN,'resultFile','', ...
-                    'errorIdentifier',exception.identifier,'errorMessage',exception.message);
+        if toc(suiteClock)>=options.execution.maxSuiteSeconds
+            error('nbiot:experiments:ExecutionTimeout','Parallel pool startup exhausted the suite budget.');
+        end
+        for k=1:numel(jobs)
+            futures(k)=parfeval(pool,@runWorker,1,jobs{k},options.runExperimentFcn,options);
+        end
+        for k=1:numel(jobs)
+            remaining=options.execution.maxSuiteSeconds-toc(suiteClock);
+            if remaining<=0
+                error('nbiot:experiments:ExecutionTimeout','Parallel suite time budget exhausted.');
             end
+            [index,meta]=fetchNext(futures,remaining);
+            if isempty(index)
+                error('nbiot:experiments:ExecutionTimeout','Parallel suite time budget exhausted.');
+            end
+            workerMeta{index}=meta;
         end
     catch exception
+        if ~isempty(futures), cancel(futures); end
+        if strcmp(exception.identifier,'nbiot:experiments:ExecutionTimeout'), rethrow(exception); end
         error('nbiot:experiments:ParallelExecution', ...
             'Process pool stopped; accepted case folders remain available for resume. %s',exception.message);
     end
@@ -84,7 +103,17 @@ if ~isempty(jobs)
     end
 end
 manifest=makeManifest(rows);
+if ~isfolder(options.outputFolder), mkdir(options.outputFolder); end
 updateManifest(options.outputFolder,manifest);
+end
+
+function meta=runWorker(job,runner,options)
+try
+    meta=nbiot.experiments.runStaticCase(job.cfg,job.caseFolder,job.metadata,runner,options);
+catch exception
+    meta=struct('caseKey',job.caseKey,'status','worker-error','elapsedSeconds',NaN, ...
+        'resultFile','','errorIdentifier',exception.identifier,'errorMessage',exception.message);
+end
 end
 
 function validateCases(options)

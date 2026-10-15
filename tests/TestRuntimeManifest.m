@@ -8,6 +8,39 @@ classdef TestRuntimeManifest < matlab.unittest.TestCase
             t.verifyEqual(a.configSha256,b.configSha256);
             t.verifyEqual(a.resultSchemaVersion,2); t.verifyEqual(a.runtimeVersion,1);
         end
+        function adaptivePolicyOverrideChangesCaseIdentity(t)
+            [cfg,o]=fixture(t); cfg.policy.name='Adaptive-P';
+            o.controllerPolicy=struct('windowTicks',500,'maximumLoad',100000, ...
+                'accessLoadThresholds',[1 3 6 10]);
+            a=nbiot.experiments.runtimeManifest(cfg,o);
+            o.controllerPolicy.maximumLoad=50000;
+            b=nbiot.experiments.runtimeManifest(cfg,o);
+
+            t.verifyEqual(a.resultSchemaVersion,3);
+            t.verifyNotEqual(a.policySha256,b.policySha256);
+            t.verifyNotEqual(a.caseKey,b.caseKey);
+            t.verifyEqual(a.controllerPolicy.maximumLoad,100000);
+        end
+        function adaptiveVectorPolicySurvivesJsonMarkerRoundTrip(t)
+            [cfg,o]=fixture(t); cfg.simulation.numUE=1;
+            cfg.policy.name='Adaptive-P'; cfg.policy.windowTicks=500;
+            cfg.dataset.windowTicks=500;
+            metadata=nbiot.experiments.runtimeManifest(cfg,o);
+            result=emptyResult(cfg,metadata.environment);
+            result.controllerLog=struct('decisionTick',{},'effectiveTick',{}, ...
+                'featureWindowEndTick',{},'method',{},'estimateValue',{}, ...
+                'estimateValid',{},'proposedAccessProbability',{},'proposedRaShare',{}, ...
+                'appliedAccessProbability',{},'appliedRaShare',{},'applied',{}, ...
+                'switched',{},'reason',{},'estimateReason',{}, ...
+                'errorIdentifier',{},'errorMessage',{},'featureValuesJson',{});
+            result.controllerLogSchemaVersion=1;
+            result.controllerPolicy=metadata.controllerPolicy;
+
+            folder=fullfile(o.projectRoot,'adaptive-vector-policy');
+            nbiot.results.saveResult(result,folder,metadata);
+
+            t.verifyTrue(nbiot.results.verifyCase(folder,metadata).passed);
+        end
         function methodProbabilitySharesTrafficAndRealizationSeparateKeys(t)
             [cfg,o]=fixture(t); a=nbiot.experiments.runtimeManifest(cfg,o);
             changes={@method,@probability,@share,@traffic,@realization};

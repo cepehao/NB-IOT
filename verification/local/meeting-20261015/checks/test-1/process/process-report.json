@@ -1,0 +1,22 @@
+{
+  "status": "completed",
+  "exitCode": 0,
+  "elapsedSeconds": 36.4676706,
+  "timeoutSeconds": 300.0,
+  "rootProcessId": 19124,
+  "processIds": [
+    4692,
+    5268,
+    13396,
+    13428,
+    19124,
+    24008,
+    24100,
+    25988,
+    26440,
+    28448,
+    31940
+  ],
+  "stdout": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\local\\meeting-20261015\\checks\\test-1\\process\\stdout.log",
+  "stderr": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\local\\meeting-20261015\\checks\\test-1\\process\\stderr.log"
+}

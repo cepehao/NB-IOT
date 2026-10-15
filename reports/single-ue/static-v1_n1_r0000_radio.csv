@@ -1,0 +1,61 @@
+scope,measurement,occasionId,attemptId,otherAttemptId,ueId,nInit,contextId,channel,numerator,denominator,value,unit,estimate,configured,error,provenance
+preamble,transmittedAttempts,NaN,NaN,NaN,NaN,NaN,NaN,,1,1,1,count,NaN,NaN,NaN,diagnostic
+preamble,transmittedKeys,NaN,NaN,NaN,NaN,NaN,NaN,,1,1,1,count,NaN,NaN,NaN,diagnostic
+preamble,detectedCandidates,NaN,NaN,NaN,NaN,NaN,NaN,,1,1,1,count,NaN,NaN,NaN,diagnostic
+preamble,detectedKeys,NaN,NaN,NaN,NaN,NaN,NaN,,1,1,1,count,NaN,NaN,NaN,diagnostic
+preamble,misses,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,count,NaN,NaN,NaN,diagnostic
+preamble,falseAlarms,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,count,NaN,NaN,NaN,diagnostic
+preamble,falseAlarmOpportunities,NaN,NaN,NaN,NaN,NaN,NaN,,755,1,755,count,NaN,NaN,NaN,diagnostic
+preamble,detectionProbability,NaN,NaN,NaN,NaN,NaN,NaN,,1,1,1,probability,NaN,NaN,NaN,diagnostic
+preamble,missProbability,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,probability,NaN,NaN,NaN,diagnostic
+preamble,falseAlarmProbability,NaN,NaN,NaN,NaN,NaN,NaN,,0,755,0,probability,NaN,NaN,NaN,diagnostic
+collision,logicalGroups,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,count,NaN,NaN,NaN,diagnostic
+collision,logicalAttempts,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,count,NaN,NaN,NaN,diagnostic
+collision,physicalOverlapPairs,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,count,NaN,NaN,NaN,diagnostic
+collision,physicalAttempts,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,count,NaN,NaN,NaN,diagnostic
+collision,logicalAttemptProbability,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,probability,NaN,NaN,NaN,diagnostic
+collision,physicalAttemptProbability,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,probability,NaN,NaN,NaN,diagnostic
+capture,eligiblePairs,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,pairs,NaN,NaN,NaN,diagnostic
+capture,censoredPairs,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,pairs,NaN,NaN,NaN,diagnostic
+capture,equalPowerPairs,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,pairs,NaN,NaN,NaN,diagnostic
+capture,capturedPairs,NaN,NaN,NaN,NaN,NaN,NaN,,0,1,0,pairs,NaN,NaN,NaN,diagnostic
+capture,captureProbability,NaN,NaN,NaN,NaN,NaN,NaN,,0,0,NaN,probability,NaN,NaN,NaN,diagnostic
+attempt,receivedPowerW,1,1,NaN,1,10,NaN,NPRACH,NaN,NaN,8.09397926210684e-08,W,NaN,NaN,NaN,diagnosticTruth
+attempt,interferencePowerW,1,1,NaN,1,10,NaN,NPRACH,NaN,NaN,0,W,NaN,NaN,NaN,diagnosticTruth
+attempt,noisePowerW,1,1,NaN,1,10,NaN,NPRACH,NaN,NaN,5.69762411345013e-16,W,NaN,NaN,NaN,diagnosticTruth
+attempt,sinrDb,1,1,NaN,1,10,NaN,NPRACH,NaN,NaN,81.5246829298197,dB,NaN,NaN,NaN,diagnosticTruth
+receiver-estimate,delay,1,1,NaN,1,10,NaN,NPRACH,NaN,NaN,4.66544088767747e-07,s,4.66544088767747e-07,2.21821815104132e-07,2.44722273663615e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,NaN,NPRACH,NaN,NaN,0.0298837763546366,Hz,0.0298837763546366,0,0.0298837763546366,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Msg3,NaN,NaN,-5.20833333333333e-07,s,-5.20833333333333e-07,-2.99011518229202e-07,-2.21821815104132e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Msg3,NaN,NaN,-0.0140303141942749,Hz,-0.0140303141942749,0,-0.0140303141942749,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Msg3,NaN,NaN,4.43279144392044e-07,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Msg4Ack,NaN,NaN,0,s,0,-2.99011518229202e-07,2.99011518229202e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Msg4Ack,NaN,NaN,0.000888323095195261,Hz,0.000888323095195261,0,0.000888323095195261,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Msg4Ack,NaN,NaN,5.92923647232351e-11,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,5.20833333333333e-07,s,5.20833333333333e-07,-2.99011518229202e-07,8.19844851562535e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,0.00173821182045399,Hz,0.00173821182045399,0,0.00173821182045399,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,6.4129619515416e-07,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,-5.20833333333333e-07,s,-5.20833333333333e-07,-2.99011518229202e-07,-2.21821815104132e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,0.00421645447260552,Hz,0.00421645447260552,0,0.00421645447260552,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,4.52897457061425e-07,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,-5.20833333333333e-07,s,-5.20833333333333e-07,-2.99011518229202e-07,-2.21821815104132e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,-0.0106363075458214,Hz,-0.0106363075458214,0,-0.0106363075458214,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,4.5173527576671e-07,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,0,s,0,-2.99011518229202e-07,2.99011518229202e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,-0.00133425104955228,Hz,-0.00133425104955228,0,-0.00133425104955228,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,8.38400100415291e-09,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,-5.20833333333333e-07,s,-5.20833333333333e-07,-2.99011518229202e-07,-2.21821815104132e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,-0.0143563379693698,Hz,-0.0143563379693698,0,-0.0143563379693698,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,4.49590269310538e-07,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,0,s,0,-2.99011518229202e-07,2.99011518229202e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,0.00266108709170972,Hz,0.00266108709170972,0,0.00266108709170972,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,1.47701008546006e-08,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,5.20833333333333e-07,s,5.20833333333333e-07,-2.99011518229202e-07,8.19844851562535e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,-5.34364098948632e-05,Hz,-5.34364098948632e-05,0,-5.34364098948632e-05,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,6.58695009250527e-07,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,Data,NaN,NaN,0,s,0,-2.99011518229202e-07,2.99011518229202e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,Data,NaN,NaN,0.000487671094642337,Hz,0.000487671094642337,0,0.000487671094642337,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,Data,NaN,NaN,8.39078240398209e-09,receiver units,NaN,NaN,NaN,receiver
+receiver-estimate,delay,1,1,NaN,1,10,1,ReceiptAck,NaN,NaN,0,s,0,2.21821815104132e-07,-2.21821815104132e-07,receiver
+receiver-estimate,cfo,1,1,NaN,1,10,1,ReceiptAck,NaN,NaN,-0.00072678439203143,Hz,-0.00072678439203143,0,-0.00072678439203143,receiver
+attempt,noiseEstimate,1,1,NaN,1,10,1,ReceiptAck,NaN,NaN,9.8319979015936e-11,receiver units,NaN,NaN,NaN,receiver

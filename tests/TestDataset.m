@@ -1,5 +1,60 @@
 classdef TestDataset < matlab.unittest.TestCase
     methods (Test)
+        function schemaAddsOnlyTimedBsFeaturesAndRetainsLegacyVersion(t)
+            current=nbiot.dataset.featureSchema();
+            t.verifyEqual(current.version,'bs-known-v2.0');
+            t.verifyTrue(all(ismember({'ulRaOccupancy','ulDtOccupancy', ...
+                'dlRaOccupancy','dlDtOccupancy','accessProbability','raShare'}, ...
+                current.observationNames)));
+
+            legacy=nbiot.dataset.featureSchema('static-v1.0');
+            t.verifyEqual(legacy.version,'static-v1.0');
+            t.verifyEqual(numel(legacy.observationNames),13);
+        end
+
+        function closeWindowUsesOnlyItsClosedOccupancyAndPriorAction(t)
+            empty=struct('tick',{},'kind',{},'fields',{});
+            occupancy=struct('ulRaOccupancy',.1,'ulDtOccupancy',.2, ...
+                'dlRaOccupancy',.3,'dlDtOccupancy',.4);
+            action=struct('accessProbability',.75,'raShare',.2,'effectiveTick',0);
+
+            [observations,~]=nbiot.dataset.closeWindow(empty,empty,0,500, ...
+                0,0,0,7,500,occupancy,action);
+            schema=nbiot.dataset.featureSchema();
+            row=cell2table(observations,'VariableNames',schema.observationNames);
+
+            t.verifyEqual(row.ulRaOccupancy,.1);
+            t.verifyEqual(row.ulDtOccupancy,.2);
+            t.verifyEqual(row.dlRaOccupancy,.3);
+            t.verifyEqual(row.dlDtOccupancy,.4);
+            t.verifyEqual(row.accessProbability,.75);
+            t.verifyEqual(row.raShare,.2);
+            t.verifyFalse(any(ismember({'meanRaUe','meanActiveUe'}, ...
+                schema.observationNames)));
+        end
+
+        function absentDerivedInputsStayMissingInsteadOfZero(t)
+            empty=struct('tick',{},'kind',{},'fields',{});
+            [observations,~]=nbiot.dataset.closeWindow(empty,empty,0,500, ...
+                0,0,0,7,500);
+            schema=nbiot.dataset.featureSchema();
+            row=cell2table(observations,'VariableNames',schema.observationNames);
+
+            t.verifyTrue(all(isnan(row{1,{'ulRaOccupancy','ulDtOccupancy', ...
+                'dlRaOccupancy','dlDtOccupancy','accessProbability','raShare'}})));
+        end
+
+        function futureActionCannotDescribeClosedWindow(t)
+            empty=struct('tick',{},'kind',{},'fields',{});
+            occupancy=struct('ulRaOccupancy',0,'ulDtOccupancy',0, ...
+                'dlRaOccupancy',0,'dlDtOccupancy',0);
+            action=struct('accessProbability',0.5,'raShare',0.2,'effectiveTick',500);
+
+            t.verifyError(@() nbiot.dataset.closeWindow(empty,empty,0,500, ...
+                0,0,0,7,500,occupancy,action), ...
+                'nbiot:dataset:FutureAction');
+        end
+
         function observationDoesNotUseLabels(t)
             e=struct('tick',{},'kind',{},'fields',{});
             [a,x]=nbiot.dataset.closeWindow(e,e,0,500,1000,1500,0,0);

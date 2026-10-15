@@ -3,23 +3,28 @@ function report=calibrateNprach(cfg,outputFile,options)
 if nargin<1, cfg=nbiot.config.defaultConfig(); end
 if nargin<2, outputFile=fullfile(cfg.logging.outputFolder,'nprach-calibration.mat'); end
 if nargin<3, options=struct(); end
+if ~isfield(options,'execution'), options.execution=struct(); end
+execution=nbiot.experiments.validateExecutionBudget(cfg,options.execution);
+if ~strcmp(execution.profile,'external-machine')
+    error('nbiot:experiments:ExecutionBudget','Full NPRACH calibration belongs on the external machine.');
+end
 if ~isfield(options,'fitRealizationId'), options.fitRealizationId=4000; end
 if ~isfield(options,'validationRealizationIds'), options.validationRealizationIds=4005:4008; end
 validateattributes(options.fitRealizationId,{'numeric'},{'scalar','integer','nonnegative'});
 validateattributes(options.validationRealizationIds,{'numeric'},{'vector','integer','nonnegative','nonempty'});
 assert(numel(unique([options.fitRealizationId options.validationRealizationIds]))==1+numel(options.validationRealizationIds),...
     'nbiot:phy:Calibration','Fit and validation realization IDs must be distinct.');
-cfg.phy.nprachThreshold=1; n=20000; pfa=0.0005; clockStart=tic;
+thresholdFloor=.005; cfg.phy.nprachThreshold=thresholdFloor;
+n=20000; pfa=0.0005; clockStart=tic;
 sourceManifest=optimizationSourceManifest(fileparts(fileparts(mfilename('fullpath'))));
-fit=measure(cfg,options.fitRealizationId,n); sorted=sort(fit);
-% Fixed development floor protects against finite-window interference.
-% It is frozen before independent validation and checked for weak-UE loss.
-thresholdFloor=.005;
+fit=measure(cfg,options.fitRealizationId,n,clockStart,execution.maxCaseSeconds); sorted=sort(fit);
+% The measured maximum includes only candidates passing the calibrated
+% full-sequence match, so false-alarm calibration covers the actual detector.
 threshold=max(thresholdFloor,min(1,sorted(ceil((1-pfa)*n))+eps(sorted(ceil((1-pfa)*n)))));
 history=struct('realizationId',{},'threshold',{},'falseAlarms',{},'interval95',{},'accepted',{});
 for attempt=1:numel(options.validationRealizationIds)
     id=options.validationRealizationIds(attempt);
-    maxima=measure(cfg,id,n); falseAlarms=sum(maxima>=threshold);
+    maxima=measure(cfg,id,n,clockStart,execution.maxCaseSeconds); falseAlarms=sum(maxima>=threshold);
     if falseAlarms==0, lo=0; else, lo=betaincinv(.025,falseAlarms,n-falseAlarms+1); end
     if falseAlarms==n, hi=1; else, hi=betaincinv(.975,falseAlarms+1,n-falseAlarms); end
     accepted=hi<=.001;
@@ -46,16 +51,20 @@ folder=fileparts(outputFile); if ~isempty(folder) && ~exist(folder,'dir'), mkdir
 save(outputFile,'report');
 assert(accepted,'nbiot:phy:Calibration','Noise validation failed; saved report is not a usable acceptance artifact.');
 end
-function maxima=measure(cfg,realizationId,n)
+function maxima=measure(cfg,realizationId,n,clockStart,maxSeconds)
 sources=nbiot.randomness.RandomSources(cfg.simulation.seed,realizationId);
 occasion=struct('occasionId',1,'startTick',8); bank=nbiot.phy.nprach.templates(cfg);
 first=8*1920-16; count=numel(bank{1}.waveform)+128;
 maxima=zeros(n,1);
 for k=1:n
+    if toc(clockStart)>=maxSeconds
+        error('nbiot:experiments:ExecutionTimeout','Calibration wall-time budget exhausted.');
+    end
     stream=sources.stream('noise',0,0,k);
     w=complex(randn(stream,count,1),randn(stream,count,1))/sqrt(2);
     rx=struct('waveform',w,'sampleRateHz',1920000,'startSample',first);
-    [~,metric]=nbiot.phy.nprach.detect(cfg,rx,occasion); maxima(k)=max(metric);
+    [detected,~]=nbiot.phy.nprach.detect(cfg,rx,occasion);
+    if isempty(detected), maxima(k)=0; else, maxima(k)=max([detected.metric]); end
     if mod(k,1000)==0, fprintf('NPRACH realization %d: %d/%d windows\n',realizationId,k,n); end
 end
 end

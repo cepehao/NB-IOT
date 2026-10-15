@@ -1,0 +1,18 @@
+{
+  "verifiedAtUtc": "2026-10-15T08:59:30.856430+00:00",
+  "originalFolder": "C:\\PROJECTS\\nbiot\\github-v2-publication\\verification\\completion\\stage-3\\variant2-20261014-152828-532-04934654\\probe\\n00100-id1088\\run-13b11a71-e215-4f09-bf73-57e7dcea6f22",
+  "originalMarkerSha256": "d3b1f3e750ab94c9ae1ca0f14d87cf34cea89e93f8c1924eb04c248047615332",
+  "scope": "Copies of saved completed result, no simulation rerun",
+  "files": [
+    {
+      "name": "static-v1_n100_r1088_kpi.csv",
+      "sha256": "4e0784fc7706100538faf5aab5541d97850db7994e4a5bdb7da7a9d0d3afc8ef",
+      "bytes": 1104
+    },
+    {
+      "name": "static-v1_n100_r1088_summary.csv",
+      "sha256": "a993d4beb9d83c8fd0c942fb33561ee4680c33f0139253bff4eef4e86853e153",
+      "bytes": 2880
+    }
+  ]
+}

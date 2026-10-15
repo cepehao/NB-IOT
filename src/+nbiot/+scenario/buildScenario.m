@@ -23,5 +23,7 @@ for id=1:n
  s=sources.stream('channel',0,id,0); u.tapsUl=sqrt(p/2).*(randn(s,numel(p),1)+1i*randn(s,numel(p),1));
  s=sources.stream('channel',1,id,0); u.tapsDl=sqrt(p/2).*(randn(s,numel(p),1)+1i*randn(s,numel(p),1)); ue(id)=u;
 end
-scenario=struct('ue',ue,'arrivals',nbiot.traffic.generateArrivals(cfg,sources),'randomManifest',sources.manifest(),'externalRealizationId',sources.realizationId);
+scenario=struct('ue',ue,'linkBudget',nbiot.channel.evaluateLinks(cfg,ue), ...
+ 'arrivals',nbiot.traffic.generateArrivals(cfg,sources), ...
+ 'randomManifest',sources.manifest(),'externalRealizationId',sources.realizationId);
 end

@@ -8,6 +8,7 @@ classdef NBIoTSimulator < handle
         status = 'ready'
         stopReason = ''
         errorInfo = struct()
+        runtimeAction = struct('accessProbability',1,'raShare',0.1,'effectiveTick',0)
         devices
         packets
         contexts
@@ -22,8 +23,14 @@ classdef NBIoTSimulator < handle
         receiveQueue
         observed
         truth
+        radioReceptionDiagnostics
+        lifecycleLog
         harqJournal
         queueSamples = zeros(0,3)
+        controllerRuntime = struct()
+        controllerLog = struct([])
+        controllerLatestEstimate = struct('valid',false,'value',NaN, ...
+            'featureWindowEndTick',NaN,'reason','not-started')
         occasions
         nextTick = 0
         arrivalCursor = 1
@@ -34,17 +41,45 @@ classdef NBIoTSimulator < handle
         raIntegral = 0
         activeIntegral = 0
         queueIntegral = 0
+        observedCrcCounters = struct('msg3Errors',0,'dataErrors',0)
         elapsedSeconds = 0
         stopRequested = false
         resultCache = []
+        executionBudget
+        executionClock = []
+        executionElapsedOffset = 0
+        executionBudgetWarningIssued = false
     end
     methods
-        function obj=NBIoTSimulator(cfg,scenario)
+        function obj=NBIoTSimulator(cfg,scenario,execution,controllerOptions)
             if nargin<1, cfg=nbiot.config.defaultConfig(); end
+            if nargin<3, execution=struct(); end
+            if nargin<4, controllerOptions=struct(); end
+            obj.executionBudget=nbiot.experiments.validateExecutionBudget(cfg,execution);
+            obj.executionClock=tic;
             obj.cfg=nbiot.config.validateConfig(cfg);
+            obj.lifecycleLog=nbiot.results.EventLog();
+            obj.lifecycleLog.append(0,'simulation_initialized', ...
+                struct('profileVersion',obj.cfg.profileVersion));
+            obj.controllerRuntime=nbiot.controller.prepareRuntime( ...
+                obj.cfg,obj.executionBudget,controllerOptions);
+            if obj.controllerRuntime.enabled
+                obj.lifecycleLog.append(0,'model_loaded',struct( ...
+                    'method',obj.controllerRuntime.method, ...
+                    'modelMetadata',obj.controllerRuntime.modelMetadata));
+            end
+            obj.controllerLog=struct('decisionTick',{},'effectiveTick',{}, ...
+                'featureWindowEndTick',{},'method',{},'estimateValue',{}, ...
+                'estimateValid',{},'proposedAccessProbability',{},'proposedRaShare',{}, ...
+                'appliedAccessProbability',{},'appliedRaShare',{},'applied',{}, ...
+                'switched',{},'reason',{},'estimateReason',{}, ...
+                'errorIdentifier',{},'errorMessage',{},'featureValuesJson',{});
+            obj.runtimeAction=struct('accessProbability',obj.cfg.policy.accessProbability, ...
+                'raShare',obj.cfg.policy.raShare,'effectiveTick',0);
             obj.sources=nbiot.randomness.RandomSources(cfg.simulation.seed,cfg.simulation.realizationId);
             if nargin<2 || isempty(scenario), scenario=nbiot.scenario.buildScenario(cfg,obj.sources); end
             obj.validateScenario(scenario); obj.scenario=scenario;
+            obj.checkExecutionDeadline();
             obj.devices=nbiot.devices.DeviceStore(cfg.simulation.numUE);
             obj.packets=nbiot.traffic.PacketStore(cfg); obj.contexts=nbiot.ra.RaContextStore();
             obj.calendar=nbiot.scheduler.ResourceCalendar(cfg);
@@ -52,15 +87,22 @@ classdef NBIoTSimulator < handle
             obj.channel=nbiot.channel.RadioChannel(cfg,scenario,obj.sources);
             obj.receiveQueue=nbiot.engine.EventQueue();
             obj.observed=nbiot.results.EventLog(); obj.truth=nbiot.results.EventLog();
+            obj.radioReceptionDiagnostics=nbiot.results.EventLog();
             obj.harqJournal=nbiot.results.EventLog();
             obj.occasions=obj.scheduler.reserveNprach();
+            obj.checkExecutionDeadline();
             obj.tokens=containers.Map('KeyType','char','ValueType','logical');
         end
         function run(obj,untilTick)
             if nargin<2, untilTick=obj.cfg.simulation.durationTicks; end
             validateattributes(untilTick,{'numeric'},{'scalar','integer','>=',obj.currentTick,'<=',obj.cfg.simulation.durationTicks});
             if any(strcmp(obj.status,{'completed','stopped','failed'})), return; end
+            firstRun=strcmp(obj.status,'ready');
             obj.status='running'; clockStart=tic;
+            if firstRun
+                obj.lifecycleLog.append(obj.currentTick,'simulation_started', ...
+                    struct('untilTick',double(untilTick)));
+            end
             try
                 nbiot.phy.requireToolbox();
                 if ~isfinite(obj.cfg.phy.nprachThreshold)
@@ -71,16 +113,67 @@ classdef NBIoTSimulator < handle
                 elseif obj.nextTick>obj.cfg.simulation.durationTicks, obj.status='completed'; obj.stopReason='horizon';
                 else, obj.status='partial'; end
             catch exception
-                obj.status='failed'; obj.stopReason='exception';
+                if strcmp(exception.identifier,'nbiot:experiments:ExecutionTimeout')
+                    obj.status='stopped'; obj.stopReason='execution-budget';
+                else
+                    obj.status='failed'; obj.stopReason='exception';
+                end
                 obj.errorInfo=struct('identifier',exception.identifier,'message',exception.message,'stack',exception.stack);
+            end
+            if any(strcmp(obj.status,{'completed','stopped','failed'}))
+                lifecycleKind='simulation_completed';
+                switch obj.status
+                    case 'stopped', lifecycleKind='simulation_stopped';
+                    case 'failed', lifecycleKind='simulation_failed';
+                end
+                lifecycleFields=struct('actualTick',obj.currentTick,'reason',obj.stopReason);
+                if strcmp(obj.status,'failed')
+                    lifecycleFields.errorIdentifier=obj.errorInfo.identifier;
+                    lifecycleFields.errorMessage=obj.errorInfo.message;
+                end
+                obj.lifecycleLog.append(obj.currentTick,lifecycleKind,lifecycleFields);
             end
             obj.elapsedSeconds=obj.elapsedSeconds+toc(clockStart);
             obj.resultCache=[];
         end
+        function [applied,reason]=applyRuntimeAction(obj,action)
+            applied=false; reason='unsupported-action';
+            if ~isstruct(action)||~isscalar(action)|| ...
+                    ~all(isfield(action,{'accessProbability','raShare','effectiveTick'}))
+                return;
+            end
+            p=action.accessProbability; share=action.raShare; tick=action.effectiveTick;
+            supportedP=[0.1 0.25 0.5 0.75 1]; supportedShares=[0.1 0.2 0.3];
+            if ~isnumeric(p)||~isscalar(p)||~isfinite(p)||~any(p==supportedP)|| ...
+                    ~isnumeric(share)||~isscalar(share)||~isfinite(share)||~any(share==supportedShares)
+                return;
+            end
+            windowTicks=obj.cfg.policy.windowTicks;
+            if ~isnumeric(tick)||~isscalar(tick)||~isfinite(tick)||tick~=fix(tick)|| ...
+                    tick<=0||tick>=obj.cfg.simulation.durationTicks||tick~=obj.currentTick|| ...
+                    mod(tick,windowTicks)~=0
+                reason='wrong-effective-tick'; return;
+            end
+            if any(strcmp(obj.status,{'completed','stopped','failed'}))
+                reason='session-not-active'; return;
+            end
+            if share~=obj.runtimeAction.raShare
+                if ~obj.scheduler.applyShareFrom(tick,share)
+                    reason='resource-budget-conflict'; return;
+                end
+            end
+            obj.runtimeAction=struct('accessProbability',double(p), ...
+                'raShare',double(share),'effectiveTick',double(tick));
+            obj.resultCache=[]; applied=true; reason='applied';
+        end
         function step(obj)
             if any(strcmp(obj.status,{'completed','stopped','failed'})) || obj.stopRequested, return; end
+            obj.checkExecutionDeadline();
             obj.resultCache=[];
             now=obj.nextTick; obj.currentTick=now; obj.monitorQueued=false;
+            if now==0&&obj.controllerRuntime.enabled&&isempty(obj.controllerLog)
+                obj.processControllerWindow([],0);
+            end
             % Complete physical receptions first, including the horizon boundary.
             ready=obj.receiveQueue.popReady(now);
             for k=1:numel(ready), obj.handleReceive(ready(k)); end
@@ -92,6 +185,9 @@ classdef NBIoTSimulator < handle
                         if d.attemptId>0 && strcmp(obj.attempts(d.attemptId).status,'started')
                             obj.attempts(d.attemptId).status='failure';
                             obj.attempts(d.attemptId).endTick=now;
+                            obj.truth.append(now,'ra_failure',struct( ...
+                                'attemptId',d.attemptId,'ueId',u,'packetId',d.packetId, ...
+                                'reason','packet_lifetime'));
                         end
                         obj.devices.reset(u);
                     end
@@ -100,7 +196,10 @@ classdef NBIoTSimulator < handle
             end
             if now>0 && (mod(now,obj.cfg.dataset.windowTicks)==0 || now==obj.cfg.simulation.durationTicks)
                 first=floor((now-1)/obj.cfg.dataset.windowTicks)*obj.cfg.dataset.windowTicks;
-                obj.closeWindow(first,now);
+                observation=obj.closeWindow(first,now);
+                if obj.controllerRuntime.enabled&&now<obj.cfg.simulation.durationTicks
+                    obj.processControllerWindow(observation,now);
+                end
             end
             if now<obj.cfg.simulation.durationTicks
                 mandatory=nbiot.phy.buildMandatoryTransmission(obj.cfg,now);
@@ -124,17 +223,35 @@ classdef NBIoTSimulator < handle
                 obj.channel.discardBefore(max(0,(now-128)*1920));
             end
             obj.nextTick=now+1;
+            obj.checkExecutionDeadline();
             if now==obj.cfg.simulation.durationTicks, obj.status='completed'; obj.stopReason='horizon'; end
         end
         function stop(obj,reason)
             if nargin<2, reason='requested'; end
             obj.resultCache=[];
             obj.stopRequested=true; obj.stopReason=char(reason);
+            obj.lifecycleLog.append(obj.currentTick,'stop_requested', ...
+                struct('reason',obj.stopReason));
             if ~strcmp(obj.status,'failed'), obj.status='stopped'; end
         end
         function s=snapshot(obj)
+            schema=nbiot.dataset.featureSchema();
+            targets=obj.rowsTable(obj.targetRows,schema.targetNames);
+            diagnosticTargets=targets(:,{'endTick','meanRaUe'});
+            transmittedPacketCount=nbiot.metrics.countTransmittedPackets( ...
+                obj.harqJournal.all(),obj.currentTick);
             s=struct('tick',obj.currentTick,'status',obj.status,'devices',obj.devices.entries, ...
-                'pendingEvents',obj.receiveQueue.count(),'packetCounters',obj.packets.counters);
+                'pendingEvents',obj.receiveQueue.count(),'packetCounters',obj.packets.counters, ...
+                'transmittedPacketCount',transmittedPacketCount, ...
+                'crcCounters',obj.observedCrcCounters,'runtimeAction',obj.runtimeAction, ...
+                'controllerLatestEstimate',obj.controllerLatestEstimate, ...
+                'controllerLog',obj.controllerLog,'controllerMethod',obj.controllerRuntime.method, ...
+                'controllerDiagnosticTargets',diagnosticTargets, ...
+                'tickSeconds',obj.cfg.simulation.tickSeconds);
+        end
+        function [events,nextIndex]=observedEventsSince(obj,afterIndex)
+            if nargin<2, afterIndex=0; end
+            [events,nextIndex]=obj.observed.since(afterIndex);
         end
         function result=result(obj)
             if ~isempty(obj.resultCache), result=obj.resultCache; return; end
@@ -148,15 +265,49 @@ classdef NBIoTSimulator < handle
                 if strcmp(attempts(k).status,'started'), attempts(k).status='unfinished'; end
             end
             obs=obj.observed.all(); truth=obj.truth.all();
-            result=nbiot.results.finalizeResult(obj.cfg,obj.scenario,packets,attempts,obs,truth, ...
-                obj.calendar.usage(),obj.currentTick,obj.status,obj.stopReason,obj.errorInfo);
-            result.harqLog=obj.harqJournal.all(); result.harqLogSchemaVersion=1;
+            deviceStates=cell(obj.cfg.simulation.numUE,1);
+            for u=1:obj.cfg.simulation.numUE
+                device=obj.devices.get(u); deviceStates{u}=device.state;
+            end
+            finalScenario=obj.scenario;
+            finalScenario.linkBudget=nbiot.channel.evaluateLinks(obj.cfg,finalScenario.ue);
+            result=nbiot.results.finalizeResult(obj.cfg,finalScenario,packets,attempts,obs,truth, ...
+                obj.calendar.usage(),obj.currentTick,obj.status,obj.stopReason,obj.errorInfo,deviceStates);
+            result.controllerLog=obj.controllerLog;
+            result.controllerLogSchemaVersion=1;
+            result.controllerModel=obj.controllerRuntime.modelMetadata;
+            if obj.controllerRuntime.enabled
+                result.resultSchemaVersion=3;
+                result.controllerPolicy=obj.controllerRuntime.policy;
+            end
+            result.runtimeAction=obj.runtimeAction;
+            result.lifecycleLog=obj.lifecycleLog.all();
+            result.lifecycleLogSchemaVersion=1;
+            result.radioReceptionLog=obj.radioReceptionDiagnostics.all();
+            result.radioReceptionSchemaVersion=1;
+            result.radioDiagnostics=nbiot.metrics.radioDiagnostics(truth,obs, ...
+                result.radioReceptionLog,struct('actualTick',obj.currentTick, ...
+                'nInitValues',0:obj.cfg.ra.numSubcarriers-1));
+            result.harqLog=obj.harqJournal.all(); result.harqLogSchemaVersion=2;
             result.queueSamples=obj.queueSamples;
             result.kpiSummary=nbiot.metrics.summarizeKpi(obj.cfg,packets,attempts,obs,truth, ...
                 result.resourceUsage,obj.currentTick,result.harqLog,obj.queueSamples);
+            [serviceKpi,groupKpi]=nbiot.metrics.serviceKpi( ...
+                result.ueSummary,obj.currentTick,strcmp(obj.status,'completed'));
+            result.kpiSummary.service=serviceKpi;
+            result.groupKpi=groupKpi;
             % An initialized but empty journal is known empty, not legacy data.
             result.kpiSummary.harq.available=true;
-            result.kpiTimeSeries=nbiot.metrics.windowKpi(obj.cfg,packets,attempts,obs,obj.currentTick,obj.queueSamples);
+            result.kpiTimeSeries=nbiot.metrics.windowKpi(obj.cfg,packets,attempts,obs, ...
+                obj.currentTick,obj.queueSamples,obj.controllerLog);
+            controllerSwitchCount=0;
+            if ~isempty(obj.controllerLog)
+                controllerSwitchCount=sum([obj.controllerLog.switched]);
+            end
+            result.kpiSummary.controller=struct( ...
+                'applicable',obj.controllerRuntime.enabled, ...
+                'decisionCount',numel(obj.controllerLog), ...
+                'configurationSwitches',controllerSwitchCount);
             schema=nbiot.dataset.featureSchema();
             result.dataset=struct('observations',obj.rowsTable(obj.observationRows,schema.observationNames), ...
                 'targets',obj.rowsTable(obj.targetRows,schema.targetNames), ...
@@ -164,8 +315,118 @@ classdef NBIoTSimulator < handle
             result.profiling=struct('elapsedSeconds',obj.elapsedSeconds,'matlabValidation','pending');
             obj.resultCache=result;
         end
+        function state=exportCheckpointState(obj)
+            if any(strcmp(obj.status,{'completed','stopped','failed','running'}))
+                error('nbiot:experiments:CheckpointState', ...
+                    'Checkpoint export requires a nonterminal simulator at a completed step boundary.');
+            end
+            state=struct('schemaVersion',1,'cfg',obj.cfg,'scenario',obj.scenario, ...
+                'currentTick',obj.currentTick,'status',obj.status, ...
+                'stopReason',obj.stopReason,'errorInfo',obj.errorInfo, ...
+                'runtimeAction',obj.runtimeAction,'devices',obj.devices, ...
+                'packets',obj.packets,'contexts',obj.contexts, ...
+                'calendar',obj.calendar,'scheduler',obj.scheduler, ...
+                'channel',obj.channel,'attempts',obj.attempts, ...
+                'sources',obj.sources,'receiveQueue',obj.receiveQueue, ...
+                'observed',obj.observed,'truth',obj.truth, ...
+                'radioReceptionDiagnostics',obj.radioReceptionDiagnostics, ...
+                'lifecycleLog',obj.lifecycleLog,'harqJournal',obj.harqJournal, ...
+                'queueSamples',obj.queueSamples, ...
+                'controllerRuntime',obj.controllerRuntime, ...
+                'controllerLog',obj.controllerLog, ...
+                'controllerLatestEstimate',obj.controllerLatestEstimate, ...
+                'occasions',obj.occasions,'nextTick',obj.nextTick, ...
+                'arrivalCursor',obj.arrivalCursor,'monitorQueued',obj.monitorQueued, ...
+                'tokens',obj.tokens,'observationRows',{obj.observationRows}, ...
+                'targetRows',{obj.targetRows},'raIntegral',obj.raIntegral, ...
+                'activeIntegral',obj.activeIntegral,'queueIntegral',obj.queueIntegral, ...
+                'observedCrcCounters',obj.observedCrcCounters, ...
+                'elapsedSeconds',obj.elapsedSeconds, ...
+                'stopRequested',obj.stopRequested, ...
+                'executionBudgetWarningIssued',obj.executionBudgetWarningIssued, ...
+                'executionElapsedSeconds',obj.executionElapsedOffset+toc(obj.executionClock));
+        end
+    end
+    methods (Static)
+        function obj=fromCheckpointState(state,execution)
+            if nargin<2, execution=struct(); end
+            required={'schemaVersion','cfg','scenario','currentTick','status', ...
+                'stopReason','errorInfo','runtimeAction','devices','packets','contexts', ...
+                'calendar','scheduler','channel','attempts','sources','receiveQueue', ...
+                'observed','truth','radioReceptionDiagnostics','lifecycleLog', ...
+                'harqJournal','queueSamples','controllerRuntime','controllerLog', ...
+                'controllerLatestEstimate','occasions','nextTick','arrivalCursor', ...
+                'monitorQueued','tokens','observationRows','targetRows','raIntegral', ...
+                'activeIntegral','queueIntegral','observedCrcCounters','elapsedSeconds', ...
+                'stopRequested','executionBudgetWarningIssued','executionElapsedSeconds'};
+            if ~isstruct(state)||~isscalar(state)||~all(isfield(state,required))|| ...
+                    state.schemaVersion~=1||~ismember(state.status,{'ready','partial'})|| ...
+                    state.nextTick~=state.currentTick+1 && ...
+                    ~(strcmp(state.status,'ready')&&state.currentTick==0&&state.nextTick==0)
+                error('nbiot:experiments:CheckpointState', ...
+                    'Checkpoint state is incomplete, unsupported or not at a step boundary.');
+            end
+            obj=nbiot.NBIoTSimulator(state.cfg,state.scenario,execution);
+            obj.cfg=state.cfg; obj.scenario=state.scenario;
+            obj.currentTick=state.currentTick; obj.status=state.status;
+            obj.stopReason=state.stopReason; obj.errorInfo=state.errorInfo;
+            obj.runtimeAction=state.runtimeAction; obj.devices=state.devices;
+            obj.packets=state.packets; obj.contexts=state.contexts;
+            obj.calendar=state.calendar; obj.scheduler=state.scheduler;
+            obj.channel=state.channel; obj.attempts=state.attempts;
+            obj.sources=state.sources; obj.receiveQueue=state.receiveQueue;
+            obj.observed=state.observed; obj.truth=state.truth;
+            obj.radioReceptionDiagnostics=state.radioReceptionDiagnostics;
+            obj.lifecycleLog=state.lifecycleLog; obj.harqJournal=state.harqJournal;
+            obj.queueSamples=state.queueSamples;
+            obj.controllerRuntime=state.controllerRuntime;
+            obj.controllerLog=state.controllerLog;
+            obj.controllerLatestEstimate=state.controllerLatestEstimate;
+            obj.occasions=state.occasions; obj.nextTick=state.nextTick;
+            obj.arrivalCursor=state.arrivalCursor; obj.monitorQueued=state.monitorQueued;
+            obj.tokens=state.tokens; obj.observationRows=state.observationRows;
+            obj.targetRows=state.targetRows; obj.raIntegral=state.raIntegral;
+            obj.activeIntegral=state.activeIntegral; obj.queueIntegral=state.queueIntegral;
+            obj.observedCrcCounters=state.observedCrcCounters;
+            obj.elapsedSeconds=state.elapsedSeconds;
+            obj.stopRequested=state.stopRequested;
+            obj.executionBudgetWarningIssued=state.executionBudgetWarningIssued;
+            obj.executionElapsedOffset=state.executionElapsedSeconds;
+            obj.executionClock=tic; obj.resultCache=[];
+            if ~obj.scheduler.referencesCalendar(obj.calendar)|| ...
+                    ~obj.channel.referencesSources(obj.sources)
+                error('nbiot:experiments:CheckpointGraph', ...
+                    'Checkpoint did not preserve scheduler/calendar or channel/source links.');
+            end
+            obj.lifecycleLog.append(obj.currentTick,'checkpoint_restored', ...
+                struct('schemaVersion',state.schemaVersion));
+        end
     end
     methods (Access=private)
+        function checkExecutionDeadline(obj)
+            if isempty(obj.executionClock), obj.executionClock=tic; end
+            elapsed=obj.executionElapsedOffset+toc(obj.executionClock);
+            if elapsed>=obj.executionBudget.maxCaseSeconds
+                if strcmp(obj.executionBudget.timePolicy,'finish-current')
+                    if ~obj.executionBudgetWarningIssued
+                        obj.executionBudgetWarningIssued=true;
+                        obj.lifecycleLog.append(double(obj.currentTick), ...
+                            'execution_budget_warning',struct( ...
+                            'elapsedSeconds',double(elapsed), ...
+                            'warningThresholdSeconds', ...
+                            double(obj.executionBudget.maxCaseSeconds), ...
+                            'timePolicy',obj.executionBudget.timePolicy));
+                        warning('nbiot:experiments:ExecutionBudgetWarning', ...
+                            ['The case exceeded its warning threshold; finish-current ' ...
+                            'continues the active case.']);
+                    end
+                    return;
+                end
+                obj.stop('execution-budget');
+                error('nbiot:experiments:ExecutionTimeout', ...
+                    'The declared case wall-time budget was exhausted.');
+            end
+        end
         function addArrivals(obj)
             a=obj.scenario.arrivals;
             while obj.arrivalCursor<=numel(a) && double(a(obj.arrivalCursor).createdTick)<=obj.currentTick
@@ -190,7 +451,7 @@ classdef NBIoTSimulator < handle
                 d=obj.devices.get(u);
                 if ~any(strcmp(d.state,{'WAIT_RA','BACKOFF'})) || d.nextAllowedTick>obj.currentTick, continue; end
                 stream=obj.sources.stream('access',0,u,occasion.occasionId);
-                if rand(stream)>obj.cfg.policy.accessProbability, continue; end
+                if rand(stream)>obj.runtimeAction.accessProbability, continue; end
                 d.nInit=floor(rand(stream)*obj.cfg.ra.numSubcarriers);
                 d.attemptNumber=d.attemptNumber+1; d.lifetimeAttempt=d.lifetimeAttempt+1;
                 d.attemptId=numel(obj.attempts)+1; d.occasionId=occasion.occasionId;
@@ -199,7 +460,9 @@ classdef NBIoTSimulator < handle
                 d.state='WAIT_RAR'; d.monitorStartTick=occasion.endTick+3;
                 d.deadlineTick=obj.monitoringDeadline(d.monitorStartTick,obj.cfg.ra.rarPp);
                 obj.packets.incrementAttempt(d.packetId); obj.devices.set(u,d);
-                tx=nbiot.phy.nprach.buildTransmission(obj.cfg,occasion,d.nInit); tx.ueId=u; obj.channel.add(tx);
+                tx=nbiot.phy.nprach.buildTransmission(obj.cfg,occasion,d.nInit);
+                tx.ueId=u; tx.attemptId=d.attemptId; tx.occasionId=occasion.occasionId;
+                tx.nInit=d.nInit; obj.channel.add(tx);
                 obj.logTx(struct('startTick',occasion.startTick,'ticks',occasion.startTick:occasion.endTick-1, ...
                     'frequencyStartHz',0,'bandwidthHz',45000,'direction','UL','phase','RA','kind','NPRACH'),u);
                 a=struct('attemptId',d.attemptId,'ueId',u,'packetId',d.packetId, ...
@@ -216,9 +479,21 @@ classdef NBIoTSimulator < handle
             switch event.kind
                 case 'nprach'
                     occasion=event.payload; a=max(0,occasion.startTick*1920-128); z=occasion.endTick*1920+128;
-                    rx=obj.channel.receive('UL',0,a,z);
+                    [rx,radio]=obj.channel.receive('UL',0,a,z);
                     [detected,metrics]=nbiot.phy.nprach.detect(obj.cfg,rx,occasion);
-                    obj.observed.append(obj.currentTick,'nprach_detection',struct('count',numel(detected),'maxMetric',max(metrics),'meanMetric',mean(metrics),'energyW',mean(abs(rx.waveform).^2)));
+                    obj.observed.append(obj.currentTick,'nprach_detection',struct( ...
+                        'occasionId',occasion.occasionId,'readyTick',obj.currentTick, ...
+                        'candidates',detected,'count',numel(detected), ...
+                        'maxMetric',max(metrics),'meanMetric',mean(metrics), ...
+                        'energyW',mean(abs(rx.waveform).^2)));
+                    for k=1:numel(radio.components)
+                        obj.radioReceptionDiagnostics.append(obj.currentTick, ...
+                            'nprach_component',radio.components(k));
+                    end
+                    for k=1:numel(radio.overlaps)
+                        obj.radioReceptionDiagnostics.append(obj.currentTick, ...
+                            'nprach_overlap',radio.overlaps(k));
+                    end
                     deadline=obj.monitoringDeadline(occasion.endTick+3,obj.cfg.ra.rarPp);
                     for k=1:numel(detected)
                         obj.contexts.create(detected(k).nInit,occasion.occasionId,deadline,detected(k).delaySeconds);
@@ -403,12 +678,14 @@ classdef NBIoTSimulator < handle
                         c.schedule.payloadGrant.startTick==g.startTick && c.schedule.payloadGrant.endTick==g.endTick
                     f=obj.harqIdentity(c); f.startTick=g.startTick; f.endTick=g.endTick;
                     f.transmitterSequence=double(packet.sequence); f.transmitterBlockIndex=d.fragmentIndex;
+                    f.packetId=double(packet.packetId);
                     obj.harqJournal.append(g.startTick,'emitted',f);
                     return;
                 end
             end
             obj.harqJournal.append(g.startTick,'unmatchedEmission', ...
-                struct('rnti',g.rnti,'startTick',g.startTick,'endTick',g.endTick));
+                struct('rnti',g.rnti,'startTick',g.startTick,'endTick',g.endTick, ...
+                'packetId',double(packet.packetId)));
         end
         function ueAck(obj,u,dci,payload,phase)
             d=obj.devices.get(u); g=obj.scheduler.reconstructAck(dci,payload,d.rnti);
@@ -438,6 +715,7 @@ classdef NBIoTSimulator < handle
             end
             rx=obj.receiverWindow('UL',0,g);
             [decoded,soft]=nbiot.phy.npusch.receive(obj.cfg,rx,g,c.softBuffer);
+            obj.appendNpuschReceptionDiagnostic(p.kind,decoded,g,c);
             obj.recordDecode(p.kind,decoded,g,0);
             switch p.kind
                 case 'Msg3'
@@ -529,6 +807,11 @@ classdef NBIoTSimulator < handle
                 d=obj.devices.get(u);
                 if any(strcmp(d.state,{'WAIT_RAR','WAIT_MSG4'})) && obj.currentTick>=d.deadlineTick
                     obj.attempts(d.attemptId).status='failure'; obj.attempts(d.attemptId).endTick=obj.currentTick;
+                    reason='rar_timeout';
+                    if strcmp(d.state,'WAIT_MSG4'), reason='msg4_timeout'; end
+                    obj.truth.append(obj.currentTick,'ra_failure',struct( ...
+                        'attemptId',d.attemptId,'ueId',u,'packetId',d.packetId, ...
+                        'reason',reason));
                     if d.attemptNumber>=obj.cfg.ra.maxAttempts
                         obj.packets.markTerminal(d.packetId,'dropped','ra_limit',obj.currentTick); obj.devices.reset(u);
                     else
@@ -555,8 +838,46 @@ classdef NBIoTSimulator < handle
             fields=struct('channel',kind,'phase',g.phase, ...
                 'rnti',g.rnti,'hasCrc',decoded.hasCrc,'crcError',decoded.crcError, ...
                 'receiverId',receiverId,'startTick',g.startTick,'endTick',g.endTick);
-            if receiverId==0, obj.observed.append(obj.currentTick,'phy_decode',fields);
-            else, obj.truth.append(obj.currentTick,'phy_decode',fields); end
+            if receiverId==0
+                obj.observed.append(obj.currentTick,'phy_decode',fields);
+                if decoded.hasCrc && decoded.crcError~=0
+                    if strcmp(kind,'Msg3')
+                        obj.observedCrcCounters.msg3Errors=obj.observedCrcCounters.msg3Errors+1;
+                    elseif strcmp(kind,'Data')
+                        obj.observedCrcCounters.dataErrors=obj.observedCrcCounters.dataErrors+1;
+                    end
+                end
+            else
+                obj.truth.append(obj.currentTick,'phy_decode',fields);
+            end
+        end
+        function appendNpuschReceptionDiagnostic(obj,kind,decoded,g,c)
+            configuredDelay=NaN; configuredCfo=NaN;
+            attemptId=NaN; ueId=NaN;
+            matching=find([obj.attempts.occasionId]==c.occasionId & ...
+                [obj.attempts.nInit]==c.nInit);
+            if numel(matching)==1
+                attempt=obj.attempts(matching);
+                attemptId=attempt.attemptId; ueId=attempt.ueId;
+                ue=obj.scenario.ue(find([obj.scenario.ue.ueId]==attempt.ueId,1));
+                timingAdvance=0;
+                device=obj.devices.get(attempt.ueId);
+                if isfield(device,'timingAdvanceSeconds') && ...
+                        isfinite(device.timingAdvanceSeconds)
+                    timingAdvance=device.timingAdvanceSeconds;
+                end
+                configuredDelay=2*ue.distanceM/299792458+ ...
+                    ue.syncOffsetSeconds-timingAdvance;
+                configuredCfo=ue.cfoHz;
+            end
+            obj.radioReceptionDiagnostics.append(obj.currentTick,'npusch_receiver',struct( ...
+                'contextId',c.id,'occasionId',c.occasionId,'nInit',c.nInit, ...
+                'attemptId',attemptId,'ueId',ueId,'channel',char(kind), ...
+                'estimatedDelaySeconds',decoded.measurements.timing.delaySeconds, ...
+                'estimatedCfoHz',decoded.measurements.cfoHz, ...
+                'configuredDelaySeconds',configuredDelay, ...
+                'configuredCfoHz',configuredCfo, ...
+                'noiseEstimate',decoded.measurements.noiseEstimate));
         end
         function logTx(obj,g,u)
             obj.truth.append(g.startTick,'transmission',struct('direction',g.direction,'phase',g.phase, ...
@@ -579,11 +900,71 @@ classdef NBIoTSimulator < handle
                 if token>0 && ~isKey(obj.tokens,key), obj.tokens(key)=true; return; end
             end
         end
-        function closeWindow(obj,first,last)
+        function obs=closeWindow(obj,first,last)
+            occupancy=obj.calendar.windowOccupancy(first,last);
             [obs,target]=nbiot.dataset.closeWindow(obj.observed.all(),obj.truth.all(),first,last, ...
-                obj.raIntegral,obj.activeIntegral,obj.queueIntegral,obj.scenario.externalRealizationId,obj.cfg.dataset.windowTicks);
+                obj.raIntegral,obj.activeIntegral,obj.queueIntegral, ...
+                obj.scenario.externalRealizationId,obj.cfg.dataset.windowTicks, ...
+                occupancy,obj.runtimeAction);
             obj.observationRows{end+1}=obs; obj.targetRows{end+1}=target;
             obj.raIntegral=0; obj.activeIntegral=0; obj.queueIntegral=0;
+            obs=nbiot.NBIoTSimulator.rowsTable({obs},nbiot.dataset.featureSchema().observationNames);
+        end
+        function processControllerWindow(obj,observation,decisionTick)
+            state=struct('tick',double(decisionTick), ...
+                'durationTicks',double(obj.cfg.simulation.durationTicks));
+            featureValuesJson='{}';
+            if istable(observation)&&height(observation)==1
+                schema=nbiot.dataset.featureSchema();
+                featureTable=observation(:,schema.observationNames(5:end));
+                featureValuesJson=jsonencode(table2struct(featureTable));
+            end
+            estimate=struct('valid',false,'value',NaN, ...
+                'featureWindowEndTick',NaN,'reason','no-prior-window');
+            estimateError=[];
+            if decisionTick>0&&decisionTick<state.durationTicks
+                try
+                    estimate=nbiot.ml.predictLoad(obj.controllerRuntime.bundle,observation, ...
+                        struct('minimum',0,'maximum',obj.controllerRuntime.policy.maximumLoad));
+                catch exception
+                    estimate=struct('valid',false,'value',NaN, ...
+                        'featureWindowEndTick',double(decisionTick),'reason','prediction-error');
+                    estimateError=exception;
+                end
+            end
+            obj.controllerLatestEstimate=estimate;
+            action=nbiot.controller.chooseAction(obj.controllerRuntime.method,estimate, ...
+                state,obj.runtimeAction,obj.controllerRuntime.policy);
+            before=obj.runtimeAction;
+            applied=false; reason=action.reason;
+            if strcmp(action.reason,'load-threshold')
+                [applied,reason]=obj.applyRuntimeAction(action);
+            elseif ~isempty(estimateError)
+                reason='prediction-error';
+            end
+            record=struct('decisionTick',double(decisionTick), ...
+                'effectiveTick',double(action.effectiveTick), ...
+                'featureWindowEndTick',double(estimate.featureWindowEndTick), ...
+                'method',obj.controllerRuntime.method, ...
+                'estimateValue',double(estimate.value), ...
+                'estimateValid',logical(estimate.valid), ...
+                'proposedAccessProbability',double(action.accessProbability), ...
+                'proposedRaShare',double(action.raShare), ...
+                'appliedAccessProbability',double(obj.runtimeAction.accessProbability), ...
+                'appliedRaShare',double(obj.runtimeAction.raShare), ...
+                'applied',logical(applied), ...
+                'switched',logical(applied&& ...
+                    (before.accessProbability~=obj.runtimeAction.accessProbability|| ...
+                    before.raShare~=obj.runtimeAction.raShare)), ...
+                'reason',char(string(reason)), ...
+                'estimateReason',char(string(estimate.reason)), ...
+                'errorIdentifier','','errorMessage','', ...
+                'featureValuesJson',featureValuesJson);
+            if ~isempty(estimateError)
+                record.errorIdentifier=estimateError.identifier;
+                record.errorMessage=estimateError.message;
+            end
+            obj.controllerLog(end+1)=record;
         end
         function validateScenario(obj,s)
             if ~isfield(s,'ue') || numel(s.ue)~=obj.cfg.simulation.numUE || ...

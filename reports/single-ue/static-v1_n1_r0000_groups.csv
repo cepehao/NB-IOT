@@ -1,0 +1,6 @@
+groupDimension,groupValue,ueCount,demandUeCount,outageUeCount,created,delivered,dropped,unfinished,packetDeliveryProbability,serviceOutageProbability,raStarted,raSuccess,raFailure,raUnfinished
+indoor,indoor,0,0,0,0,0,0,0,NaN,NaN,0,0,0,0
+indoor,outdoor,1,1,0,1,1,0,0,1,0,1,1,0,0
+indoor,unknown,0,0,0,0,0,0,0,NaN,NaN,0,0,0,0
+coverageClass,CE0,1,1,0,1,1,0,0,1,0,1,1,0,0
+coverageClass,unknown,0,0,0,0,0,0,0,NaN,NaN,0,0,0,0

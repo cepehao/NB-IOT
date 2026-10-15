@@ -104,9 +104,9 @@ UE восстанавливает назначение из принятых DCI
 - [ ] Радиус sqrt равномерной площади, угол равномерно; round(0.30*N) indoor.
 - [ ] Рассчитать расстояния 2D/3D, потери log-distance с n=3.5, shadowing и penetration; сохранить составляющие отдельно.
 - [ ] CFO rejection sampling ±200 Hz, sync ±2 µs, стационарные UL/DL Rayleigh taps с нормированной средней мощностью.
-- [ ] Сохранить принимаемую мощность до fading, PSD шума, опорный SNR и CE0; SNR ресурса зависит от его полосы.
+- [x] Сохранить принимаемую UL/DL мощность до fading, PSD шума, полосу опорного расчёта, опорный SNR и CE0; SNR ресурса зависит от его полосы. `TestLinkBudget` — 3/3; данные хранятся в `scenario.linkBudget`, общей таблице `result.ueSummary` и MAT/CSV.
 
-**Приёмка:** границы/число indoor; аналитические PLref≈51.53 dB, PL 1 km≈121.53 dB, BS noise 180 kHz≈−116.42 dBm. Это будущие checks формул, не результаты запуска.
+**Проверка link budget:** `TestLinkBudget` проверяет PLref≈51.53 dB, PL на 1 km≈121.53 dB, шум BS в 180 kHz≈−116.42 dBm и UL/DL SNR; результат — 3/3. `TestLayout` — 1/1; `TestRuntimeManifest` — 20/20. Большие UE-нагрузки не запускались. Значения SNR относятся к справочному расчёту до fading и помех.
 
 ## Задача 05 Трафик и payload
 

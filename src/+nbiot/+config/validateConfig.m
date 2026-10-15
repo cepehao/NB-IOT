@@ -25,7 +25,14 @@ unsupported(r.format==0&&r.repetitions==1&&r.numSubcarriers==12,'ra','only confi
 if r.startOffsetTicks+6>r.periodTicks, error('nbiot:config:ResourceInfeasible','ra occasion exceeds its period'); end
 unit(cfg.policy.accessProbability,'policy.accessProbability'); unit(cfg.policy.raShare,'policy.raShare');
 integer(cfg.policy.windowTicks,1,2^24-1,'policy.windowTicks'); integer(cfg.dataset.windowTicks,1,2^24-1,'dataset.windowTicks');
-must(strcmp(cfg.policy.name,'Static'),'policy.name','only Static is implemented');
+method=cfg.policy.name;
+must((ischar(method)||(isstring(method)&&isscalar(method)))&& ...
+    any(strcmp(char(string(method)),{'Static','Adaptive-P','Adaptive-RA/DT'})), ...
+    'policy.name','unknown control method');
+if any(strcmp(char(string(method)),{'Adaptive-P','Adaptive-RA/DT'}))
+    must(cfg.policy.windowTicks==500&&cfg.dataset.windowTicks==500, ...
+        'policy.windowTicks','adaptive modes require matching 500 ms windows');
+end
 must(cfg.phy.sampleRateHz==s.sampleRateHz&&cfg.phy.cellId==c.cellId,'phy','sample rate and cell ID must agree');
 for f={'processingTicks','maxHarqTransmissions','decoderIterations','progressTimeoutTicks','receiptTimeoutTicks','maxReceiptTransmissions'}, integer(cfg.phy.(f{1}),1,2^24-1,['phy.' f{1}]); end
 for f={'msg3','data','ack','downlink','npdcch'}, unsupported(isequal(cfg.phy.(f{1}),base.phy.(f{1})),['phy.' f{1}],'static-v1 tables must match baseline'); end
