@@ -47,141 +47,126 @@ if isempty(identity)
 end
 runClock=tic;
 progressPhase=char(string(checkpointOptions.progressPhase));
-if checkpointOptions.resume
-    checkpointClock=tic;
-    [sim,resumeInfo]=nbiot.experiments.loadCheckpoint( ...
-        checkpointOptions.folder,identity,execution);
-    initialCheckpoint='';
-    checkpointOverheadSeconds=toc(checkpointClock);
-else
-    sim=nbiot.NBIoTSimulator(cfg,scenario,execution,controllerOptions);
-    checkpointClock=tic;
-    initialCheckpoint=nbiot.experiments.saveCheckpoint( ...
-        sim,checkpointOptions.folder,identity);
-    checkpointOverheadSeconds=toc(checkpointClock);
-    resumeInfo=struct('fallbackUsed',false,'lostTicks',0, ...
-        'checkpointTick',0,'graphLinksValidated',true);
-end
-checkpointPaths={};
-if ~isempty(initialCheckpoint), checkpointPaths={initialCheckpoint}; end
-lastCheckpointElapsed=0;
-lastCheckpointPath=initialCheckpoint;
-if isempty(lastCheckpointPath)&&checkpointOptions.resume&&isfield(resumeInfo,'checkpointPath')
-    lastCheckpointPath=char(string(resumeInfo.checkpointPath));
-end
-lastProgressElapsed=-Inf;
-budgetLedgerPath=char(string(checkpointOptions.budgetLedgerFile));
-budgetBaseElapsed=0; budgetSeconds=Inf; budgetWarningWritten=false;
-if ~isempty(budgetLedgerPath)
-    budgetLedger=nbiot.experiments.loadVariant2BudgetLedger(budgetLedgerPath,false);
-    budgetBaseElapsed=double(budgetLedger.elapsedSeconds);
-    budgetSeconds=double(budgetLedger.budgetSeconds);
-end
+sim=[]; progressTick=0; lastCheckpointPath=''; activePhase='initializing';
+checkpointPaths={}; checkpointOverheadSeconds=0;
+checkpointTimings=struct('operation',{},'path',{},'timing',{});
 pauseRequested=false;
-result=[];
-initialState=sim.exportCheckpointState();
-writeCheckpointProgress(checkpointOptions.progressFile,progressName(progressPhase,'running'), ...
-    initialState.currentTick,lastCheckpointPath);
-while ~any(strcmp(sim.status,{'completed','stopped','failed'}))
-    state=sim.exportCheckpointState();
-    sim.run(state.nextTick);
-    elapsed=toc(runClock);
-    if ~budgetWarningWritten&&budgetBaseElapsed+elapsed>=budgetSeconds&& ...
-            ~isempty(budgetLedgerPath)
-        budgetLedger=nbiot.experiments.loadVariant2BudgetLedger(budgetLedgerPath,false);
-        message=sprintf(['Shared 57600-second budget threshold crossed during active case %s; ' ...
-            'the current case continues and no later case will be admitted.'],identity.caseKey);
-        exists=~isempty(budgetLedger.warnings)&& ...
-            any(contains(string({budgetLedger.warnings.message}),identity.caseKey));
-        if ~exists
-            budgetLedger.warnings(end+1)=struct( ...
-                'timestampUtc',char(datetime('now','TimeZone','UTC', ...
-                'Format','yyyy-MM-dd HH:mm:ss.SSS')), ...
-                'phase','stage-3-load-probe','elapsedSeconds',budgetBaseElapsed+elapsed, ...
-                'message',message);
-            nbiot.experiments.saveVariant2BudgetLedger(budgetLedgerPath,budgetLedger);
-        end
-        budgetWarningWritten=true;
-    end
-    terminal=any(strcmp(sim.status,{'completed','stopped','failed'}));
-    if terminal
-        result=sim.result(); progressTick=result.actualTick;
-    else
-        stateAfter=sim.exportCheckpointState(); progressTick=stateAfter.currentTick;
-    end
-    pausePath=char(checkpointOptions.pauseRequestFile);
-    if ~any(strcmp(sim.status,{'completed','stopped','failed'}))&& ...
-            ~isempty(pausePath)&&isfile(pausePath)
-        checkpointClock=tic;
-        lastCheckpointPath=nbiot.experiments.saveCheckpoint( ...
-            sim,checkpointOptions.folder,identity);
-        checkpointPaths{end+1}=lastCheckpointPath; %#ok<AGROW>
-        checkpointOverheadSeconds=checkpointOverheadSeconds+toc(checkpointClock);
-        lastCheckpointElapsed=elapsed;
-        pauseRequested=true;
-        writeCheckpointProgress(checkpointOptions.progressFile,progressName(progressPhase,'paused'), ...
-            progressTick,lastCheckpointPath);
-        break
-    end
-    if ~any(strcmp(sim.status,{'completed','stopped','failed'}))&& ...
-            elapsed-lastCheckpointElapsed>=checkpointOptions.intervalSeconds
-        checkpointClock=tic;
-        lastCheckpointPath=nbiot.experiments.saveCheckpoint( ...
-            sim,checkpointOptions.folder,identity);
-        checkpointPaths{end+1}=lastCheckpointPath; %#ok<AGROW>
-        checkpointOverheadSeconds=checkpointOverheadSeconds+toc(checkpointClock);
-        lastCheckpointElapsed=elapsed;
-        writeCheckpointProgress(checkpointOptions.progressFile,progressName(progressPhase,'running'), ...
-            progressTick,lastCheckpointPath);
-    elseif elapsed-lastProgressElapsed>=10
-        writeCheckpointProgress(checkpointOptions.progressFile,progressName(progressPhase,'running'), ...
-            progressTick,lastCheckpointPath);
-        lastProgressElapsed=elapsed;
-    end
-end
-if isempty(result), result=sim.result(); end
-writeCheckpointProgress(checkpointOptions.progressFile,progressName(progressPhase,result.status), ...
-    result.actualTick,lastCheckpointPath);
-checkpointFiles=dir(fullfile(char(checkpointOptions.folder),'checkpoint-tick-*.mat'));
-checkpointBytes=sum([checkpointFiles.bytes]);
-status=result.status;
-if pauseRequested, status='paused'; end
-info=struct('status',status,'pauseRequested',pauseRequested, ...
-    'checkpointFolder',char(checkpointOptions.folder), ...
-    'checkpointPaths',{checkpointPaths},'checkpointCount',numel(checkpointFiles), ...
-    'checkpointBytes',checkpointBytes, ...
-    'checkpointOverheadSeconds',checkpointOverheadSeconds, ...
-    'elapsedSeconds',toc(runClock),'resumeInfo',resumeInfo);
-end
-
-function value=progressName(prefix,suffix)
-if isempty(prefix), value=suffix; else, value=[prefix '-' suffix]; end
-end
-
-function writeCheckpointProgress(path,phase,tick,lastCheckpoint)
-path=char(string(path));
-if isempty(path), return; end
 try
-    progress=struct('phase',char(string(phase)),'currentTick',double(tick), ...
-        'lastCheckpoint',char(string(lastCheckpoint)), ...
-        'updatedAtUtc',char(datetime('now','TimeZone','UTC', ...
-        'Format','yyyy-MM-dd HH:mm:ss.SSS')));
-    folder=fileparts(path);
-    if ~isfolder(folder), mkdir(folder); end
-    temporary=[path '.' char(java.util.UUID.randomUUID()) '.tmp'];
-    cleanup=onCleanup(@() deleteTemporary(temporary)); %#ok<NASGU>
-    fid=fopen(temporary,'w','n','UTF-8');
-    if fid<0, return; end
-    closeFile=onCleanup(@() fclose(fid)); %#ok<NASGU>
-    bytes=unicode2native(jsonencode(progress),'UTF-8');
-    if fwrite(fid,bytes,'uint8')~=numel(bytes), return; end
-    clear closeFile
-    movefile(temporary,path,'f');
-catch
-    % Observability must not interrupt the active scientific case.
-end
+    progress=publishPhase('initializing','running');
+    if checkpointOptions.resume
+        publishPhase('checkpoint-loading','running');
+        checkpointClock=tic;
+        [sim,resumeInfo]=nbiot.experiments.loadCheckpoint(checkpointOptions.folder,identity,execution);
+        checkpointOverheadSeconds=checkpointOverheadSeconds+toc(checkpointClock);
+        lastCheckpointPath=char(string(resumeInfo.checkpointPath));
+        checkpointTimings(end+1)=struct('operation','load','path',lastCheckpointPath,'timing',resumeInfo.timing);
+        progressTick=sim.currentTick;
+    else
+        sim=nbiot.NBIoTSimulator(cfg,scenario,execution,controllerOptions);
+        resumeInfo=struct('fallbackUsed',false,'lostTicks',0,'checkpointTick',0,'graphLinksValidated',true);
+        saveCurrentCheckpoint();
+    end
+    lastCheckpointElapsed=0; lastProgressElapsed=-Inf;
+    budgetLedgerPath=char(string(checkpointOptions.budgetLedgerFile));
+    budgetBaseElapsed=0; budgetSeconds=Inf; budgetWarningWritten=false;
+    if ~isempty(budgetLedgerPath)
+        budgetLedger=nbiot.experiments.loadVariant2BudgetLedger(budgetLedgerPath,false);
+        budgetBaseElapsed=double(budgetLedger.elapsedSeconds);
+        budgetSeconds=double(budgetLedger.budgetSeconds);
+    end
+    publishPhase('simulating','running');
+    while ~any(strcmp(sim.status,{'completed','stopped','failed'}))
+        % Keep the established nextTick stepping protocol, without exporting
+        % an additional whole state merely to report the public currentTick.
+        state=sim.exportCheckpointState();
+        sim.run(state.nextTick);
+        progressTick=sim.currentTick;
+        elapsed=toc(runClock);
+        if ~budgetWarningWritten&&budgetBaseElapsed+elapsed>=budgetSeconds&&~isempty(budgetLedgerPath)
+            budgetLedger=nbiot.experiments.loadVariant2BudgetLedger(budgetLedgerPath,false);
+            message=sprintf(['Shared 57600-second budget threshold crossed during active case %s; ' ...
+                'the current case continues and no later case will be admitted.'],identity.caseKey);
+            exists=~isempty(budgetLedger.warnings)&&any(contains(string({budgetLedger.warnings.message}),identity.caseKey));
+            if ~exists
+                budgetLedger.warnings(end+1)=struct( ...
+                    'timestampUtc',char(datetime('now','TimeZone','UTC','Format','yyyy-MM-dd HH:mm:ss.SSS')), ...
+                    'phase','stage-3-load-probe','elapsedSeconds',budgetBaseElapsed+elapsed,'message',message);
+                nbiot.experiments.saveVariant2BudgetLedger(budgetLedgerPath,budgetLedger);
+            end
+            budgetWarningWritten=true;
+        end
+        terminal=any(strcmp(sim.status,{'completed','stopped','failed'}));
+        pausePath=char(checkpointOptions.pauseRequestFile);
+        if ~terminal&&~isempty(pausePath)&&isfile(pausePath)
+            saveCurrentCheckpoint();
+            lastCheckpointElapsed=elapsed;
+            pauseRequested=true;
+            break
+        end
+        if ~terminal&&elapsed-lastCheckpointElapsed>=checkpointOptions.intervalSeconds
+            saveCurrentCheckpoint();
+            lastCheckpointElapsed=elapsed;
+            publishPhase('simulating','running');
+        elseif ~terminal&&elapsed-lastProgressElapsed>=10
+            publishPhase('simulating','running');
+            lastProgressElapsed=elapsed;
+        end
+    end
+    activePhase='result-finalizing';
+    update=progressUpdate();
+    result=nbiot.experiments.finalizeCheckpointResult(@()sim.result(),checkpointOptions.progressFile,update);
+    status=result.status;
+    if pauseRequested
+        status='paused';
+        progress=publishPhase('paused','paused');
+    elseif strcmp(status,'completed')
+        % The scientific simulator is done; the outer case still must export,
+        % verify and commit before progress may announce completed.
+        progress=publishPhase('exporting','running');
+    else
+        activePhase='simulating';
+        update=progressUpdate(); update.phase='failed'; update.status='failed';
+        update.failedPhase='simulating'; update.errorIdentifier='';
+        if isfield(result,'errorInfo')&&isfield(result.errorInfo,'identifier')
+            update.errorIdentifier=result.errorInfo.identifier;
+        end
+        progress=nbiot.experiments.writeRuntimeProgress(checkpointOptions.progressFile,update);
+    end
+    checkpointFiles=dir(fullfile(char(checkpointOptions.folder),'checkpoint-tick-*.mat'));
+    info=struct('status',status,'pauseRequested',pauseRequested, ...
+        'checkpointFolder',char(checkpointOptions.folder),'checkpointPaths',{checkpointPaths}, ...
+        'checkpointCount',numel(checkpointFiles),'checkpointBytes',sum([checkpointFiles.bytes]), ...
+        'checkpointOverheadSeconds',checkpointOverheadSeconds,'elapsedSeconds',toc(runClock),'resumeInfo',resumeInfo);
+    info.phaseElapsedSeconds=progress.phaseElapsedSeconds;
+    info.checkpointTimings=checkpointTimings;
+catch exception
+    update=progressUpdate(); update.phase='failed'; update.status='failed';
+    update.failedPhase=activePhase; update.errorIdentifier=exception.identifier;
+    nbiot.experiments.writeRuntimeProgress(checkpointOptions.progressFile,update);
+    rethrow(exception);
 end
 
-function deleteTemporary(path)
-if isfile(path), delete(path); end
+    function update=progressUpdate()
+        update=struct('caseKey',char(string(identity.caseKey)),'currentTick',double(progressTick), ...
+            'phaseContext',progressPhase,'workUnitsDone',0,'workUnitsTotal',[]);
+        if ~isempty(lastCheckpointPath), update.lastCheckpoint=lastCheckpointPath; end
+    end
+
+    function value=publishPhase(phase,status)
+        activePhase=phase;
+        update=progressUpdate(); update.phase=phase; update.status=status;
+        update.errorIdentifier=''; update.failedPhase='';
+        value=nbiot.experiments.writeRuntimeProgress(checkpointOptions.progressFile,update);
+    end
+
+    function saveCurrentCheckpoint()
+        publishPhase('checkpointing','running');
+        checkpointClock=tic;
+        [savedPath,timing]=nbiot.experiments.saveCheckpoint(sim,checkpointOptions.folder,identity);
+        checkpointOverheadSeconds=checkpointOverheadSeconds+toc(checkpointClock);
+        % A failed save must not replace the last successfully published path.
+        lastCheckpointPath=savedPath;
+        checkpointPaths{end+1}=savedPath;
+        checkpointTimings(end+1)=struct('operation','save','path',savedPath,'timing',timing);
+    end
 end

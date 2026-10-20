@@ -45,6 +45,10 @@ classdef TestLoadProbe < matlab.unittest.TestCase
             t.verifyEqual(fileHash(options.registryFile),before);
             t.verifyTrue(isfile(fullfile(output,'preflight.json')));
             t.verifyFalse(isfile(fullfile(output,'progress.json')));
+            lockPath=[options.budgetLedgerFile '.writer.lock'];
+            t.verifyTrue(isfile(lockPath),'The run must create its shared-ledger lease before preflight.');
+            t.verifyEqual(tryJavaFileChannelLock(lockPath),'acquired', ...
+                'A preflight error must release the Java ledger lease.');
         end
 
         function absentLteLicenseIsRejectedBeforeExecution(t)
@@ -84,6 +88,138 @@ classdef TestLoadProbe < matlab.unittest.TestCase
             progress=jsondecode(fileread(fullfile(fixture.options.outputFolder,'progress.json')));
             t.verifyEqual(progress.pendingCounts(:).',[100 500 1000 2500]);
             t.verifyEqual(progress.assignment.status,'planned');
+        end
+
+        function writerLeaseCoversRunnerAndReleasesAfterReturn(t)
+            fixture=makeFixture(t);
+            lockPath=[fixture.options.budgetLedgerFile '.writer.lock'];
+            outcomePath=fullfile(fixture.tempRoot,'runner-lease-outcome.txt');
+            fixture.options.runner=leaseCheckingSyntheticRunner(lockPath,outcomePath);
+            fixture.options.runnerInputs=struct('lockPath',lockPath, ...
+                'outcomePath',outcomePath);
+
+            report=runLoadProbe(fixture.options);
+
+            t.verifyEqual(report.status,'test-only-completed',report.perCaseMeasurements(end).error);
+            t.verifyTrue(isfile(lockPath),'The Java lease file must remain as the shared lock path.');
+            outcome=fileread(outcomePath);
+            t.verifyTrue(ismember(outcome,{'contended','overlapping'}), ...
+                'runLoadProbe must hold its Java ledger lease while a case runner is active.');
+            t.verifyEqual(tryJavaFileChannelLock(lockPath),'acquired', ...
+                'The Java ledger lease must be released when runLoadProbe returns.');
+        end
+
+        function stopAfterCaseMarkerPausesBeforeNextAdmission(t)
+            fixture=makeFixture(t);
+            marker=fullfile(fixture.options.runControlFolder,'stop-after-case.request.json');
+            [runner,counterPath]=stopAfterFirstSyntheticRunner( ...
+                fixture.options.runControlFolder,fixture.options.runId);
+            fixture.options.runner=runner;
+            fixture.options.runnerInputs=struct('counterPath',counterPath, ...
+                'folder',fixture.options.runControlFolder,'runId',fixture.options.runId);
+
+            report=runLoadProbe(fixture.options);
+
+            t.verifyEqual(report.status,'paused');
+            t.verifyEqual(report.completedCounts,100);
+            t.verifyEqual(report.pendingCounts,[500 1000 2500]);
+            t.verifyEqual(str2double(strtrim(fileread(counterPath))),1, ...
+                'No next case may be admitted after the marker is observed.');
+            t.verifyEqual(caseFolderCount(fixture.options.outputFolder),1);
+            t.verifyTrue(isfile(marker),'The stop-after-case marker remains until explicit resume.');
+        end
+
+        function stopAfterCaseMarkerBeforeFirstAdmissionPreservesAllCounts(t)
+            fixture=makeFixture(t);
+            marker=fullfile(fixture.options.runControlFolder,'stop-after-case.request.json');
+            writeJson(marker,struct('schemaVersion',1,'requestId','fixture-stop-before-first', ...
+                'runId',fixture.options.runId,'action','stop-after-case'));
+
+            report=runLoadProbe(fixture.options);
+
+            t.verifyEqual(report.status,'paused');
+            t.verifyEmpty(report.completedCounts);
+            t.verifyEqual(report.pendingCounts,[100 500 1000 2500]);
+            t.verifyEqual(caseFolderCount(fixture.options.outputFolder),0, ...
+                'A matching stop marker must be checked before the first case is created.');
+            t.verifyTrue(isfile(marker));
+        end
+
+        function activeAttemptIsPublishedBeforeRunnerAndChargedOnce(t)
+            fixture=makeFixture(t);
+            progressPath=fullfile(fixture.options.outputFolder,'progress.json');
+            ledgerPath=fixture.options.budgetLedgerFile;
+            observationPath=fullfile(fixture.tempRoot,'active-attempt-observation.json');
+            fixture.options.runner=attemptCheckingSyntheticRunner( ...
+                progressPath,ledgerPath,observationPath);
+            fixture.options.runnerInputs=struct('progressPath',progressPath, ...
+                'ledgerPath',ledgerPath,'observationPath',observationPath);
+
+            report=runLoadProbe(fixture.options);
+            observation=jsondecode(fileread(observationPath));
+            ledger=nbiot.experiments.loadVariant2BudgetLedger( ...
+                fixture.options.budgetLedgerFile,false);
+
+            t.verifyEqual(report.status,'test-only-completed');
+            t.verifyEqual(observation.progressRunId,fixture.options.runId);
+            t.verifyNotEmpty(observation.progressAttemptId);
+            t.verifyEqual(observation.ledgerRunId,fixture.options.runId);
+            t.verifyEqual(observation.ledgerAttemptId,observation.progressAttemptId);
+            t.verifyTrue(observation.attemptRowPresent, ...
+                'The active attempt row must be saved before runner dispatch.');
+            t.verifyEqual(observation.attemptStatus,'active');
+            t.verifyEqual(observation.chargedSeconds,0);
+            t.verifyEqual(observation.attemptCaseKey,observation.progressCaseKey);
+            t.verifyEqual(ledger.accountingVersion,2);
+            t.verifyEqual(numel(ledger.attempts),4);
+            attemptIds=string({ledger.attempts.attemptId});
+            t.verifyEqual(numel(unique(attemptIds)),4);
+            t.verifyEqual(string({ledger.attempts.runId}), ...
+                repmat(string(fixture.options.runId),1,4));
+            t.verifyEqual(string({ledger.attempts.status}),repmat("completed",1,4));
+            for k=1:4
+                t.verifyEqual(ledger.attempts(k).caseKey,report.perCaseMeasurements(k).caseKey);
+                t.verifyEqual(ledger.attempts(k).observedSeconds, ...
+                    report.perCaseMeasurements(k).wallSeconds);
+                t.verifyEqual(ledger.attempts(k).chargedSeconds, ...
+                    report.perCaseMeasurements(k).wallSeconds);
+                t.verifyEmpty(ledger.attempts(k).processReportSha256);
+            end
+        end
+
+        function legacyBudgetLedgerLoadsWithEmptyAttemptHistory(t)
+            fixture=makeFixture(t);
+            original=nbiot.experiments.loadVariant2BudgetLedger( ...
+                fixture.options.budgetLedgerFile,false);
+            legacy=rmfield(original,{'accountingVersion','attempts'});
+            writeJson(fixture.options.budgetLedgerFile,legacy);
+
+            loaded=nbiot.experiments.loadVariant2BudgetLedger( ...
+                fixture.options.budgetLedgerFile,false);
+
+            t.verifyEqual(loaded.schemaVersion,1);
+            t.verifyEqual(loaded.budgetSeconds,57600);
+            t.verifyEqual(loaded.accountingVersion,2);
+            t.verifyEmpty(loaded.attempts);
+            t.verifyEqual(loaded.elapsedSeconds,original.elapsedSeconds);
+        end
+
+        function refusesRunWhenAnotherWriterHoldsLedgerLease(t)
+            fixture=makeFixture(t);
+            lockPath=[fixture.options.budgetLedgerFile '.writer.lock'];
+            registryBefore=fileHash(fixture.options.registryFile);
+            ledgerBefore=fileHash(fixture.options.budgetLedgerFile);
+            holder=System.IO.FileStream(lockPath,System.IO.FileMode.OpenOrCreate, ...
+                System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);
+            releaseHolder=onCleanup(@() holder.Dispose()); %#ok<NASGU>
+
+            t.verifyError(@() runLoadProbe(fixture.options), ...
+                'nbiot:experiments:LoadProbeLedgerLease');
+
+            t.verifyFalse(isfolder(fixture.options.outputFolder), ...
+                'Lease contention must fail before creating the run output folder.');
+            t.verifyEqual(fileHash(fixture.options.registryFile),registryBefore);
+            t.verifyEqual(fileHash(fixture.options.budgetLedgerFile),ledgerBefore);
         end
 
         function activeCaseCrossingBudgetFinishesAndDoesNotStartNext(t)
@@ -213,9 +349,11 @@ writeJson(acceptancePath,acceptance);
 output=fullfile(tempRoot,'run');
 budgetLedger=fullfile(tempRoot,'budget-ledger.json');
 nbiot.experiments.loadVariant2BudgetLedger(budgetLedger,true);
+runId=char(java.util.UUID.randomUUID());
 options=struct('outputFolder',output,'stage2AcceptanceFile',acceptancePath, ...
     'calibrationFile',fullfile(root,'results','nprach-calibration.mat'), ...
     'registryFile',registry,'budgetLedgerFile',budgetLedger, ...
+    'runId',runId,'runControlFolder',tempRoot, ...
     'execution',struct('profile','scheduled-local','role','stage-3-load-pilot', ...
     'maxUE',2500,'maxCaseSeconds',57600,'maxSuiteSeconds',57600, ...
     'timePolicy','finish-current'),'testMode',true,'runner',@syntheticRunner, ...
@@ -235,6 +373,84 @@ end
 
 function result=syntheticRunner(cfg)
 result=syntheticResult(cfg);
+end
+
+function runner=leaseCheckingSyntheticRunner(lockPath,outcomePath)
+runner=@run;
+    function result=run(cfg)
+        outcome=tryJavaFileChannelLock(lockPath);
+        writeText(outcomePath,outcome);
+        result=syntheticResult(cfg);
+    end
+end
+
+function outcome=tryJavaFileChannelLock(lockPath)
+file=java.io.RandomAccessFile(lockPath,'rw');
+channel=file.getChannel();
+cleanup=onCleanup(@() closeJavaLeaseProbe(channel,file)); %#ok<NASGU>
+try
+    lock=channel.tryLock();
+catch exception
+    details=[exception.identifier ' ' exception.message];
+    if contains(details,'OverlappingFileLockException')
+        outcome='overlapping';
+        return
+    end
+    rethrow(exception);
+end
+if isempty(lock)
+    outcome='contended';
+else
+    lock.release();
+    outcome='acquired';
+end
+end
+
+function closeJavaLeaseProbe(channel,file)
+try, channel.close(); catch, end
+try, file.close(); catch, end
+end
+
+function [runner,counterPath]=stopAfterFirstSyntheticRunner(folder,runId)
+counterPath=fullfile(folder,'synthetic-runner-call-count.txt');
+runner=@run;
+    function result=run(cfg)
+        calls=0;
+        if isfile(counterPath)
+            calls=str2double(strtrim(fileread(counterPath)));
+        end
+        calls=calls+1;
+        writeText(counterPath,num2str(calls));
+        result=syntheticResult(cfg);
+        if calls==1
+            writeJson(fullfile(folder,'stop-after-case.request.json'), ...
+                struct('schemaVersion',1,'requestId',char(java.util.UUID.randomUUID()), ...
+                'runId',runId,'action','stop-after-case'));
+        end
+    end
+end
+
+function runner=attemptCheckingSyntheticRunner(progressPath,ledgerPath,observationPath)
+runner=@run;
+    function result=run(cfg)
+        progress=jsondecode(fileread(progressPath));
+        ledger=nbiot.experiments.loadVariant2BudgetLedger(ledgerPath,false);
+        match=find(strcmp({ledger.attempts.attemptId},progress.activeCase.attemptId),1);
+        observation=struct('progressRunId',progress.activeCase.runId, ...
+            'progressAttemptId',progress.activeCase.attemptId, ...
+            'progressCaseKey',progress.activeCase.caseKey, ...
+            'ledgerRunId',ledger.activeCase.runId, ...
+            'ledgerAttemptId',ledger.activeCase.attemptId, ...
+            'attemptRowPresent',~isempty(match),'attemptStatus','', ...
+            'chargedSeconds',0,'attemptCaseKey','');
+        if ~isempty(match)
+            observation.attemptStatus=ledger.attempts(match).status;
+            observation.chargedSeconds=ledger.attempts(match).chargedSeconds;
+            observation.attemptCaseKey=ledger.attempts(match).caseKey;
+        end
+        writeJson(observationPath,observation);
+        result=syntheticResult(cfg);
+    end
 end
 
 function result=syntheticResult(cfg)
@@ -286,6 +502,12 @@ function writeJson(path,value)
 fid=fopen(path,'w','n','UTF-8');
 cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
 fwrite(fid,unicode2native(jsonencode(value,'PrettyPrint',true),'UTF-8'),'uint8');
+end
+
+function writeText(path,value)
+fid=fopen(path,'w');
+cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
+fwrite(fid,value,'char');
 end
 
 function hex=fileHash(path)

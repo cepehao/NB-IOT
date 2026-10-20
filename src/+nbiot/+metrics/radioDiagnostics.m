@@ -62,12 +62,15 @@ end
 % Truth attempts are included only when their NPRACH occasion was fully
 % observed. One truth key is one transmitted preamble index, not one UE.
 attempts=repmat(attemptTemplate(),0,1);
-for k=1:numel(truthEvents)
+truthIndices=eventIndices(truthEvents,'msg1',horizon,false);
+truthOccasions=eventIntegers(truthEvents,truthIndices,'occasionId',0, ...
+    {'attemptId','ueId','occasionId','nInit'},'msg1');
+truthIndices=truthIndices(ismember(truthOccasions,completeOccasions));
+for k=truthIndices
     e=truthEvents(k);
     if ~strcmp(e.kind,'msg1')||e.tick<0||e.tick>=horizon, continue; end
     f=e.fields; requireFields(f,{'attemptId','ueId','occasionId','nInit'},'msg1');
     occasionId=validInteger(f.occasionId,'occasionId',0);
-    if ~ismember(occasionId,completeOccasions), continue; end
     attemptId=validInteger(f.attemptId,'attemptId',1);
     ueId=validInteger(f.ueId,'ueId',1);
     nInit=validInteger(f.nInit,'nInit',0);
@@ -117,7 +120,15 @@ logicalGroups=sum(logicalCounts>1);
 logicalAttempts=sum(logicalCounts(logicalCounts>1));
 
 components=repmat(componentTemplate(),0,1);
-for k=1:numel(receptionEvents)
+componentFields={'occasionId','attemptId','ueId','nInit','startSample', ...
+    'endSampleExclusive','signalPowerW','interferencePowerW','noisePowerW', ...
+    'configuredDelaySeconds','configuredCfoHz'};
+componentIndices=eventIndices(receptionEvents,'nprach_component',horizon,true);
+componentOccasions=eventIntegers(receptionEvents,componentIndices,'occasionId',0,componentFields,'nprach_component');
+componentIndices=componentIndices(ismember(componentOccasions,completeOccasions));
+componentIds=eventIntegers(receptionEvents,componentIndices,'attemptId',1,componentFields,'nprach_component');
+componentIndices=componentIndices(ismember(componentIds,[attempts.attemptId]));
+for k=componentIndices
     e=receptionEvents(k);
     if ~strcmp(e.kind,'nprach_component')||e.tick<0||e.tick>horizon, continue; end
     f=e.fields;
@@ -126,9 +137,7 @@ for k=1:numel(receptionEvents)
         'configuredDelaySeconds','configuredCfoHz'};
     requireFields(f,componentFields,'nprach_component');
     occasionId=validInteger(f.occasionId,'occasionId',0);
-    if ~ismember(occasionId,completeOccasions), continue; end
     attemptId=validInteger(f.attemptId,'attemptId',1);
-    if ~any([attempts.attemptId]==attemptId), continue; end
     startSample=validInteger(f.startSample,'startSample',0);
     endSample=validInteger(f.endSampleExclusive,'endSampleExclusive',1);
     if endSample<=startSample
@@ -149,11 +158,12 @@ if numel(unique([components.attemptId]))~=numel(components)
     error('nbiot:metrics:RadioDiagnosticsEvent', ...
         'One NPRACH attempt must have one receiver-component summary.');
 end
+[sortedIds,componentOrder]=sort([components.attemptId]);
 
-overlaps=repmat(overlapTemplate(),0,1);
-for k=1:numel(receptionEvents)
-    e=receptionEvents(k);
-    if ~strcmp(e.kind,'nprach_overlap')||e.tick<0||e.tick>horizon, continue; end
+overlapIndices=eventIndices(receptionEvents,'nprach_overlap',horizon,true);
+overlaps=repmat(overlapTemplate(),1,numel(overlapIndices));
+for k=1:numel(overlapIndices)
+    e=receptionEvents(overlapIndices(k));
     f=e.fields;
     overlapFields={'occasionId','attemptIdA','attemptIdB','startSample', ...
         'endSampleExclusive','signalPowerAW','signalPowerBW'};
@@ -165,47 +175,45 @@ for k=1:numel(receptionEvents)
         error('nbiot:metrics:RadioDiagnosticsEvent', ...
             'A physical overlap requires two distinct NPRACH attempts.');
     end
-    ia=find([components.attemptId]==attemptIdA,1);
-    ib=find([components.attemptId]==attemptIdB,1);
-    if isempty(ia)||isempty(ib)||components(ia).occasionId~=occasionId|| ...
-            components(ib).occasionId~=occasionId
-        error('nbiot:metrics:RadioDiagnosticsEvent', ...
-            'An overlap event must refer to two logged components in its occasion.');
-    end
     startSample=validInteger(f.startSample,'startSample',0);
     endSample=validInteger(f.endSampleExclusive,'endSampleExclusive',1);
-    expectedStart=max(components(ia).startSample,components(ib).startSample);
-    expectedEnd=min(components(ia).endSampleExclusive,components(ib).endSampleExclusive);
-    if endSample<=startSample||startSample~=expectedStart||endSample~=expectedEnd
+    if endSample<=startSample
         error('nbiot:metrics:RadioDiagnosticsEvent', ...
             'An overlap event must describe the exact shared half-open interval.');
     end
-    pair=sort([attemptIdA attemptIdB]);
-    if ~isempty(overlaps)&&any(arrayfun(@(x)isequal(sort([x.attemptIdA x.attemptIdB]),pair),overlaps))
-        error('nbiot:metrics:RadioDiagnosticsEvent','A physical overlap pair was logged twice.');
-    end
-    overlaps(end+1)=struct('occasionId',occasionId,'attemptIdA',attemptIdA, ...
+    overlaps(k)=struct('occasionId',occasionId,'attemptIdA',attemptIdA, ...
         'attemptIdB',attemptIdB,'startSample',startSample, ...
         'endSampleExclusive',endSample, ...
         'signalPowerAW',nonnegativeFinite(f.signalPowerAW,'signalPowerAW'), ...
         'signalPowerBW',nonnegativeFinite(f.signalPowerBW,'signalPowerBW')); %#ok<AGROW>
 end
-
-expectedPairs=zeros(0,2);
-for i=1:numel(components)-1
-    a=components(i);
-    for j=i+1:numel(components)
-        b=components(j);
-        if a.occasionId==b.occasionId&& ...
-                max(a.startSample,b.startSample)<min(a.endSampleExclusive,b.endSampleExclusive)
-            expectedPairs(end+1,:)=sort([a.attemptId b.attemptId]); %#ok<AGROW>
-        end
-    end
+% Empty public arrays retain the original 0-by-1 shape.
+if isempty(overlaps), overlaps=repmat(overlapTemplate(),0,1); end
+idsA=[overlaps.attemptIdA]; idsB=[overlaps.attemptIdB];
+[foundA,locationA]=ismember(idsA,sortedIds);
+[foundB,locationB]=ismember(idsB,sortedIds);
+if ~all(foundA & foundB)
+    error('nbiot:metrics:RadioDiagnosticsEvent', ...
+        'An overlap event must refer to two logged components in its occasion.');
 end
-loggedPairs=zeros(numel(overlaps),2);
-for k=1:numel(overlaps), loggedPairs(k,:)=sort([overlaps(k).attemptIdA overlaps(k).attemptIdB]); end
-if size(unique(expectedPairs,'rows'),1)~=size(unique(loggedPairs,'rows'),1)|| ...
-        ~isempty(setxorRows(expectedPairs,loggedPairs))
+indicesA=componentOrder(locationA); indicesB=componentOrder(locationB);
+if any([components(indicesA).occasionId]~=[overlaps.occasionId])|| ...
+        any([components(indicesB).occasionId]~=[overlaps.occasionId])
+    error('nbiot:metrics:RadioDiagnosticsEvent', ...
+        'An overlap event must refer to two logged components in its occasion.');
+end
+if any([overlaps.startSample]~=max([components(indicesA).startSample],[components(indicesB).startSample]))|| ...
+        any([overlaps.endSampleExclusive]~=min([components(indicesA).endSampleExclusive],[components(indicesB).endSampleExclusive]))
+    error('nbiot:metrics:RadioDiagnosticsEvent', ...
+        'An overlap event must describe the exact shared half-open interval.');
+end
+loggedPairs=[min(idsA,idsB).' max(idsA,idsB).'];
+if isempty(overlaps), loggedPairs=zeros(0,2); end
+if size(unique(loggedPairs,'rows'),1)~=size(loggedPairs,1)
+    error('nbiot:metrics:RadioDiagnosticsEvent','A physical overlap pair was logged twice.');
+end
+expectedPairs=enumeratePairs(components);
+if ~isempty(setxor(expectedPairs,loggedPairs,'rows'))
     error('nbiot:metrics:RadioDiagnosticsEvent', ...
         'Physical overlap events must cover every and only overlapping component pair.');
 end
@@ -217,20 +225,35 @@ if ~isempty(overlaps)
 end
 eligiblePairs=0; censoredPairs=0; equalPowerPairs=0;
 capturedPairs=0; strongSuccesses=0; weakSuccesses=0;
-outcomeIds=zeros(0,1); outcomes=strings(0,1);
-for k=1:numel(truthEvents)
+outcomeIndices=[eventIndices(truthEvents,'ra_success',horizon,true), ...
+    eventIndices(truthEvents,'ra_failure',horizon,true)];
+outcomeIds=zeros(numel(outcomeIndices),1); outcomeSuccess=false(numel(outcomeIndices),1);
+for j=1:numel(outcomeIndices)
+    k=outcomeIndices(j);
     e=truthEvents(k);
     if e.tick<0||e.tick>horizon||~any(strcmp(e.kind,{'ra_success','ra_failure'})), continue; end
     requireFields(e.fields,{'attemptId'},e.kind);
     id=validInteger(e.fields.attemptId,'attemptId',1);
-    outcome="success"; if strcmp(e.kind,'ra_failure'), outcome="failure"; end
-    at=find(outcomeIds==id,1);
-    if isempty(at), outcomeIds(end+1,1)=id; outcomes(end+1,1)=outcome; %#ok<AGROW>
-    elseif outcomes(at)~=outcome
+    outcomeIds(j)=id;
+    outcomeSuccess(j)=strcmp(e.kind,'ra_success');
+end
+[outcomeIds,~,outcomeGroup]=unique(outcomeIds);
+outcomes=strings(numel(outcomeIds),1);
+if ~isempty(outcomeGroup)
+    successes=accumarray(outcomeGroup,double(outcomeSuccess));
+    counts=accumarray(outcomeGroup,1);
+    if any(successes>0 & successes<counts)
         error('nbiot:metrics:RadioDiagnosticsEvent', ...
             'An NPRACH attempt cannot both succeed and fail.');
     end
+    outcomes(:)="failure"; outcomes(successes>0)="success";
 end
+[knownA,outcomeIndexA]=ismember(idsA,outcomeIds);
+[knownB,outcomeIndexB]=ismember(idsB,outcomeIds);
+pairOutcomesA=repmat("unknown",1,numel(overlaps));
+pairOutcomesB=pairOutcomesA;
+pairOutcomesA(knownA)=outcomes(outcomeIndexA(knownA));
+pairOutcomesB(knownB)=outcomes(outcomeIndexB(knownB));
 for k=1:numel(overlaps)
     pair=overlaps(k);
     deltaDb=powerDifferenceDb(pair.signalPowerAW,pair.signalPowerBW);
@@ -238,8 +261,8 @@ for k=1:numel(overlaps)
         equalPowerPairs=equalPowerPairs+1;
         continue;
     end
-    outcomeA=outcomeFor(pair.attemptIdA,outcomeIds,outcomes);
-    outcomeB=outcomeFor(pair.attemptIdB,outcomeIds,outcomes);
+    outcomeA=pairOutcomesA(k);
+    outcomeB=pairOutcomesB(k);
     if outcomeA=="unknown"||outcomeB=="unknown"
         censoredPairs=censoredPairs+1;
         continue;
@@ -289,14 +312,26 @@ end
 diagnostics.perAttempt=perAttempt;
 
 estimates=repmat(receiverEstimateTemplate(),0,1);
+% Group once; only a key with one truth attempt can supply receiver truth.
+attemptKeys=[[attempts.occasionId].' [attempts.nInit].'];
+if isempty(attempts), attemptKeys=zeros(0,2); end
+[estimateKeys,~,estimateGroup]=unique(attemptKeys,'rows');
+estimateCounts=zeros(0,1); singleAttempt=zeros(0,1);
+if ~isempty(estimateGroup)
+    estimateCounts=accumarray(estimateGroup,1);
+    singleAttempt=accumarray(estimateGroup,(1:numel(attempts)).',[],@min);
+end
+[candidateHasTruth,candidateGroup]=ismember(candidateRows,estimateKeys,'rows');
+[attemptHasComponent,attemptComponentLocation]=ismember([attempts.attemptId],sortedIds);
 for k=1:numel(candidateEstimates)
     c=candidateEstimates(k);
-    matching=attempts([attempts.occasionId]==c.occasionId & [attempts.nInit]==c.nInit);
     configuredDelay=NaN; configuredCfo=NaN; attemptId=NaN; ueId=NaN; truthAvailable=false;
-    if numel(matching)==1
+    if candidateHasTruth(k)&&estimateCounts(candidateGroup(k))==1
+        matchingIndex=singleAttempt(candidateGroup(k));
+        matching=attempts(matchingIndex);
         attemptId=matching.attemptId; ueId=matching.ueId;
-        componentIndex=find([components.attemptId]==matching.attemptId,1);
-        if ~isempty(componentIndex)
+        if attemptHasComponent(matchingIndex)
+            componentIndex=componentOrder(attemptComponentLocation(matchingIndex));
             configuredDelay=components(componentIndex).configuredDelaySeconds;
             configuredCfo=components(componentIndex).configuredCfoHz;
             truthAvailable=isfinite(configuredDelay)&&isfinite(configuredCfo);
@@ -406,16 +441,45 @@ elseif second>0, delta=-Inf;
 end
 end
 
-function outcome=outcomeFor(attemptId,ids,outcomes)
-index=find(ids==attemptId,1);
-if isempty(index), outcome="unknown"; else, outcome=outcomes(index); end
+function indices=eventIndices(events,kind,horizon,includeHorizon)
+ticks=[events.tick];
+mask=strcmp({events.kind},kind) & ticks>=0;
+if includeHorizon, mask=mask & ticks<=horizon;
+else, mask=mask & ticks<horizon; end
+indices=find(mask);
 end
 
-function rows=setxorRows(first,second)
-if isempty(first), rows=unique(second,'rows'); return; end
-if isempty(second), rows=unique(first,'rows'); return; end
-rows=[setdiff(first,second,'rows');setdiff(second,first,'rows')];
-rows=unique(rows,'rows');
+function values=eventIntegers(events,indices,name,minimum,required,label)
+values=zeros(size(indices));
+for j=1:numel(indices)
+    fields=events(indices(j)).fields;
+    requireFields(fields,required,label);
+    values(j)=validInteger(fields.(name),name,minimum);
+end
+end
+
+function pairs=enumeratePairs(components)
+% This order is internal only; public diagnostics retain event order.
+if isempty(components), pairs=zeros(0,2); return; end
+keys=[[components.occasionId].' [components.startSample].' [components.attemptId].'];
+[~,order]=sortrows(keys,[1 2 3]);
+capacity=256; pairs=zeros(capacity,2); count=0;
+for i=1:numel(order)-1
+    a=components(order(i));
+    for j=i+1:numel(order)
+        b=components(order(j));
+        if b.occasionId~=a.occasionId||b.startSample>=a.endSampleExclusive, break; end
+        if max(a.startSample,b.startSample)<min(a.endSampleExclusive,b.endSampleExclusive)
+            count=count+1;
+            if count>capacity
+                capacity=2*capacity;
+                pairs(capacity,2)=0;
+            end
+            pairs(count,:)=[min(a.attemptId,b.attemptId),max(a.attemptId,b.attemptId)];
+        end
+    end
+end
+pairs=pairs(1:count,:);
 end
 
 function c=attemptTemplate()

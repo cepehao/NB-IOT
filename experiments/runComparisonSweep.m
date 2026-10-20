@@ -3,14 +3,18 @@ function manifest=runComparisonSweep(options)
 root=fileparts(fileparts(mfilename('fullpath')));
 addpath(root); addpath(fullfile(root,'experiments')); setupProject();
 options=normalizeOptions(options,root);
-design=buildDesign(options,root);
 budgetCfg=options.config;
 budgetCfg.simulation.numUE=max(options.counts);
 nbiot.experiments.validateExecutionBudget(budgetCfg,options.execution,1);
+caseCount=numel(options.counts)*numel(options.burstDurations)* ...
+    numel(options.realizationIds)*numel(options.methods);
+admission=struct('admissionStatus','not-preflighted');
 if ~options.designOnly
-    nbiot.experiments.validateExecutionBudget(budgetCfg,options.execution,design.caseCount);
-    validateExecutableModel(options);
+    nbiot.experiments.validateExecutionBudget(budgetCfg,options.execution,caseCount);
+    admission=validateExecutableModel(options);
+    validateSweepConfigurationMatrix(options);
 end
+design=buildDesign(options,root,admission);
 
 available=nbiot.experiments.availableRealizationIds( ...
     options.registryFile,options.execution.role,options.realizationIds);
@@ -80,6 +84,9 @@ for count=options.counts
                     'calibrationFile',options.calibrationFile,'modelFile',options.modelFile, ...
                     'allowDevelopmentModel',options.allowDevelopmentModel, ...
                     'controllerPolicy',options.controllerPolicy,'scenario',scenario, ...
+                    'modelAcceptanceFile',options.modelAcceptanceFile, ...
+                    'policyFile',fieldOr(admission,'policyFile',''), ...
+                    'admissionMetadata',admission, ...
                     'resume',options.resume,'runExperimentFcn',options.runExperimentFcn, ...
                     'runnerFiles',{options.runnerFiles},'runnerInputs',options.runnerInputs, ...
                     'runnerDependenciesDeclared',options.runnerDependenciesDeclared);
@@ -124,7 +131,7 @@ if nargin<1||~isstruct(options)||~isscalar(options)
 end
 allowed={'designOnly','counts','burstDurations','methods','realizationIds', ...
     'calibrationFile','modelFile','allowDevelopmentModel','controllerPolicy', ...
-    'execution','registryFile','outputFolder','resume','config', ...
+    'modelAcceptanceFile','execution','registryFile','outputFolder','resume','config', ...
     'runExperimentFcn','runnerFiles','runnerInputs','runnerDependenciesDeclared'};
 unknown=setdiff(fieldnames(options),allowed);
 if ~isempty(unknown)
@@ -137,7 +144,8 @@ if ~isempty(missing)
     error('nbiot:experiments:ComparisonOptions','Missing required option %s.',missing{1});
 end
 base=struct('designOnly',false,'modelFile','','allowDevelopmentModel',false, ...
-    'controllerPolicy',struct(),'resume',true,'config',nbiot.config.defaultConfig(), ...
+    'controllerPolicy',struct(),'modelAcceptanceFile','', ...
+    'resume',true,'config',nbiot.config.defaultConfig(), ...
     'runExperimentFcn',[],'runnerFiles',{{}},'runnerInputs',struct(), ...
     'runnerDependenciesDeclared',false);
 names=fieldnames(base);
@@ -178,10 +186,14 @@ options.calibrationFile=pathText(options.calibrationFile,'calibrationFile',false
 options.registryFile=pathText(options.registryFile,'registryFile',false);
 options.outputFolder=pathText(options.outputFolder,'outputFolder',true);
 options.modelFile=pathText(options.modelFile,'modelFile',true);
+options.modelAcceptanceFile=pathText(options.modelAcceptanceFile,'modelAcceptanceFile',true);
 options.calibrationFile=absolutePath(options.calibrationFile);
 options.registryFile=absolutePath(options.registryFile);
 options.outputFolder=absolutePath(options.outputFolder);
 if ~isempty(options.modelFile), options.modelFile=absolutePath(options.modelFile); end
+if ~isempty(options.modelAcceptanceFile)
+    options.modelAcceptanceFile=absolutePath(options.modelAcceptanceFile);
+end
 if ~isfile(options.calibrationFile)||~isfile(options.registryFile)
     error('nbiot:experiments:ComparisonInput','Calibration or realization registry does not exist.');
 end
@@ -223,12 +235,17 @@ function path=absolutePath(path)
 path=char(java.io.File(char(path)).getCanonicalPath());
 end
 
-function design=buildDesign(options,root)
+function design=buildDesign(options,root,admission)
+if nargin<3, admission=struct(); end
 caseCount=numel(options.counts)*numel(options.burstDurations)* ...
     numel(options.realizationIds)*numel(options.methods);
 source=optimizationSourceManifest(root);
 calibrationHash=nbiot.ml.fileSha256(options.calibrationFile);
 modelHash=''; if ~isempty(options.modelFile), modelHash=nbiot.ml.fileSha256(options.modelFile); end
+acceptanceHash='';
+if ~isempty(options.modelAcceptanceFile)&&isfile(options.modelAcceptanceFile)
+    acceptanceHash=nbiot.ml.fileSha256(options.modelAcceptanceFile);
+end
 canonicalConfig=options.config;
 canonicalConfig.simulation.numUE='<per-case>';
 canonicalConfig.simulation.realizationId='<per-case>';
@@ -240,6 +257,10 @@ identity=struct('schemaVersion',1,'counts',options.counts, ...
     'realizationIds',options.realizationIds,'config',canonicalConfig, ...
     'execution',options.execution,'calibrationSha256',calibrationHash, ...
     'modelSha256',modelHash,'allowDevelopmentModel',options.allowDevelopmentModel, ...
+    'modelAcceptanceSha256',acceptanceHash, ...
+    'admissionStatus',fieldOr(admission,'admissionStatus','not-validated'), ...
+    'admissionPolicySha256',fieldOr(admission,'policySha256',''), ...
+    'admissionEvidenceDigest',fieldOr(admission,'evidenceDigest',''), ...
     'controllerPolicy',options.controllerPolicy,'sourceSha256',source.sha256, ...
     'runnerFiles',{cellstr(string(options.runnerFiles))}, ...
     'runnerInputs',options.runnerInputs);
@@ -284,7 +305,9 @@ end
 end
 
 function manifest=designManifest(options,design)
+unmetRequirements={'Design-only mode does not establish model admission or execution readiness.'};
 manifest=struct('schemaVersion',1,'designOnly',true,'status','planned', ...
+    'readyForExecution',false,'unmetRequirements',{unmetRequirements}, ...
     'designHash',design.designHash,'caseCount',design.caseCount, ...
     'estimatedMaxSuiteSeconds',design.caseCount*options.execution.maxCaseSeconds, ...
     'identity',design.identity,'cases',design.cases);
@@ -294,6 +317,8 @@ function writeDesign(folder,manifest)
 columns=manifest.cases(:,{'caseIndex','numUE','burstDurationTicks','realizationId','method','status'});
 writeTableAtomic(columns,fullfile(folder,'comparison-design.csv'));
 payload=struct('schemaVersion',manifest.schemaVersion,'status',manifest.status, ...
+    'readyForExecution',manifest.readyForExecution, ...
+    'unmetRequirements',{manifest.unmetRequirements}, ...
     'designHash',manifest.designHash,'caseCount',manifest.caseCount, ...
     'estimatedMaxSuiteSeconds',manifest.estimatedMaxSuiteSeconds, ...
     'identity',manifest.identity,'cases',table2struct(columns));
@@ -454,15 +479,132 @@ algorithm.update(typecast(uint8(bytes(:)),'int8'));
 digest=lower(reshape(dec2hex(typecast(algorithm.digest(),'uint8'),2).',1,[]));
 end
 
-function validateExecutableModel(options)
-adaptive=any(ismember(options.methods,["Adaptive-P","Adaptive-RA/DT"]));
-if ~adaptive||~isempty(options.runExperimentFcn), return; end
+function validateSweepConfigurationMatrix(options)
+policy=adaptiveDefaults();
+if ~isempty(options.controllerPolicy)
+    names=fieldnames(options.controllerPolicy);
+    if ~all(ismember(names,fieldnames(policy)))
+        error('nbiot:experiments:ControllerPolicy', ...
+            'Controller policy contains unsupported fields.');
+    end
+    for k=1:numel(names), policy.(names{k})=options.controllerPolicy.(names{k}); end
+end
+for ueCount=options.counts
+    for burst=options.burstDurations
+        for method=options.methods
+            cfg=caseConfig(options,ueCount,burst,options.realizationIds(1),method);
+            cfg=nbiot.config.validateConfig(cfg);
+            if ismember(method,["Adaptive-P","Adaptive-RA/DT"])
+                assertControllerConfiguration(cfg,policy);
+            end
+        end
+    end
+end
+end
+
+function admission=validateExecutableModel(options)
+admission=struct('admissionStatus','not-required','acceptanceSha256','', ...
+    'policySha256','','evidenceDigest','','policyFile','','modelSha256','');
+adaptiveMethods=options.methods(ismember(options.methods, ...
+    ["Adaptive-P","Adaptive-RA/DT"]));
+if isempty(adaptiveMethods), return; end
+
+if profileIs(options.execution,'external-machine')
+    firstCfg=caseConfig(options,options.counts(1),options.burstDurations(1), ...
+        options.realizationIds(1),adaptiveMethods(1));
+    admission=nbiot.ml.validateModelAcceptance(options.modelAcceptanceFile, ...
+        options.modelFile,options.controllerPolicy,options.execution, ...
+        options.realizationIds,firstCfg);
+    currentSource=optimizationSourceManifest(options.root);
+    nbiot.ml.verifyModelAcceptanceRuntimeIdentity(admission,currentSource.sha256, ...
+        nbiot.ml.fileSha256(options.calibrationFile));
+    admission.policyFile=policyFileFromAcceptance(options.modelAcceptanceFile);
+    admission.modelSha256=nbiot.ml.fileSha256(options.modelFile);
+    admission.comparisonIds=double(options.realizationIds(:).');
+    configurationCount=numel(options.counts)*numel(options.burstDurations)*numel(adaptiveMethods);
+    sweepConfigurations=cell(configurationCount,1); configIndex=0;
+    for count=options.counts
+        for burst=options.burstDurations
+            for method=adaptiveMethods
+                cfg=caseConfig(options,count,burst,options.realizationIds(1),method);
+                assertControllerConfiguration(cfg,options.controllerPolicy);
+                configIndex=configIndex+1;
+                sweepConfigurations{configIndex}=cfg;
+            end
+        end
+    end
+    nbiot.experiments.validateComparisonAcceptanceScope(admission.scope,sweepConfigurations);
+    return;
+end
+
+isLocalDevelopment=profileIs(options.execution,'local-development')&& ...
+    isfield(options.execution,'role')&& ...
+    strcmp(char(string(options.execution.role)),'development');
+if ~isLocalDevelopment
+    error('nbiot:experiments:ComparisonModel', ...
+        'Adaptive execution is restricted to local development or accepted external admission.');
+end
+if ~options.allowDevelopmentModel
+    error('nbiot:experiments:ComparisonModel', ...
+        'Local Adaptive execution requires explicit allowDevelopmentModel=true.');
+end
+if ~isempty(options.runExperimentFcn)
+    admission.admissionStatus='development-only';
+    return;
+end
 bundle=nbiot.ml.validateModelBundle(options.modelFile);
-if strcmp(bundle.status,'development')&&options.allowDevelopmentModel&& ...
-        strcmp(options.execution.profile,'local-development')&& ...
-        strcmp(options.execution.role,'development')
+if strcmp(bundle.status,'development')
+    admission.admissionStatus='development-only';
     return;
 end
 error('nbiot:experiments:ComparisonModel', ...
-    'Adaptive execution requires a model accepted for this execution profile.');
+    'Adaptive execution requires a development model in local development.');
+end
+
+function assertControllerConfiguration(cfg,policy)
+if policy.windowTicks~=500||cfg.policy.windowTicks~=500||cfg.dataset.windowTicks~=500
+    error('nbiot:controller:Window', ...
+        'Adaptive decisions and observations must use 500 ms windows.');
+end
+if strcmp(cfg.policy.name,'Adaptive-P')
+    if cfg.policy.raShare~=policy.staticRaShare|| ...
+            ~ismember(cfg.policy.accessProbability,policy.accessProbabilityLevels)
+        error('nbiot:controller:Configuration', ...
+            'Adaptive-P requires RA/DT=10/90 and a supported starting P value.');
+    end
+elseif cfg.policy.accessProbability~=policy.staticAccessProbability|| ...
+        ~ismember(cfg.policy.raShare,policy.raShareLevels)
+    error('nbiot:controller:Configuration', ...
+        'Adaptive-RA/DT requires P=1 and a supported starting RA/DT share.');
+end
+end
+
+function path=policyFileFromAcceptance(acceptancePath)
+try
+    acceptance=jsondecode(fileread(acceptancePath));
+    relative=char(string(acceptance.policy.file));
+    if isempty(relative)||startsWith(relative,{'/','\'})||contains(relative,':')|| ...
+            any(split(string(strrep(relative,'\','/')),'/')=="..")
+        error('nbiot:ml:ModelAcceptance','Acceptance policy reference is not package-relative.');
+    end
+    root=absolutePath(fileparts(acceptancePath));
+    path=absolutePath(fullfile(root,strrep(relative,'/',filesep)));
+    if ~startsWith(path,[root filesep],'IgnoreCase',true)||~isfile(path)
+        error('nbiot:ml:ModelAcceptance','Acceptance policy file is outside or missing from its package.');
+    end
+catch exception
+    if strcmp(exception.identifier,'nbiot:ml:ModelAcceptance'), rethrow(exception); end
+    error('nbiot:ml:ModelAcceptance','Cannot resolve the accepted policy file: %s.',exception.message);
+end
+end
+
+function yes=profileIs(execution,name)
+yes=isstruct(execution)&&isscalar(execution)&&isfield(execution,'profile')&& ...
+    (ischar(execution.profile)||(isstring(execution.profile)&&isscalar(execution.profile)))&& ...
+    strcmp(char(string(execution.profile)),name);
+end
+
+function value=fieldOr(input,name,fallback)
+value=fallback;
+if isstruct(input)&&isfield(input,name), value=input.(name); end
 end

@@ -16,6 +16,9 @@ classdef TestKpiCsvLoading < matlab.unittest.TestCase
             t.verifyEqual(loaded.files,{firstPath,secondPath});
             t.verifyEqual(loaded.tables{1},first);
             t.verifyEqual(loaded.tables{2},second);
+            t.verifyEqual({loaded.reportMetadata{1}.status, ...
+                loaded.reportMetadata{2}.status}, ...
+                {'unavailable','unavailable'});
         end
 
         function rejectsKpiCsvWithoutDeliveryProbability(t)

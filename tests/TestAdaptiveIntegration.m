@@ -39,6 +39,7 @@ classdef TestAdaptiveIntegration < matlab.unittest.TestCase
             t.verifyEqual(result.controllerLog(2).appliedAccessProbability,0.5);
             t.verifyEqual(result.config.policy.accessProbability,1);
             t.verifyEqual(result.controllerModel.status,'development');
+            t.verifyEqual(result.controllerModel.admissionStatus,'development-only');
             t.verifyEqual(result.controllerLogSchemaVersion,1);
             t.verifyEqual(result.controllerPolicy.maximumLoad,123);
 
@@ -80,6 +81,17 @@ classdef TestAdaptiveIntegration < matlab.unittest.TestCase
             t.verifyEqual(result.controllerLog(2).reason,'invalid-estimate');
             t.verifyEqual(result.runtimeAction.accessProbability,1);
             t.verifyEqual(result.kpiSummary.controller.configurationSwitches,0);
+        end
+
+        function externalAdaptiveRequiresPersistedAcceptanceBeforeConstruction(t)
+            cfg=smallAdaptiveConfig('Adaptive-P');
+            execution=struct('profile','external-machine','role','final-comparison', ...
+                'maxUE',2,'maxCaseSeconds',300,'maxSuiteSeconds',900);
+            options=developmentController(4);
+            options.allowDevelopmentModel=false;
+
+            t.verifyError(@() nbiot.NBIoTSimulator(cfg,[],execution,options), ...
+                'nbiot:ml:ModelAcceptance');
         end
     end
 end

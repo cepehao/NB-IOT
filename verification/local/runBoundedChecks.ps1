@@ -3,7 +3,8 @@ param(
     [string]$MatlabCommand = 'matlab',
     [ValidateRange(1,300)][int]$MaxCaseSeconds = 300,
     [ValidateRange(1,900)][int]$MaxSuiteSeconds = 900,
-    [string]$OutputFolder = ''
+    [string]$OutputFolder = '',
+    [switch]$NoFigureWindows
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'InvokeBoundedProcess.ps1')
@@ -39,7 +40,8 @@ for ($index = 0; $index -lt $selectedFiles.Count; $index++) {
     $batchText = "cd('$matlabRoot'); addpath('$matlabRoot'); setupProject(); testResults=runtests('$matlabTest'); save('$matlabResults','testResults'); fprintf('BOUNDED_TEST total=%d passed=%d failed=%d incomplete=%d\n',numel(testResults),sum([testResults.Passed]),sum([testResults.Failed]),sum([testResults.Incomplete])); assertSuccess(testResults);"
     [IO.File]::WriteAllText($batchFile,$batchText,[Text.UTF8Encoding]::new($false))
     $matlabBatch = $batchFile.Replace('\','/').Replace("'","''")
-    $report = Invoke-BoundedProcess -Executable $executable -Arguments "-batch `"run('$matlabBatch')`"" -WorkingDirectory $projectRoot -OutputFolder (Join-Path $caseFolder 'process') -TimeoutSeconds ([Math]::Min($MaxCaseSeconds,$remaining))
+    $displayArguments = if ($NoFigureWindows) { '-noFigureWindows ' } else { '' }
+    $report = Invoke-BoundedProcess -Executable $executable -Arguments "${displayArguments}-batch `"run('$matlabBatch')`"" -WorkingDirectory $projectRoot -OutputFolder (Join-Path $caseFolder 'process') -TimeoutSeconds ([Math]::Min($MaxCaseSeconds,$remaining))
     $reports += $report
     $reports | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $outputRoot 'suite-report.json') -Encoding UTF8
     Write-Output "BOUNDED_CHECK file=$($TestFiles[$index]) status=$($report.status) seconds=$([Math]::Round($report.elapsedSeconds,2))"

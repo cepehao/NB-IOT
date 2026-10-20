@@ -5,13 +5,14 @@ files=cellstr(string(resultFiles));
 if isempty(files)||~isvector(files), error('nbiot:dataset:Inputs','Supply explicit MAT result files.'); end
 [splits,rolesExplicit]=validateSplits(splitManifest);
 schema=[]; keys={'realizationId','windowId','startTick','endTick'};
-observations=[]; targets=[]; rowInfo=[]; seen=strings(0,1);
+observations=[]; targets=[]; rowInfo=[]; diagnostics=[]; seen=strings(0,1);
+diagnosticsComplete=true;
 inputs=struct('resultFile',{},'caseKey',{},'sourceSha256',{},'calibrationSha256',{}, ...
     'markerSha256',{},'schemaVersion',{},'numUE',{},'realizationId',{},'isFixture',{}, ...
     'trafficKind',{},'burstDurationTicks',{},'periodTicks',{},'poissonRatePerSecond',{}, ...
     'configuredAccessProbability',{},'configuredRaShare',{});
 for k=1:numel(files)
-    [obs,answer,info,caseSchema]=readCase(files{k});
+    [obs,answer,caseDiagnostics,hasDiagnostics,info,caseSchema]=readCase(files{k});
     if isempty(schema)
         schema=caseSchema; keys=schema.observationNames(1:4);
     elseif ~strcmp(schema.version,caseSchema.version)
@@ -26,15 +27,26 @@ for k=1:numel(files)
         obs.startTick,obs.endTick,repmat(group,height(obs),1), ...
         repmat(experimentRole,height(obs),1), ...
         'VariableNames',{'caseKey','realizationId','windowId','startTick','endTick','split','experimentRole'});
-    if isempty(observations), observations=obs; targets=answer; rowInfo=rows;
-    else, observations=[observations;obs]; targets=[targets;answer]; rowInfo=[rowInfo;rows]; end %#ok<AGROW>
+    caseDiagnostics.caseKey=repmat(string(info.caseKey),height(caseDiagnostics),1);
+    caseDiagnostics=movevars(caseDiagnostics,'caseKey','Before',1);
+    if isempty(observations)
+        observations=obs; targets=answer; rowInfo=rows; diagnostics=caseDiagnostics;
+    else
+        observations=[observations;obs]; targets=[targets;answer]; %#ok<AGROW>
+        rowInfo=[rowInfo;rows]; diagnostics=[diagnostics;caseDiagnostics]; %#ok<AGROW>
+    end
+    diagnosticsComplete=diagnosticsComplete&&hasDiagnostics;
     inputs(end+1)=info; %#ok<AGROW>
 end
 if numel(unique(string({inputs.sourceSha256})))~=1 || numel(unique(string({inputs.calibrationSha256})))~=1
     error('nbiot:dataset:Schema','Do not mix computational/calibration revisions in one dataset.');
 end
 [rowInfo,order]=sortrows(rowInfo,{'caseKey','windowId'});
-observations=observations(order,:); targets=targets(order,:);
+observations=observations(order,:); targets=targets(order,:); diagnostics=diagnostics(order,:);
+if ~isequal(diagnostics(:,{'caseKey','realizationId','windowId','startTick','endTick'}), ...
+        rowInfo(:,{'caseKey','realizationId','windowId','startTick','endTick'}))
+    error('nbiot:dataset:InvalidCase','Dataset diagnostics do not align one-to-one with case windows.');
+end
 usedIds=unique(rowInfo.realizationId); usedSplits=splits(ismember(splits.externalRealizationId,usedIds),:);
 kind='candidate-training';
 if all(rowInfo.split=="development"), kind='development-simulation'; end
@@ -48,7 +60,10 @@ data=struct('observations',observations,'targets',targets, ...
         'independentRealizations',numel(usedIds),'rows',height(observations), ...
         'assignments',usedSplits,'experimentRolesExplicit',rolesExplicit, ...
         'inputs',inputs,'allocationsVerified',false, ...
-        'normalization','Not fitted; fit transformations on train only.'));
+        'diagnosticsComplete',diagnosticsComplete, ...
+        'diagnosticsSchemaVersion','window-diagnostics-v1', ...
+        'normalization','Not fitted; fit transformations on train only.'), ...
+    'diagnostics',diagnostics);
 end
 
 function [splits,rolesExplicit]=validateSplits(value)
@@ -92,7 +107,7 @@ splits=table(double(ids),groups,roles, ...
     'VariableNames',{'externalRealizationId','split','experimentRole'});
 end
 
-function [obs,answer,info,schema]=readCase(file)
+function [obs,answer,diagnostics,hasDiagnostics,info,schema]=readCase(file)
 folder=fileparts(file); markerPath=fullfile(folder,'case-complete.json');
 if ~isfile(file)||~isfile(markerPath), error('nbiot:dataset:InvalidCase','Missing MAT or completion marker.'); end
 try
@@ -145,6 +160,7 @@ keys=schema.observationNames(1:4);
 validateWindowRows(obs,keys,cfg); validateWindowRows(answer,keys,cfg);
 obs=sortrows(obs,keys); answer=sortrows(answer,keys);
 if ~isequal(obs(:,keys),answer(:,keys)), error('nbiot:dataset:WindowAlignment','Observation/target keys must match one-to-one.'); end
+[diagnostics,hasDiagnostics]=readCaseDiagnostics(folder,marker,obs,keys);
 features=obs{:,schema.observationNames(5:end)};
 if ~isnumeric(features)||any(isinf(features(:)))
     error('nbiot:dataset:Schema','Features must be numeric; NaN is preserved for train-only imputation.');
@@ -164,6 +180,84 @@ info=struct('resultFile',file,'caseKey',marker.caseKey,'sourceSha256',marker.sou
     'poissonRatePerSecond',trafficParameter(cfg,'poissonRatePerSecond','poisson'), ...
     'configuredAccessProbability',policyParameter(cfg,'accessProbability'), ...
     'configuredRaShare',policyParameter(cfg,'raShare'));
+end
+
+function [diagnostics,present]=readCaseDiagnostics(folder,marker,observations,observationKeys)
+diagnosticNames={'realizationId','windowId','startTick','endTick', ...
+    'logicalCollisionGroups','logicalCollidingAttempts','physicalOverlapPairs', ...
+    'physicalCollidingAttempts','successfulAccesses','raRetryTransmissions', ...
+    'meanDelayTicks','delaySampleCount','unfinishedAccessCohort', ...
+    'unfinishedPacketCohort','logicalAvailable','physicalAvailable', ...
+    'accessAvailable','retryAvailable','delayAvailable','outcomeHorizonTick'};
+diagnosticKeys=diagnosticNames(1:4);
+if ~isfield(marker,'diagnosticsSchemaVersion')
+    diagnostics=unavailableDiagnostics(observations,observationKeys,diagnosticNames);
+    present=false;
+    return
+end
+if ~strcmp(string(marker.diagnosticsSchemaVersion),'window-diagnostics-v1')
+    error('nbiot:dataset:InvalidCase','Unsupported diagnostics schema version.');
+end
+if ~isfield(marker,'exportStem')||~ischar(marker.exportStem)
+    error('nbiot:dataset:InvalidCase','Manifested case diagnostics lack an export stem.');
+end
+diagnosticFile=fullfile(folder,[marker.exportStem '_diagnostics.csv']);
+if ~isfile(diagnosticFile)
+    error('nbiot:dataset:InvalidCase','Manifested case is missing its diagnostics CSV.');
+end
+try
+    diagnostics=readtable(diagnosticFile,'VariableNamingRule','preserve','TextType','string');
+catch exception
+    error('nbiot:dataset:InvalidCase','Cannot read case diagnostics: %s',exception.message);
+end
+if ~isequal(diagnostics.Properties.VariableNames,diagnosticNames)|| ...
+        height(diagnostics)~=height(observations)
+    error('nbiot:dataset:InvalidCase','Case diagnostics have incomplete or unexpected columns/rows.');
+end
+numericNames=[diagnosticNames(1:14),diagnosticNames(20)];
+for k=1:numel(numericNames)
+    name=numericNames{k}; value=diagnostics.(name);
+    if ~isnumeric(value)||~isreal(value)||~isvector(value)|| ...
+            numel(value)~=height(diagnostics)||any(isinf(value(:)))
+        error('nbiot:dataset:InvalidCase','Case diagnostic %s must be a real numeric column.',name);
+    end
+    diagnostics.(name)=double(value(:));
+end
+if any(~isfinite(diagnostics{:,diagnosticKeys}),'all')|| ...
+        height(unique(diagnostics(:,diagnosticKeys),'rows'))~=height(diagnostics)
+    error('nbiot:dataset:InvalidCase','Case diagnostics contain invalid or duplicate window keys.');
+end
+flagNames=diagnosticNames(15:19);
+for k=1:numel(flagNames)
+    name=flagNames{k}; value=diagnostics.(name);
+    if islogical(value)&&isvector(value)&&numel(value)==height(diagnostics)
+        diagnostics.(name)=value(:);
+    elseif isnumeric(value)&&isreal(value)&&isvector(value)&&numel(value)==height(diagnostics)&& ...
+            all(isfinite(value(:)))&&all(value(:)==0|value(:)==1)
+        diagnostics.(name)=logical(value(:));
+    else
+        tokens=lower(strtrim(string(value(:))));
+        if numel(tokens)~=height(diagnostics)|| ...
+                any(~ismember(tokens,["true","false","1","0"]))
+            error('nbiot:dataset:InvalidCase','Case diagnostic %s must contain availability flags.',name);
+        end
+        diagnostics.(name)=tokens=="true"|tokens=="1";
+    end
+end
+diagnostics=sortrows(diagnostics,diagnosticKeys);
+if ~isequal(double(diagnostics{:,diagnosticKeys}),double(observations{:,observationKeys}))
+    error('nbiot:dataset:InvalidCase','Case diagnostics must match observation windows one-to-one.');
+end
+present=true;
+end
+
+function diagnostics=unavailableDiagnostics(observations,keys,names)
+keyValues=double(observations{:,keys}); rowCount=height(observations);
+missing=nan(rowCount,1); unavailable=false(rowCount,1);
+diagnostics=table(keyValues(:,1),keyValues(:,2),keyValues(:,3),keyValues(:,4), ...
+    missing,missing,missing,missing,missing,missing,missing,missing,missing,missing, ...
+    unavailable,unavailable,unavailable,unavailable,unavailable,missing, ...
+    'VariableNames',names);
 end
 
 function value=trafficKind(cfg)

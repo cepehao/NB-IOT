@@ -10,3 +10,6 @@ Thumbs.db
 
 # Local scratch copies and rejected prototypes are not release inputs.
 /work/
+
+# Local startup logs are not release inputs.
+/logs/

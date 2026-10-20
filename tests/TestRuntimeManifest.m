@@ -71,6 +71,82 @@ classdef TestRuntimeManifest < matlab.unittest.TestCase
                 a=b;
             end
         end
+        function acceptanceAndPolicyContentsChangeRuntimeIdentity(t)
+            [cfg,o]=fixture(t); cfg.policy.name='Adaptive-P';
+            cfg.policy.windowTicks=500; cfg.dataset.windowTicks=500;
+            o.controllerPolicy=adaptiveDefaults();
+            acceptanceFile=fullfile(o.projectRoot,'acceptance.json');
+            policyFile=fullfile(o.projectRoot,'policy.json');
+            write(acceptanceFile,'acceptance-v1');
+            write(policyFile,'policy-v1');
+            o.modelAcceptanceFile=acceptanceFile;
+            o.policyFiles={policyFile};
+            o.admissionEvidenceDigest=repmat('a',1,64);
+            a=nbiot.experiments.runtimeManifest(cfg,o);
+
+            write(acceptanceFile,'acceptance-v2');
+            b=nbiot.experiments.runtimeManifest(cfg,o);
+            t.verifyNotEqual(a.inputSha256,b.inputSha256);
+            t.verifyNotEqual(a.caseKey,b.caseKey);
+
+            write(acceptanceFile,'acceptance-v1');
+            write(policyFile,'policy-v2');
+            c=nbiot.experiments.runtimeManifest(cfg,o);
+            t.verifyNotEqual(a.policySha256,c.policySha256);
+            t.verifyNotEqual(a.caseKey,c.caseKey);
+
+            o.policyFiles={policyFile};
+            o.admissionEvidenceDigest=repmat('b',1,64);
+            d=nbiot.experiments.runtimeManifest(cfg,o);
+            t.verifyNotEqual(a.inputSha256,d.inputSha256);
+            t.verifyNotEqual(a.caseKey,d.caseKey);
+        end
+        function changedEvidenceFileInvalidatesPreflightInputSnapshot(t)
+            [cfg,o]=fixture(t);
+            evidenceFile=fullfile(o.projectRoot,'evaluation.json');
+            write(evidenceFile,'validated evidence bytes');
+            o.inputFiles={evidenceFile};
+            o.expectedInputFileHashes=struct('path',evidenceFile, ...
+                'sha256',nbiot.ml.fileSha256(evidenceFile));
+            before=nbiot.experiments.runtimeManifest(cfg,o);
+            t.verifyNotEmpty(before.inputSha256);
+
+            write(evidenceFile,'changed after preflight');
+
+            t.verifyError(@() nbiot.experiments.runtimeManifest(cfg,o), ...
+                'nbiot:ml:ModelAcceptance', ...
+                'A changed evidence input must not retain a preflight identity.');
+        end
+        function packageRelocationPreservesContentIdentity(t)
+            [cfg,o]=fixture(t);
+            acceptanceFile=fullfile(o.projectRoot,'acceptance.json');
+            policyFile=fullfile(o.projectRoot,'policy.json');
+            write(acceptanceFile,'acceptance'); write(policyFile,'policy-json');
+            o.modelAcceptanceFile=acceptanceFile; o.policyFiles={policyFile};
+            o.admissionEvidenceDigest=repmat('a',1,64);
+            movedRoot=tempname; mkdir(movedRoot);
+            t.addTeardown(@() removeFolder(movedRoot));
+            copyfile(fullfile(o.projectRoot,'src'),fullfile(movedRoot,'src'));
+            for name={'calibration.mat','model.mat','policy.m','input.dat', ...
+                    'acceptance.json','policy.json'}
+                copyfile(fullfile(o.projectRoot,name{1}),fullfile(movedRoot,name{1}));
+            end
+            before=nbiot.experiments.runtimeManifest(cfg,o);
+            moved=o; moved.projectRoot=movedRoot;
+            moved.calibrationFile=rebasePath(o.calibrationFile,o.projectRoot,movedRoot);
+            moved.modelFiles={rebasePath(o.modelFiles{1},o.projectRoot,movedRoot)};
+            moved.policyFiles={rebasePath(policyFile,o.projectRoot,movedRoot)};
+            moved.inputFiles={rebasePath(o.inputFiles{1},o.projectRoot,movedRoot)};
+            moved.modelAcceptanceFile=rebasePath(acceptanceFile,o.projectRoot,movedRoot);
+            after=nbiot.experiments.runtimeManifest(cfg,moved);
+
+            t.verifyEqual(before.calibrationSha256,after.calibrationSha256);
+            t.verifyEqual(before.modelSha256,after.modelSha256);
+            t.verifyEqual(before.policySha256,after.policySha256);
+            t.verifyEqual(before.inputSha256,after.inputSha256);
+            t.verifyEqual(before.sourceSha256,after.sourceSha256);
+            t.verifyEqual(before.caseKey,after.caseKey);
+        end
         function runnerMustBeRegisteredAndHashed(t)
             [cfg,o]=fixture(t); o.runner=@fixtureRunner;
             t.verifyError(@() nbiot.experiments.runtimeManifest(cfg,o),'nbiot:experiments:UnregisteredDependency');
@@ -223,6 +299,18 @@ classdef TestRuntimeManifest < matlab.unittest.TestCase
             t.addTeardown(@() rmdir(b.caseFolder,'s'));
             saved=load(b.resultFile,'result'); t.verifyEqual(saved.result.scenario,scenario);
         end
+        function loadedCalibrationCarriesItsFileDigestIntoRuntimeIdentity(t)
+            [cfg,o]=fixture(t); writeCalibration(o.calibrationFile);
+
+            cfg=nbiot.experiments.loadCalibration(cfg,o.calibrationFile);
+            metadata=nbiot.experiments.runtimeManifest(cfg,o);
+            oWithoutCalibrationPath=rmfield(o,'calibrationFile');
+            metadataWithoutPath=nbiot.experiments.runtimeManifest(cfg,oWithoutCalibrationPath);
+
+            t.verifyEqual(cfg.calibrationFileSha256,nbiot.ml.fileSha256(o.calibrationFile));
+            t.verifyEqual(metadata.calibrationSha256,nbiot.ml.fileSha256(o.calibrationFile));
+            t.verifyEqual(metadataWithoutPath.calibrationSha256,nbiot.ml.fileSha256(o.calibrationFile));
+        end
     end
 end
 
@@ -236,6 +324,13 @@ o=struct('projectRoot',root,'calibrationFile',fullfile(root,'calibration.mat'), 
     'inputFiles',{{fullfile(root,'input.dat')}});
 write(o.calibrationFile,'calibration'); write(o.modelFiles{1},'model');
 write(o.policyFiles{1},'policy'); write(o.inputFiles{1},'input');
+end
+function path=rebasePath(path,oldRoot,newRoot)
+relative=path(numel(oldRoot)+2:end);
+path=fullfile(newRoot,relative);
+end
+function removeFolder(folder)
+if isfolder(folder), rmdir(folder,'s'); end
 end
 function cfg=method(cfg), cfg.policy.name='Other'; end
 function cfg=probability(cfg), cfg.policy.accessProbability=.5; end

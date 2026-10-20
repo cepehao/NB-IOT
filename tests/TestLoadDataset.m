@@ -1,5 +1,16 @@
 classdef TestLoadDataset < matlab.unittest.TestCase
     methods (Test)
+        function canonicalSchemaDeclaresOrderedKeysInputsAndTarget(t)
+            schema=nbiot.dataset.featureSchema('bs-known-v2.0');
+            expectedInputs={'detectedCandidates','meanPeakMetric','maxPeakMetric', ...
+                'meanRxEnergyW','ulTbDecodes','ulCrcFailures','rarSent','grantsSent', ...
+                'pendingRequestsMean','ulRaOccupancy','ulDtOccupancy','dlRaOccupancy', ...
+                'dlDtOccupancy','accessProbability','raShare'};
+            t.verifyEqual(schema.keyNames,schema.observationNames(1:4));
+            t.verifyEqual(schema.inputNames,expectedInputs);
+            t.verifyEqual(schema.targetName,'meanRaUe');
+        end
+
         function joinsTargetsByWindowAndExcludesKeysFromFeatures(t)
             [folder,cleanup]=workspace(); %#ok<ASGLU>
             file=fixture(folder,7,3,struct('reverseTargets',true));
@@ -45,6 +56,65 @@ classdef TestLoadDataset < matlab.unittest.TestCase
             t.verifyEqual(data.manifest.independentRealizations,1);
             t.verifyEqual(data.rowInfo.split,repmat("development",4,1));
             t.verifyEqual(height(data.features),4);
+            t.verifyEqual(width(data.features),15);
+            if ~isfield(data,'diagnostics')
+                t.verifyFail('Assembler does not expose window diagnostics yet.'); return
+            end
+            t.verifyEqual(height(data.diagnostics),4);
+            t.verifyEqual(unique(data.diagnostics.caseKey), ...
+                sort(unique(data.rowInfo.caseKey)));
+            keys=data.diagnostics(:,{'caseKey','realizationId','windowId','startTick','endTick'});
+            t.verifyEqual(height(unique(keys,'rows')),4);
+            t.verifyTrue(data.manifest.diagnosticsComplete);
+        end
+
+        function diagnosticsMustAlignWithEveryCaseWindow(t)
+            [folder,cleanup]=workspace(); %#ok<ASGLU>
+            file=fixture(folder,7,3,struct());
+            caseFolder=fileparts(file);
+            if ~rewriteDiagnostics(caseFolder,'shift-start')
+                t.verifyFail('saveResult did not export diagnostics.csv.'); return
+            end
+
+            report=nbiot.results.verifyCase(caseFolder);
+            t.verifyFalse(report.passed);
+            t.verifyTrue(contains(lower(strjoin(report.errors,' ')),'diagnostic'));
+            t.verifyError(@() nbiot.dataset.assembleLoadDataset({file},splits(7,"train")), ...
+                'nbiot:dataset:InvalidCase');
+        end
+
+        function historicalCaseKeepsDiagnosticsUnavailable(t)
+            [folder,cleanup]=workspace(); %#ok<ASGLU>
+            file=fixture(folder,7,3,struct('omitDiagnostics',true));
+
+            data=nbiot.dataset.assembleLoadDataset({file},splits(7,"development"));
+
+            if ~isfield(data,'diagnostics')
+                t.verifyFail('Assembler does not expose unavailable historical diagnostics yet.'); return
+            end
+            t.verifyEqual(height(data.diagnostics),2);
+            t.verifyEqual(data.diagnostics.windowId,[1;2]);
+            t.verifyFalse(any(data.diagnostics.logicalAvailable));
+            t.verifyFalse(any(data.diagnostics.physicalAvailable));
+            t.verifyTrue(all(isnan(data.diagnostics.logicalCollisionGroups)));
+            t.verifyFalse(data.manifest.diagnosticsComplete);
+        end
+
+        function missingOrDuplicateDiagnosticRowsCannotMultiplyJoin(t)
+            [folder,cleanup]=workspace(); %#ok<ASGLU>
+            missing=fixture(folder,7,3,struct());
+            if ~rewriteDiagnostics(fileparts(missing),'delete-row')
+                t.verifyFail('saveResult did not export diagnostics.csv.'); return
+            end
+            missingReport=nbiot.results.verifyCase(fileparts(missing));
+            t.verifyFalse(missingReport.passed);
+
+            duplicate=fixture(folder,8,3,struct());
+            if ~rewriteDiagnostics(fileparts(duplicate),'duplicate-row')
+                t.verifyFail('saveResult did not export diagnostics.csv.'); return
+            end
+            duplicateReport=nbiot.results.verifyCase(fileparts(duplicate));
+            t.verifyFalse(duplicateReport.passed);
         end
         function experimentRolesAreRecordedSeparatelyFromSplitGroups(t)
             [folder,cleanup]=workspace(); %#ok<ASGLU>
@@ -210,6 +280,37 @@ classdef TestLoadDataset < matlab.unittest.TestCase
             t.verifyTrue(isfile(fullfile(destination,'manifest.json')));
             t.verifyTrue(isfile(fullfile(destination,'dataset-summary.json')));
             t.verifyTrue(isfile(fullfile(destination,'scenario-coverage.csv')));
+            t.verifyTrue(isfile(fullfile(destination,'diagnostics.csv')));
+            if ~isfile(fullfile(destination,'artifacts.json'))
+                t.verifyFail('Dataset builder did not write artifacts.json.'); return
+            end
+            artifacts=jsondecode(fileread(fullfile(destination,'artifacts.json')));
+            t.verifyEqual(artifacts.schemaVersion,1);
+            expectedArtifactNames={'dataset.mat','observations.csv','targets.csv', ...
+                'features.csv','rows.csv','manifest.json','dataset-summary.json', ...
+                'scenario-coverage.csv','diagnostics.csv'};
+            artifactNames=string({artifacts.files.name});
+            t.verifyEqual(sort(cellstr(artifactNames)),sort(expectedArtifactNames));
+            t.verifyEqual(numel(unique(artifactNames)),numel(artifactNames), ...
+                'Artifact names must be unique.');
+            t.verifyFalse(any(artifactNames=="artifacts.json"), ...
+                'artifacts.json must not contain its own digest entry.');
+            for k=1:numel(artifacts.files)
+                record=artifacts.files(k);
+                artifactPath=fullfile(destination,char(string(record.name)));
+                t.verifyTrue(isfile(artifactPath),sprintf('Missing artifact: %s',record.name));
+                if isfile(artifactPath)
+                    info=dir(artifactPath);
+                    t.verifyEqual(double(record.bytes),double(info.bytes), ...
+                        sprintf('Wrong byte count for %s.',record.name));
+                    t.verifyEqual(lower(char(string(record.sha256))),sha256(artifactPath), ...
+                        sprintf('Wrong SHA-256 for %s.',record.name));
+                end
+            end
+            t.verifyTrue(data.manifest.diagnosticsComplete);
+            t.verifyEqual(data.manifest.diagnosticsSchemaVersion,'window-diagnostics-v1');
+            exportedManifest=jsondecode(fileread(fullfile(destination,'manifest.json')));
+            t.verifyEqual(exportedManifest.diagnosticsSchemaVersion,'window-diagnostics-v1');
             summary=jsondecode(fileread(fullfile(destination,'dataset-summary.json')));
             t.verifyEqual(summary.independentRealizations,1);
             t.verifyEqual(summary.schemaVersion,'bs-known-v2.0');
@@ -289,10 +390,68 @@ result=struct('config',cfg,'status',status,'environment',environment, ...
     'resourceUsage',table("fixture",0,'VariableNames',{'resource','units'}), ...
     'dataset',dataset, ...
     'profiling',struct('elapsedSeconds',0));
+diagnostics=table(repmat(id,2,1),(1:2).',[0;500],[500;1000], ...
+    [1;0],[2;0],[1;0],[2;0],[1;0],[1;1],[490;NaN],[1;0], ...
+    [0;1],[0;1],[1;1],[1;1],[1;1],[1;1],[1;0],[1000;1000], ...
+    'VariableNames',{'realizationId','windowId','startTick','endTick', ...
+    'logicalCollisionGroups','logicalCollidingAttempts','physicalOverlapPairs', ...
+    'physicalCollidingAttempts','successfulAccesses','raRetryTransmissions', ...
+    'meanDelayTicks','delaySampleCount','unfinishedAccessCohort', ...
+    'unfinishedPacketCohort','logicalAvailable','physicalAvailable', ...
+    'accessAvailable','retryAvailable','delayAvailable','outcomeHorizonTick'});
+if ~isfield(options,'omitDiagnostics')||~options.omitDiagnostics
+    dataset.diagnostics=diagnostics;
+end
+result.dataset=dataset;
 metadata=struct('caseKey',sprintf('fixture-%d-%d',id,count), ...
     'configSha256',nbiot.results.configSha256(cfg),'sourceSha256',repmat('b',1,64), ...
     'calibrationSha256',repmat('a',1,64),'environment',environment);
 file=nbiot.results.saveResult(result,fullfile(root,metadata.caseKey),metadata);
+end
+
+function found=rewriteDiagnostics(caseFolder,mode)
+found=false;
+markerPath=fullfile(caseFolder,'case-complete.json');
+marker=jsondecode(fileread(markerPath));
+at=find(contains(string({marker.tables.file}),'_diagnostics.csv'),1);
+if isempty(at), return; end
+record=marker.tables(at);
+path=fullfile(caseFolder,record.file);
+if ~isfile(path), return; end
+diagnostics=readtable(path,'VariableNamingRule','preserve');
+switch mode
+    case 'shift-start'
+        diagnostics.startTick(1)=diagnostics.startTick(1)+1;
+    case 'delete-row'
+        diagnostics(1,:)=[];
+    case 'duplicate-row'
+        diagnostics(end+1,:)=diagnostics(1,:);
+    otherwise
+        error('test:UnknownMutation','Unknown diagnostics fixture mutation.');
+end
+writetable(diagnostics,path);
+record.rows=height(diagnostics);
+record.variableNames=diagnostics.Properties.VariableNames;
+marker.tables(contains(string({marker.tables.file}),'_diagnostics.csv'))=record;
+fileAt=find(strcmp({marker.files.name},record.file),1);
+bytes=dir(path); marker.files(fileAt).bytes=bytes.bytes;
+marker.files(fileAt).sha256=sha256(path);
+writeText(markerPath,jsonencode(marker));
+found=true;
+end
+
+function digest=sha256(path)
+md=java.security.MessageDigest.getInstance('SHA-256'); fid=fopen(path,'rb');
+assert(fid>=0,'test:FixtureRead','Could not open fixture file.');
+cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
+while ~feof(fid), md.update(typecast(fread(fid,1024*1024,'*uint8'),'int8')); end
+digest=lower(reshape(dec2hex(typecast(md.digest(),'uint8'),2).',1,[]));
+end
+
+function writeText(path,value)
+fid=fopen(path,'wb'); assert(fid>=0,'test:FixtureWrite','Could not update fixture marker.');
+cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
+fwrite(fid,unicode2native(value,'UTF-8'),'uint8');
 end
 
 function path=writeRoleRegistry(root,ids,roles)

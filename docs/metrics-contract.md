@@ -39,6 +39,39 @@ Existing CSV columns, order, values and window semantics are retained. New
 window fields are appended. Arrival cohorts are classified at the export
 horizon; completion intervals remain `(start,end]`.
 
+## Saved report overview
+
+The report card is a presentation summary of an existing result. It does not
+run the simulator or alter scientific KPI definitions. New manifested saves
+write `<stem>_report.json` before publishing `case-complete.json`; the marker
+records its size and SHA-256 together with the KPI-window and final-summary CSV
+files. The sidecar carries the case key, canonical configuration digest, and
+only small fields used by the UI. The table export contract advances to version
+6; the MAT `resultSchemaVersion` remains unchanged.
+
+`numUE` is the configured total. `activeUE` is the count selected by the saved
+traffic activity mode. `durationTicks` is the configured horizon;
+`actualTick` and `durationSeconds` describe the observed run. `created`,
+`delivered`, `dropped`, and `unfinished` are copied from the final KPI summary
+and must satisfy `created = delivered + dropped + unfinished`. Unfinished
+means not delivered by the observation horizon; it is not a claim about later
+delivery.
+
+For burst traffic, `planned` is the number of scheduled arrivals in the saved
+arrival plan. For periodic traffic, it counts arrivals using the same random
+phase, ceiling-to-tick rule, and half-open horizon as `generateArrivals`; an
+arrival rounded to `durationTicks` is excluded. For Poisson traffic the exact
+planned count is intentionally unknown in advance and remains NaN. Period is
+not applicable to burst or Poisson traffic. Missing values remain NaN/blank,
+never zero. The UI reader validates the sidecar, selected KPI CSV and linked
+summary against the completion marker without loading MAT. Table export
+versions 2–5 remain readable as partial summaries, and a standalone KPI CSV
+remains readable with unavailable report metadata.
+
+Window labels use the actual `startTick` and `endTick` intervals in the selected
+KPI table. A shorter final interval is described as incomplete. This does not
+change the KPI row values or their scientific interpretation.
+
 ## `harqSummary(journal, actualTick)`
 
 Input is a separate append-only analyzer journal (schema 2), never receiver
@@ -144,7 +177,7 @@ denominators; a decision ready exactly at `H` is included.
 | NPRACH false alarm | A detected `(occasionId,nInit)` key with no matching transmitted key is one false alarm. `falseAlarmProbability = false detected keys / untransmitted configured keys` across complete occasions. The configured `nInit` set, not a guessed count, defines available indices. | Receiver candidates joined to truth after detection; count and probability (0–1). | Synthetic false-alarm and zero-denominator cases in Task 2; external physical acceptance in Task 7. |
 | Logical collision | Two or more distinct UE attempts with the same `(occasionId,nInit)`. Report groups and participating attempts separately. `logicalCollisionAttemptProbability = attempts in such groups / all started NPRACH attempts`. | Truth `msg1`; groups/attempts and probability (0–1). | Existing result already has same-index collision labels; tests must keep that label distinct from physical overlap. External matrix remains Task 7. |
 | Physical overlap | Two distinct transmitted NPRACH signal components whose received, channel-propagated sample supports at the BS share at least one sample, before receiver noise is added. Count unique unordered pairs. `physicalCollisionAttemptProbability = attempts with at least one overlapping partner / all started NPRACH attempts`. Different indices can overlap; equal indices without temporal overlap do not. | Per-transmission channel components and their sample intervals; pair/attempt counts and probability (0–1). | Synthetic same-index/non-overlap and different-index/overlap cases in Task 2; short physical check in Task 6; full physical matrix in Task 7. |
-| Capture | Evaluate only physically overlapping pairs. Compare their integrated received component powers over the shared interval. For an unequal-power pair, it is a capture event only if the stronger attempt completes RA and the weaker attempt does not. `captureProbability = captured unequal-power pairs / all unequal-power physical-overlap pairs`; equal-power pairs are counted separately and excluded from this ratio. | Per-transmission received power after channel/fading, joined after reception to truth `ra_success`; power in W or dBm, pair count and probability (0–1). | Known strong-success/weak-failure and equal-power fixtures in Task 2; short physical check in Task 5; near-far probability curves in Task 7. |
+| Capture | Evaluate only physically overlapping pairs. Compare their integrated received component powers over the shared interval. For an unequal-power pair, it is a capture event only if the stronger attempt completes RA and the weaker attempt does not. The denominator `eligiblePairs` contains only pairs with unequal measured powers on the shared interval and known outcomes for **both** attempts. `captureProbability = capturedPairs / eligiblePairs`; equal-power pairs (`equalPowerPairs`) and unequal-power pairs with an unknown outcome (`censoredPairs`) are counted separately and excluded. A zero denominator gives `NaN`, never 0. | Per-transmission received power after channel/fading, joined after reception to truth `ra_success`; power in W or dBm, pair count and probability (0–1). | Known strong-success/weak-failure and equal-power fixtures in Task 2; short physical check in Task 5; near-far probability curves in Task 7. |
 | Reference SNR | Existing link-budget SNR: received power minus thermal-noise power over the configured 180 kHz reference bandwidth, before small-scale fading and interference. This is not an instantaneous SINR or a receiver estimate. | `scenario.linkBudget.referenceSnrUlDb` / `referenceSnrDlDb`; dB, per UE. | Existing link-budget checks are retained; no need to rerun them unless the calculation changes. |
 | Instantaneous SINR | Desired received component power divided by the sum of other received components on the same time-frequency interval plus receiver noise, after channel/fading. Compute powers over the same occupied resource and interval; label it `diagnosticTruth`, never a BS-observed feature. | Reception-time component powers; dB, per reception/UE. | Known component-power fixture in Task 2 and short physical comparison in Task 6; full SNR/SINR acceptance in Task 7. |
 | Timing/CFO estimate | Keep configured truth and receiver estimates in separate fields. NPRACH estimate comes from the detected candidate; NPUSCH estimate comes from the receiver measurements. Errors are estimate minus configured truth. | Configured received-path delay is derived from propagation distance, `syncOffsetSeconds`, and applied timing advance; configured CFO is `cfoHz`. Estimates come from NPRACH candidate and NPUSCH receiver output; seconds and Hz. | Synthetic sign/identity cases and a short physical run in Task 2; readback/export in Task 3; physical parameter sweeps in Task 7. |
@@ -207,3 +240,45 @@ new group table, while older version 2/3 packages remain verifiable. The final
 summary reads only saved fields and labels missing legacy fields as no data.
 Task 2 known-answer, no-demand, partial, grouped export/readback and formatting
 checks passed; current-PC physical validation is still pending.
+
+## Window outcome diagnostics (`window-diagnostics-v1`)
+
+`result.dataset.diagnostics` contains one row for every closed observation and
+target window, in observation order. The four key fields are `realizationId`,
+`windowId`, `startTick` and `endTick`; they must form a unique one-to-one key
+match with both observations and targets. Dataset assembly joins these rows by
+key, so the source tables may arrive in different row orders. All time fields
+and mean delay are in model ticks. Count fields are non-negative integer
+counts. Availability fields are boolean: logical values or numeric 0/1; any
+other numeric value is invalid.
+
+Windows retain the dataset boundary convention: arrivals and attempt starts are
+assigned in `[startTick,endTick)`, while completed outcomes are assigned in
+`(startTick,endTick]`. Thus a receiver outcome ready exactly at `endTick` belongs
+to the window ending at that tick. `outcomeHorizonTick` records the run's
+`actualTick` for each row.
+
+`logicalAvailable` governs `logicalCollisionGroups` and
+`logicalCollidingAttempts`; `physicalAvailable` governs `physicalOverlapPairs`
+and `physicalCollidingAttempts`; `accessAvailable` governs `successfulAccesses`
+and `unfinishedAccessCohort`; `retryAvailable` governs
+`raRetryTransmissions`. When one of these sources is unavailable, its governed
+counts are `NaN`, never zero. `delayAvailable` is true only when delivered
+packets provide at least one delay sample. With no delivered sample,
+`delaySampleCount` is zero and `meanDelayTicks` is `NaN`; if packet data itself
+is unavailable, both delay values are `NaN`. `unfinishedPacketCohort` is `NaN`
+when packet data is unavailable. Known zero counts remain zero when their
+source is available.
+
+These are outcome-only measurements calculated after the simulation from its
+journals. They are not observation features and must never be supplied to the
+controller. The manifested diagnostics CSV is identified by table export
+version 5 and `diagnosticsSchemaVersion="window-diagnostics-v1"`; historical
+versions 2, 3 and 4 keep their original file sets.
+Availability columns in the diagnostics CSV use `true`/`false` tokens so a
+default MATLAB `readtable` import may return them as text or cells; MATLAB
+R2025b returns cell text such as `{'true'}`. Consumers should explicitly
+interpret only the exact `true` and `false` tokens and must not assume that the
+imported column has logical type. The MAT snapshot retains the original
+availability values and types (logical or numeric 0/1); it does not normalize
+every column to logical.

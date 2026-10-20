@@ -13,6 +13,9 @@ classdef TestComparisonSweep < matlab.unittest.TestCase
 
             t.verifyTrue(plan.designOnly);
             t.verifyEqual(plan.status,'planned');
+            t.verifyFalse(plan.readyForExecution, ...
+                'A design-only plan must never claim execution readiness.');
+            t.verifyNotEmpty(plan.unmetRequirements);
             t.verifyEqual(height(plan.cases),4500);
             t.verifyTrue(all(isnan(plan.cases.p95DelayTicks)));
             t.verifyTrue(all(isnan(plan.cases.nprachOccupancy)));
@@ -51,6 +54,242 @@ classdef TestComparisonSweep < matlab.unittest.TestCase
 
             t.verifyFalse(isfolder(outputFolder));
             t.verifyEqual(fileread(registryFile),before);
+        end
+
+        function externalInjectedRunnerRequiresAdmissionBeforeReservation(t)
+            folder=tempname; mkdir(folder); t.addTeardown(@() removeFolder(folder));
+            registryFile=fullfile(folder,'registry.json'); writeRegistry(registryFile);
+            modelFile=fullfile(folder,'model.mat'); writeText(modelFile,'development model placeholder');
+            counterFile=fullfile(folder,'runner-count.txt');
+            outputFolder=fullfile(folder,'must-not-exist');
+            options=externalOptions(outputFolder,registryFile,modelFile);
+            options.counts=1; options.burstDurations=10; options.realizationIds=1200;
+            options.methods=["Static" "Adaptive-P"];
+            options.runExperimentFcn=countingRunner(counterFile);
+            options.runnerFiles={fullfile(fileparts(which('setupProject')), ...
+                'tests','TestComparisonSweep.m')};
+            options.runnerInputs=struct('counterFile',counterFile);
+            options.runnerDependenciesDeclared=true;
+            before=fileread(registryFile);
+
+            t.verifyError(@() runComparisonSweep(options), ...
+                'nbiot:ml:ModelAcceptance');
+
+            t.verifyEqual(countRunnerCalls(counterFile),0, ...
+                'The injected runner must not execute before external admission.');
+            t.verifyEqual(fileread(registryFile),before, ...
+                'Admission failure must precede realization reservation.');
+            t.verifyFalse(isfolder(outputFolder), ...
+                'Admission failure must precede output creation.');
+        end
+
+        function sweepRejectsStaleSourceEvidenceBeforeReservation(t)
+            folder=tempname; mkdir(folder); t.addTeardown(@() removeFolder(folder));
+            registryFile=fullfile(folder,'registry.json'); writeRegistry(registryFile);
+            modelFile=fullfile(folder,'model.mat'); writeText(modelFile,'development model placeholder');
+            outputFolder=fullfile(folder,'must-not-exist');
+            options=externalOptions(outputFolder,registryFile,modelFile);
+            options.counts=1; options.burstDurations=10; options.realizationIds=1200;
+            options.methods=["Static" "Adaptive-P"];
+            options.modelAcceptanceFile=writeRuntimeIdentityAcceptance(folder, ...
+                options.calibrationFile,'source-mismatch');
+            before=fileread(registryFile);
+
+            exception=[];
+            try
+                runComparisonSweep(options);
+            catch caught
+                exception=caught;
+            end
+            t.verifyNotEmpty(exception);
+            if ~isempty(exception)
+                t.verifyEqual(exception.identifier,'nbiot:ml:ModelAcceptance');
+                t.verifyTrue(contains(exception.message, ...
+                    'Current computational source manifest differs from accepted evidence.'));
+            end
+            t.verifyEqual(fileread(registryFile),before, ...
+                'A stale source manifest must be rejected before realization reservation.');
+            t.verifyFalse(isfolder(outputFolder), ...
+                'A stale source manifest must be rejected before comparison output creation.');
+        end
+
+        function sweepRejectsStaleCalibrationEvidenceBeforeReservation(t)
+            folder=tempname; mkdir(folder); t.addTeardown(@() removeFolder(folder));
+            registryFile=fullfile(folder,'registry.json'); writeRegistry(registryFile);
+            modelFile=fullfile(folder,'model.mat'); writeText(modelFile,'development model placeholder');
+            outputFolder=fullfile(folder,'must-not-exist');
+            options=externalOptions(outputFolder,registryFile,modelFile);
+            options.counts=1; options.burstDurations=10; options.realizationIds=1200;
+            options.methods=["Static" "Adaptive-P"];
+            options.modelAcceptanceFile=writeRuntimeIdentityAcceptance(folder, ...
+                options.calibrationFile,'calibration-mismatch');
+            before=fileread(registryFile);
+
+            exception=[];
+            try
+                runComparisonSweep(options);
+            catch caught
+                exception=caught;
+            end
+            t.verifyNotEmpty(exception);
+            if ~isempty(exception)
+                t.verifyEqual(exception.identifier,'nbiot:ml:ModelAcceptance');
+                t.verifyTrue(contains(exception.message, ...
+                    'Current calibration file differs from accepted evidence.'));
+            end
+            t.verifyEqual(fileread(registryFile),before, ...
+                'A stale calibration must be rejected before realization reservation.');
+            t.verifyFalse(isfolder(outputFolder), ...
+                'A stale calibration must be rejected before comparison output creation.');
+        end
+
+        function preflightRejectsOneOutOfScopeSweepConfiguration(t)
+            scope=struct('methods',{{'Adaptive-P'}},'numUE',1, ...
+                'trafficKinds',{{'burst'}},'burstDurationTicks',10,'windowTicks',500);
+            first=nbiot.config.defaultConfig();
+            first.simulation.numUE=1; first.traffic.kind='burst';
+            first.traffic.burstDurationTicks=10; first.policy.name='Adaptive-P';
+            first.policy.windowTicks=500; first.dataset.windowTicks=500;
+            second=first; second.simulation.numUE=2;
+            nbiot.experiments.validateComparisonAcceptanceScope(scope,{first});
+
+            t.verifyError(@() nbiot.experiments.validateComparisonAcceptanceScope( ...
+                scope,{first,second}), 'nbiot:ml:ModelAcceptance');
+        end
+
+        function evidenceMutationAfterSweepPreflightIsRejectedBeforeCaseRunner(t)
+            folder=tempname; mkdir(folder); t.addTeardown(@() removeFolder(folder));
+            modelFile=fullfile(folder,'model.mat'); writeText(modelFile,'opaque test model');
+            acceptanceFile=fullfile(folder,'acceptance.json'); writeText(acceptanceFile,'test-only acceptance bytes');
+            policyFile=fullfile(folder,'policy.json');
+            policy=adaptiveDefaults(); writeJson(policyFile,policy);
+            calibrationFile=fullfile(folder,'calibration.mat'); writeText(calibrationFile,'test calibration');
+            evidenceFile=fullfile(folder,'evaluation.json'); writeText(evidenceFile,'validated before sweep');
+            originalEvidenceHash=nbiot.ml.fileSha256(evidenceFile);
+            writeText(evidenceFile,'changed after sweep preflight');
+            counterFile=fullfile(folder,'runner-count.txt');
+            execution=struct('profile','external-machine','role','final-comparison', ...
+                'maxUE',10,'maxCaseSeconds',300,'maxSuiteSeconds',900, ...
+                'timePolicy','hard-stop');
+            scope=struct('methods',{{'Adaptive-P'}},'numUE',1, ...
+                'trafficKinds',{{'burst'}},'burstDurationTicks',10,'windowTicks',500);
+            admission=struct('admissionStatus','accepted', ...
+                'acceptanceSha256',nbiot.ml.fileSha256(acceptanceFile), ...
+                'policySha256',nbiot.controller.policySha256(policy), ...
+                'evidenceDigest',repmat('a',1,64),'scope',scope, ...
+                'modelSha256',nbiot.ml.fileSha256(modelFile), ...
+                'policyFile',policyFile,'comparisonIds',1200, ...
+                'evidenceFiles',struct('path',evidenceFile, ...
+                    'sha256',originalEvidenceHash));
+            cfg=nbiot.config.defaultConfig();
+            cfg.simulation.numUE=1; cfg.simulation.realizationId=1200;
+            cfg.traffic.kind='burst'; cfg.traffic.burstDurationTicks=10;
+            options=struct('execution',execution,'calibrationFile',calibrationFile, ...
+                'scenario',[],'controllerPolicy',policy,'modelFile',modelFile, ...
+                'allowDevelopmentModel',false,'modelAcceptanceFile',acceptanceFile, ...
+                'admissionMetadata',admission,'resume',false, ...
+                'runExperimentFcn',countingRunnerThatFails(counterFile), ...
+                'runnerFiles',{{fullfile(fileparts(which('setupProject')), ...
+                    'tests','TestComparisonSweep.m')}}, ...
+                'runnerInputs',struct('counterFile',counterFile), ...
+                'runnerDependenciesDeclared',true);
+
+            t.verifyError(@() nbiot.experiments.runComparisonCase( ...
+                cfg,'Adaptive-P',fullfile(folder,'case'),options), ...
+                'nbiot:ml:ModelAcceptance', ...
+                ['The negative stale-snapshot fixture must fail closed before the ' ...
+                'case runner; it does not represent accepted scientific evidence.']);
+            t.verifyEqual(countRunnerCalls(counterFile),0, ...
+                'Evidence changed after sweep preflight must not reach a later case runner.');
+            t.verifyFalse(isfolder(fullfile(folder,'case')), ...
+                'Stale evidence must be rejected before case output is created.');
+        end
+
+        function directExternalCaseRejectsCallerFabricatedAdmissionSnapshotBeforeRunner(t)
+            [folder,cfg,options,counterFile,caseFolder]=directExternalCaseSnapshotFixture();
+            t.addTeardown(@() removeFolder(folder));
+
+            t.verifyError(@() nbiot.experiments.runComparisonCase( ...
+                cfg,'Adaptive-P',caseFolder,options), 'nbiot:ml:ModelAcceptance');
+            t.verifyEqual(countRunnerCalls(counterFile),0, ...
+                'A caller-supplied accepted snapshot cannot skip persisted evidence validation.');
+            t.verifyFalse(isfolder(caseFolder), ...
+                'Invalid persisted acceptance must fail before case output creation.');
+        end
+
+        function directExternalCaseRejectsStaleSourceManifestBeforeRunner(t)
+            [folder,cfg,options,counterFile,caseFolder]=directExternalCaseSnapshotFixture();
+            t.addTeardown(@() removeFolder(folder));
+            acceptance=readJson(options.modelAcceptanceFile);
+            sourcePath=fullfile(folder,acceptance.sourceManifest.file);
+            source=readJson(sourcePath);
+            source.sourceSha256(1)=char('0'+(source.sourceSha256(1)=='0'));
+            writeJson(sourcePath,source);
+            acceptance.sourceManifest.sha256=nbiot.ml.fileSha256(sourcePath);
+            writeJson(options.modelAcceptanceFile,acceptance);
+
+            exception=[];
+            try
+                nbiot.experiments.runComparisonCase(cfg,'Adaptive-P',caseFolder,options);
+            catch caught
+                exception=caught;
+            end
+            t.verifyNotEmpty(exception);
+            if ~isempty(exception)
+                t.verifyEqual(exception.identifier,'nbiot:ml:ModelAcceptance');
+                t.verifyTrue(contains(exception.message, ...
+                    'Current computational source manifest differs from accepted evidence.'));
+            end
+            t.verifyEqual(countRunnerCalls(counterFile),0);
+            t.verifyFalse(isfolder(caseFolder), ...
+                'A stale source manifest must be rejected before case output creation.');
+        end
+
+        function directExternalCaseRejectsStaleCalibrationBeforeRunner(t)
+            [folder,cfg,options,counterFile,caseFolder]=directExternalCaseSnapshotFixture();
+            t.addTeardown(@() removeFolder(folder));
+            cfg.calibrationFileSha256(1)=char('0'+(cfg.calibrationFileSha256(1)=='0'));
+
+            exception=[];
+            try
+                nbiot.experiments.runComparisonCase(cfg,'Adaptive-P',caseFolder,options);
+            catch caught
+                exception=caught;
+            end
+            t.verifyNotEmpty(exception);
+            if ~isempty(exception)
+                t.verifyEqual(exception.identifier,'nbiot:ml:ModelAcceptance');
+                t.verifyTrue(contains(exception.message, ...
+                    'Current calibration file differs from accepted evidence.'));
+            end
+            t.verifyEqual(countRunnerCalls(counterFile),0);
+            t.verifyFalse(isfolder(caseFolder), ...
+                'A stale calibration must be rejected before case output creation.');
+        end
+
+        function directExternalCaseRejectsOutOfScopeTrafficBeforeRunner(t)
+            [folder,cfg,options,counterFile,caseFolder]=directExternalCaseSnapshotFixture();
+            t.addTeardown(@() removeFolder(folder));
+            cfg.traffic.kind='periodic'; cfg.traffic.periodTicks=20;
+
+            exception=[];
+            try
+                nbiot.experiments.runComparisonCase(cfg,'Adaptive-P',caseFolder,options);
+            catch caught
+                exception=caught;
+            end
+            t.verifyNotEmpty(exception, ...
+                'Out-of-scope traffic must throw before the comparison runner.');
+            if ~isempty(exception)
+                t.verifyEqual(exception.identifier,'nbiot:ml:ModelAcceptance');
+                t.verifyTrue(contains(exception.message, ...
+                    'Configuration load, traffic, or method is outside the accepted scope.'), ...
+                    'Rejection must come from the current case scope check, not a later fixture error.');
+            end
+            t.verifyEqual(countRunnerCalls(counterFile),0, ...
+                'Current traffic must be checked against persisted scope before runner invocation.');
+            t.verifyFalse(isfolder(caseFolder), ...
+                'Out-of-scope traffic must fail before case output creation.');
         end
 
         function summaryUsesPairedDifferencesAndOmitsOneIdIntervals(t)
@@ -198,6 +437,10 @@ fid=fopen(path,'w','n','UTF-8'); cleanup=onCleanup(@() fclose(fid));
 fwrite(fid,unicode2native(jsonencode(value),'UTF-8'),'uint8');
 end
 
+function value=readJson(path)
+value=jsondecode(fileread(path));
+end
+
 function writeText(path,value)
 fid=fopen(path,'w'); cleanup=onCleanup(@() fclose(fid));
 fwrite(fid,value,'char');
@@ -273,4 +516,83 @@ function count=countRunnerCalls(path)
 if ~isfile(path), count=0; return; end
 lines=splitlines(strtrim(fileread(path)));
 count=sum(strlength(lines)>0);
+end
+
+function runner=countingRunnerThatFails(counterFile)
+runner=@runIfReached;
+    function result=runIfReached(~)
+        fid=fopen(counterFile,'a'); fprintf(fid,'called\n'); fclose(fid);
+        error('nbiot:test:UnexpectedRunner', ...
+            'A stale admission snapshot reached the comparison runner.');
+        result=[]; %#ok<UNRCH>
+    end
+end
+
+function [folder,cfg,options,counterFile,caseFolder]=directExternalCaseSnapshotFixture()
+folder=tempname; mkdir(folder);
+modelFile=fullfile(folder,'model.mat'); writeText(modelFile,'opaque test model');
+acceptanceFile=fullfile(folder,'acceptance.json');
+scope=struct('methods',{{'Adaptive-P'}},'numUE',1, ...
+    'trafficKinds',{{'burst'}},'burstDurationTicks',10,'windowTicks',500);
+acceptance=struct('trainingIds',100,'validationIds',200,'testIds',300, ...
+    'policyTuningIds',[],'scope',scope);
+policy=adaptiveDefaults(); policyFile=fullfile(folder,'policy.json'); writeJson(policyFile,policy);
+calibrationFile=fullfile(folder,'calibration.mat'); writeText(calibrationFile,'test calibration');
+projectRoot=fileparts(which('setupProject'));
+source=optimizationSourceManifest(projectRoot);
+sourceManifestFile=fullfile(folder,'source-manifest.json');
+writeJson(sourceManifestFile,struct('sourceSha256',source.sha256));
+acceptance.sourceManifest=struct('file','source-manifest.json', ...
+    'sha256',nbiot.ml.fileSha256(sourceManifestFile));
+acceptance.calibration=struct('file','calibration.mat', ...
+    'sha256',nbiot.ml.fileSha256(calibrationFile));
+writeJson(acceptanceFile,acceptance);
+evidenceFile=fullfile(folder,'evaluation.json'); writeText(evidenceFile,'unvalidated caller evidence');
+execution=struct('profile','external-machine','role','final-comparison', ...
+    'maxUE',10,'maxCaseSeconds',300,'maxSuiteSeconds',900,'timePolicy','hard-stop');
+admission=struct('admissionStatus','accepted', ...
+    'acceptanceSha256',nbiot.ml.fileSha256(acceptanceFile), ...
+    'policySha256',nbiot.controller.policySha256(policy), ...
+    'evidenceDigest',repmat('a',1,64),'scope',scope, ...
+    'modelSha256',nbiot.ml.fileSha256(modelFile), ...
+    'policyFile',policyFile,'comparisonIds',1200, ...
+    'evidenceFiles',struct('path',evidenceFile, ...
+        'sha256',nbiot.ml.fileSha256(evidenceFile)));
+counterFile=fullfile(folder,'runner-count.txt'); caseFolder=fullfile(folder,'case');
+cfg=nbiot.config.defaultConfig(); cfg.simulation.numUE=1;
+cfg.calibrationFileSha256=nbiot.ml.fileSha256(calibrationFile);
+cfg.simulation.realizationId=1200; cfg.traffic.kind='burst';
+cfg.traffic.burstDurationTicks=10; cfg.policy.name='Adaptive-P';
+cfg.policy.windowTicks=500; cfg.dataset.windowTicks=500;
+options=struct('execution',execution,'calibrationFile',calibrationFile, ...
+    'scenario',[],'controllerPolicy',policy,'modelFile',modelFile, ...
+    'allowDevelopmentModel',false,'modelAcceptanceFile',acceptanceFile, ...
+    'admissionMetadata',admission,'resume',false, ...
+    'runExperimentFcn',countingRunnerThatFails(counterFile), ...
+    'runnerFiles',{{fullfile(fileparts(which('setupProject')), ...
+        'tests','TestComparisonSweep.m')}}, ...
+    'runnerInputs',struct('counterFile',counterFile), ...
+    'runnerDependenciesDeclared',true);
+end
+
+function acceptancePath=writeRuntimeIdentityAcceptance(folder,calibrationFile,mismatch)
+projectRoot=fileparts(which('setupProject'));
+source=optimizationSourceManifest(projectRoot);
+sourceSha=source.sha256;
+if strcmp(mismatch,'source-mismatch')
+    if sourceSha(1)=='0', sourceSha(1)='1'; else, sourceSha(1)='0'; end
+end
+sourceManifestFile=fullfile(folder,'source-manifest.json');
+writeJson(sourceManifestFile,struct('sourceSha256',sourceSha));
+calibrationSha=nbiot.ml.fileSha256(calibrationFile);
+if strcmp(mismatch,'calibration-mismatch')
+    if calibrationSha(1)=='0', calibrationSha(1)='1'; else, calibrationSha(1)='0'; end
+end
+acceptance=struct('sourceManifest',struct('file','source-manifest.json', ...
+    'sha256',nbiot.ml.fileSha256(sourceManifestFile)), ...
+    'calibration',struct('file','calibration.mat','sha256',calibrationSha), ...
+    'trainingIds',100,'validationIds',200,'testIds',300,'policyTuningIds',[], ...
+    'scope',struct('methods',{{'Adaptive-P'}},'numUE',1, ...
+        'trafficKinds',{{'burst'}},'burstDurationTicks',10,'windowTicks',500));
+acceptancePath=fullfile(folder,'acceptance.json'); writeJson(acceptancePath,acceptance);
 end

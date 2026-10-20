@@ -14,12 +14,17 @@ runName=exportStem(result);
 destination=fullfile(folder,[runName '.mat']); temporary=[tempname(folder) '.mat'];
 if isAdaptiveResult(result) && any(cellfun(@(name) isfile(fullfile(folder,name)), ...
         exportFiles(runName,true,isfield(result,'radioDiagnostics'), ...
-        isfield(result,'groupKpi'))))
+        isfield(result,'groupKpi'),hasDatasetDiagnostics(result))))
     error('nbiot:results:DuplicateRun', ...
         'Refusing to overwrite an existing Adaptive result with stem %s.',runName);
 end
 cleanup=onCleanup(@() removeTemporary(temporary)); %#ok<NASGU>
-save(temporary,'result','-v7.3');
+saveVariables={'result'};
+if hasDatasetDiagnostics(result)
+    datasetDiagnostics=result.dataset.diagnostics;
+    saveVariables{end+1}='datasetDiagnostics';
+end
+save(temporary,saveVariables{:},'-v7.3');
 check=whos('-file',temporary);
 assert(any(strcmp({check.name},'result')),'nbiot:results:Save','MAT result missing.');
 [ok,message]=movefile(temporary,destination,'f');
@@ -85,11 +90,17 @@ datasetSchema=struct();
 if isfield(result.dataset,'schema'), datasetSchema=result.dataset.schema; end
 resultSchemaVersion=1;
 if isfield(metadata,'runtimeVersion'), resultSchemaVersion=metadata.resultSchemaVersion; end
-save(temporary,'result','caseMetadata','configSnapshot','resultStatus', ...
-    'kpiSummary','environmentSnapshot','resultSchemaVersion','datasetSchema','-v7.3');
+saveVariables={'result','caseMetadata','configSnapshot','resultStatus', ...
+    'kpiSummary','environmentSnapshot','resultSchemaVersion','datasetSchema'};
+if hasDatasetDiagnostics(result)
+    datasetDiagnostics=result.dataset.diagnostics;
+    saveVariables{end+1}='datasetDiagnostics';
+end
+save(temporary,saveVariables{:},'-v7.3');
 check=whos('-file',temporary);
 requiredVariables={'result','caseMetadata','configSnapshot','resultStatus', ...
     'kpiSummary','environmentSnapshot'};
+if hasDatasetDiagnostics(result), requiredVariables{end+1}='datasetDiagnostics'; end
 if ~all(ismember(requiredVariables,{check.name}))
     error('nbiot:results:Save','MAT result is missing required snapshot variables.');
 end
@@ -101,6 +112,18 @@ report=nbiot.results.verifyCase(folder,metadata,result,false);
 if ~report.passed
     error('nbiot:results:Verify','Staged case did not pass readback: %s',strjoin(report.errors,'; '));
 end
+reportMetadata=nbiot.results.buildReportMetadata(result);
+reportMetadata.caseKey=char(string(metadata.caseKey));
+if isfield(metadata,'canonicalConfigSha256')
+    reportMetadata.canonicalConfigSha256=char(string(metadata.canonicalConfigSha256));
+else
+    reportMetadata.canonicalConfigSha256=nbiot.results.configSha256(result.config,true);
+end
+reportMetadataFile=[runName '_report.json'];
+reportMetadata.files=struct( ...
+    'kpi',fileRecord(folder,[runName '_kpi.csv']), ...
+    'summary',fileRecord(folder,[runName '_summary.csv']));
+writeJsonAtomic(fullfile(folder,reportMetadataFile),reportMetadata);
 marker=identity(metadata,result.status);
 marker.manifestVersion=1;
 if isfield(metadata,'runtimeVersion'), marker.manifestVersion=2; end
@@ -112,11 +135,18 @@ end
 marker.tableExportVersion=2;
 if isfield(result,'radioDiagnostics'), marker.tableExportVersion=3; end
 if isfield(result,'groupKpi'), marker.tableExportVersion=4; end
+if hasDatasetDiagnostics(result)
+    marker.tableExportVersion=5;
+    marker.diagnosticsSchemaVersion='window-diagnostics-v1';
+end
+marker.tableExportVersion=6;
+marker.canonicalConfigSha256=reportMetadata.canonicalConfigSha256;
+marker.reportMetadataFile=reportMetadataFile;
 marker.resultFile=[runName '.mat'];
 marker.exportStem=runName; marker.tables=tables;
 marker.balances=balanceSnapshot(result.kpiSummary);
 marker.elapsedSeconds=elapsedSeconds(result);
-names=[{marker.resultFile} {tables.file}];
+names=[{marker.resultFile} {tables.file} {reportMetadataFile}];
 files=repmat(struct('name','','bytes',0,'sha256',''),numel(names),1);
 for k=1:numel(names)
     path=fullfile(folder,names{k}); d=dir(path);
@@ -180,6 +210,10 @@ if isfield(result,'groupKpi')
     tableData{end+1}=result.groupKpi;
     suffixes{end+1}='_groups.csv';
 end
+if hasDatasetDiagnostics(result)
+    tableData{end+1}=diagnosticsCsvTable(result.dataset.diagnostics);
+    suffixes{end+1}='_diagnostics.csv';
+end
 tables=repmat(struct('file','','variableNames',{{}},'rows',0),numel(suffixes),1);
 for k=1:numel(suffixes)
     file=[runName suffixes{k}]; writetable(tableData{k},fullfile(folder,file));
@@ -188,15 +222,43 @@ for k=1:numel(suffixes)
 end
 end
 
-function files=exportFiles(runName,includeController,includeRadio,includeGroups)
+function value=diagnosticsCsvTable(value)
+availabilityNames={'logicalAvailable','physicalAvailable','accessAvailable', ...
+    'retryAvailable','delayAvailable'};
+for k=1:numel(availabilityNames)
+    name=availabilityNames{k};
+    if ~ismember(name,value.Properties.VariableNames), continue; end
+    flags=value.(name);
+    if islogical(flags)
+        normalized=flags;
+    elseif isnumeric(flags)&&isreal(flags)&&all(isfinite(flags(:)))&& ...
+            all(flags(:)==0|flags(:)==1)
+        normalized=logical(flags);
+    else
+        continue
+    end
+    tokens=repmat("false",size(normalized));
+    tokens(normalized)="true";
+    value.(name)=tokens;
+end
+end
+
+function files=exportFiles(runName,includeController,includeRadio,includeGroups,includeDiagnostics)
 if nargin<3, includeRadio=false; end
 if nargin<4, includeGroups=false; end
+if nargin<5, includeDiagnostics=false; end
 suffixes={'_ue.csv','_kpi.csv','_observations.csv','_targets.csv', ...
     '_resources.csv','_split.csv','_summary.csv'};
 if includeController, suffixes{end+1}='_controller.csv'; end
 if includeRadio, suffixes{end+1}='_radio.csv'; end
 if includeGroups, suffixes{end+1}='_groups.csv'; end
+if includeDiagnostics, suffixes{end+1}='_diagnostics.csv'; end
 files=[{[runName '.mat']},cellfun(@(suffix) [runName suffix],suffixes,'UniformOutput',false)];
+end
+
+function yes=hasDatasetDiagnostics(result)
+yes=isstruct(result)&&isscalar(result)&&isfield(result,'dataset')&& ...
+    isstruct(result.dataset)&&isscalar(result.dataset)&&isfield(result.dataset,'diagnostics');
 end
 
 function yes=isAdaptiveResult(result)
@@ -249,6 +311,24 @@ while true
     digest.update(typecast(bytes(:),'int8'));
 end
 hex=lower(reshape(dec2hex(typecast(digest.digest(),'uint8'),2).',1,[]));
+end
+
+function record=fileRecord(folder,name)
+path=fullfile(folder,name); d=dir(path);
+if isempty(d), error('nbiot:results:Save','Missing staged export %s.',name); end
+record=struct('name',name,'bytes',d.bytes,'sha256',hashFile(path));
+end
+
+function writeJsonAtomic(path,value)
+folder=fileparts(path); temporary=[tempname(folder) '.json'];
+cleanup=onCleanup(@() removeTemporary(temporary)); %#ok<NASGU>
+fid=fopen(temporary,'wb');
+if fid<0, error('nbiot:results:Save','Cannot write report metadata.'); end
+writeCleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
+fwrite(fid,unicode2native(jsonencode(value),'UTF-8'),'uint8');
+clear writeCleanup
+[ok,message]=movefile(temporary,path,'f');
+if ~ok, error('nbiot:results:Save','Cannot publish report metadata: %s',message); end
 end
 
 function removeTemporary(path)

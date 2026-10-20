@@ -1,5 +1,122 @@
 classdef TestRadioDiagnostics < matlab.unittest.TestCase
     methods (Test)
+        function reversedDuplicateOverlapIsRejected(t)
+            truth=[msg1(10,1,1,1,2),msg1(10,2,2,1,3)];
+            observed=radioEvent(20,1,[candidate(2,0,0),candidate(3,0,0)]);
+            reception=[component(1,1,2,0,10,2),component(2,2,3,0,10,1), ...
+                overlap(1,2,0,10,2,1),overlap(2,1,0,10,1,2)];
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed, ...
+                reception,options(100)), 'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function repeatedOverlapIsRejected(t)
+            [truth,observed,reception]=overlapCase();
+            reception(end+1)=reception(end);
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function missingRequiredOverlapIsRejected(t)
+            [truth,observed,reception]=overlapCase();
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception(1:2),options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function touchingIntervalsCannotHaveAnOverlap(t)
+            [truth,observed,reception]=overlapCase();
+            reception(2)=component(2,2,3,10,20,1);
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function incorrectIntersectionBoundsAreRejected(t)
+            [truth,observed,reception]=overlapCase();
+            reception(end).fields.startSample=1;
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function missingReferencedComponentIsRejected(t)
+            [truth,observed,reception]=overlapCase();
+            reception(end).fields.attemptIdB=99;
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function componentFromAnotherOccasionIsRejected(t)
+            [truth,observed,reception]=overlapCase();
+            truth(2).fields.occasionId=2;
+            observed(2)=radioEvent(20,2,candidate(3,0,0));
+            reception(2).fields.occasionId=2;
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function duplicateAttemptIdIsRejected(t)
+            [truth,observed,reception]=overlapCase();
+            truth(2).fields.attemptId=1;
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function duplicateComponentAttemptIdIsRejected(t)
+            [truth,observed,reception]=overlapCase();
+            reception(2).fields.attemptId=1;
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function malformedPairIdsAreRejectedBeforeGrouping(t)
+            [truth,observed,reception]=overlapCase();
+            for id=[NaN Inf 1.5 0 1]
+                reception(end).fields.attemptIdB=id;
+                t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                    'nbiot:metrics:RadioDiagnosticsEvent');
+            end
+        end
+
+        function equalPowerWithKnownOutcomesHasNoCaptureDenominator(t)
+            [truth,observed,reception]=overlapCase();
+            truth=[truth,event(30,'ra_success',struct('attemptId',1)), ...
+                event(30,'ra_failure',struct('attemptId',2))];
+            reception(end).fields.signalPowerAW=1;
+            d=nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100));
+            t.verifyEqual(d.capture.eligiblePairs,0);
+            t.verifyEqual(d.capture.equalPowerPairs,1);
+            t.verifyTrue(isnan(d.capture.probability));
+        end
+
+        function conflictingOutcomesAreRejected(t)
+            [truth,observed,reception]=overlapCase();
+            truth=[truth,event(30,'ra_success',struct('attemptId',1)), ...
+                event(30,'ra_failure',struct('attemptId',1))];
+            t.verifyError(@()nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100)), ...
+                'nbiot:metrics:RadioDiagnosticsEvent');
+        end
+
+        function mixedOccasionsPreserveWholeDiagnosticStruct(t)
+            % Fixed input order: component IDs and occasions are deliberately unsorted.
+            truth=[msg1(10,9000000001,1,2,3),msg1(10,7,2,1,2)];
+            observed=[radioEvent(20,2,candidate(3,0,0)),radioEvent(20,1,candidate(2,0,0))];
+            reception=[component(9000000001,1,3,0,10,2),component(7,2,2,0,10,1)];
+            reception(1).fields.occasionId=2;
+            d=nbiot.metrics.radioDiagnostics(truth,observed,reception,options(100));
+            expected=struct('available',true,'actualTick',100, ...
+                'preamble',struct('transmittedAttempts',2,'transmittedKeys',2, ...
+                'detectedCandidates',2,'detectedKeys',2,'misses',0,'falseAlarms',0, ...
+                'falseAlarmOpportunities',22,'detectionProbability',1,'missProbability',0,'falseAlarmProbability',0), ...
+                'collision',struct('attempts',2,'logicalGroups',0,'logicalAttempts',0, ...
+                'logicalAttemptProbability',0,'physicalOverlapPairs',0,'physicalAttempts',0,'physicalAttemptProbability',0), ...
+                'capture',struct('eligiblePairs',0,'censoredPairs',0,'equalPowerPairs',0, ...
+                'capturedPairs',0,'probability',NaN,'strongSuccessProbability',NaN,'weakSuccessProbability',NaN));
+            expected.perAttempt=[expectedAttempt(2,9000000001,1,3,2),expectedAttempt(1,7,2,2,1)];
+            expected.receiverEstimates=[expectedEstimate(2,3,9000000001,1),expectedEstimate(1,2,7,2)];
+            expected.npuschReceiverEstimates=repmat(struct('contextId',0,'occasionId',0,'nInit',0, ...
+                'attemptId',NaN,'ueId',NaN,'channel','','estimatedDelaySeconds',NaN, ...
+                'configuredDelaySeconds',NaN,'delayErrorSeconds',NaN,'estimatedCfoHz',NaN, ...
+                'configuredCfoHz',NaN,'cfoErrorHz',NaN,'noiseEstimate',NaN,'truthAvailable',false),0,1);
+            t.verifyTrue(isequaln(d,expected));
+        end
         function emptyCompletedOccasionKeepsZeroCountsAndUndefinedMissRate(t)
             truth=emptyEvents();
             observed=radioEvent(20,1,emptyCandidates());
@@ -238,6 +355,23 @@ classdef TestRadioDiagnostics < matlab.unittest.TestCase
             t.verifyEqual(numel(result.lifecycleLog),3);
         end
     end
+end
+
+function [truth,observed,reception]=overlapCase()
+truth=[msg1(10,1,1,1,2),msg1(10,2,2,1,3)];
+observed=radioEvent(20,1,[candidate(2,0,0),candidate(3,0,0)]);
+reception=[component(1,1,2,0,10,2),component(2,2,3,0,10,1),overlap(1,2,0,10,2,1)];
+end
+
+function c=expectedAttempt(occasionId,attemptId,ueId,nInit,power)
+c=struct('occasionId',occasionId,'attemptId',attemptId,'ueId',ueId,'nInit',nInit, ...
+    'receivedPowerW',power,'interferencePowerW',0,'noisePowerW',1,'sinrDb',10*log10(power),'provenance','diagnosticTruth');
+end
+
+function c=expectedEstimate(occasionId,nInit,attemptId,ueId)
+c=struct('occasionId',occasionId,'nInit',nInit,'attemptId',attemptId,'ueId',ueId, ...
+    'estimatedDelaySeconds',0,'configuredDelaySeconds',0,'delayErrorSeconds',0, ...
+    'estimatedCfoHz',0,'configuredCfoHz',0,'cfoErrorHz',0,'truthAvailable',true);
 end
 
 function e=overlap(attemptIdA,attemptIdB,startSample,endSample,powerAW,powerBW)

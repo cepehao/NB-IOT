@@ -39,6 +39,8 @@ else
 end
 % The caller-selected destination is authoritative for all model outputs.
 trainingOptions.outputFolder=outputFolder;
+% The selected file is the provenance source; caller-supplied overrides are ignored.
+trainingOptions.datasetFile=datasetFile;
 [bundles,report]=nbiot.ml.trainLoadModels(loaded.data,trainingOptions);
 end
 

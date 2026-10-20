@@ -1,0 +1,535 @@
+{
+  "schemaVersion": 1,
+  "release": "v4.0.0",
+  "computationalSourceSha256": "176c6520f97c5e119c597c1c875e914917611db25b7c3689acb6c4d7aabac517",
+  "files": [
+    {
+      "file": "experiments/optimizationSourceManifest.m",
+      "sha256": "8d4e92b37dd80c2d9dec98fe0aa840f2dcb150556e227084c947c0afb9430aba"
+    },
+    {
+      "file": "experiments/runStaticSweep.m",
+      "sha256": "054983c075f5e88fd2d7ca86743ee00df969fb581f7941d58ee00a9d5d9ce2dd"
+    },
+    {
+      "file": "experiments/runStaticSweepParallel.m",
+      "sha256": "c70db859e0b0f22a3f75ff980d0a880b4968548e45a40e723e3b9cf0b57c193d"
+    },
+    {
+      "file": "setupProject.m",
+      "sha256": "627c2fa958058cd81107e275bc5aa621e19910cffa27fd01839e80209009541a"
+    },
+    {
+      "file": "src/+nbiot/+channel/RadioChannel.m",
+      "sha256": "76f2f3c9b4b9a7f781ef6e8374e43b771be4d0ba6557f1235a1babd98c45818b"
+    },
+    {
+      "file": "src/+nbiot/+channel/evaluateLinks.m",
+      "sha256": "7aa69687c578176d47ebae514151a598d9ca571f4b5060754f2c22c0fc444765"
+    },
+    {
+      "file": "src/+nbiot/+channel/fractionalDelay.m",
+      "sha256": "524690974930506f8f42f53bbbfa71020bc77f7788dede6043b8574c2a87bda6"
+    },
+    {
+      "file": "src/+nbiot/+channel/normalizePower.m",
+      "sha256": "ac24f6c6f390317cbe2799ff293fa7965baff848b2e0924a12884ade3caa4f95"
+    },
+    {
+      "file": "src/+nbiot/+config/defaultConfig.m",
+      "sha256": "d7d4fc5956b555a3f9cae50389c061319ded2b293dfbc86bef4a6fabef294bd6"
+    },
+    {
+      "file": "src/+nbiot/+config/validateConfig.m",
+      "sha256": "a1f46f2b66ef6c0f819ddc451ca6d91628f12a71354a208f87803be19c0d473a"
+    },
+    {
+      "file": "src/+nbiot/+controller/applyAction.m",
+      "sha256": "327ed0bf0b421eae31bf39aec99afdd56ce4a6051d8257d9f732fc4fa4537050"
+    },
+    {
+      "file": "src/+nbiot/+controller/buildAdaptivePolicy.m",
+      "sha256": "478b04dc06a2934c4f12db3987d13dfe118745e8e0b697258f1fc38c44577f74"
+    },
+    {
+      "file": "src/+nbiot/+controller/chooseAction.m",
+      "sha256": "5b645ba70c3c09dbc69e6fbc1fd5c57c1c660402569d4506689da9fdb19976d9"
+    },
+    {
+      "file": "src/+nbiot/+controller/policySha256.m",
+      "sha256": "2ecef88eb77acad1cbb24272e9de5e7276e4b89aceebb89fa7ddb908610d4b86"
+    },
+    {
+      "file": "src/+nbiot/+controller/prepareRuntime.m",
+      "sha256": "98195b58f0afca584917b1c0cff5135129f3d2029f59fc0120a65f558ad0a7bd"
+    },
+    {
+      "file": "src/+nbiot/+dataset/assembleLoadDataset.m",
+      "sha256": "98903668946cb9d40b333ece451c8664279754c555887c3734128b4d9c309df4"
+    },
+    {
+      "file": "src/+nbiot/+dataset/buildManifest.m",
+      "sha256": "5dcd93d8dd9ef1e6d5708ec67e6f9cbdf75ed968f13f6f2c0e3df707836af47c"
+    },
+    {
+      "file": "src/+nbiot/+dataset/closeWindow.m",
+      "sha256": "56826cf67c4e1afa38981aeea0904d1705f5ebe7ba1256b8faa76e8b175c3169"
+    },
+    {
+      "file": "src/+nbiot/+dataset/featureSchema.m",
+      "sha256": "f7bd9c4a668d1fe5c0b18570125a5b6f25b77305acb176699ff7cccf64d3799b"
+    },
+    {
+      "file": "src/+nbiot/+dataset/summarizeLoadDataset.m",
+      "sha256": "60d72584cc736ac157823136a189218873371f9b53fa1e1052d7992b6f57dd0d"
+    },
+    {
+      "file": "src/+nbiot/+dataset/windowDiagnostics.m",
+      "sha256": "7055ffa2580c4cec8aaf7561d23305f349d4af520772d2f2cebc3d42494f4075"
+    },
+    {
+      "file": "src/+nbiot/+devices/DeviceStore.m",
+      "sha256": "a65c1be2f690d688f095cccba1ea886a3bc01158faecf9213562e3b103a2dfc9"
+    },
+    {
+      "file": "src/+nbiot/+engine/EventQueue.m",
+      "sha256": "3e7ddd3d6b55c655d62955d65a679b808ad70da25fecce63817e3b0c0fc59c5b"
+    },
+    {
+      "file": "src/+nbiot/+experiments/acquireRealizationRegistryLock.m",
+      "sha256": "6e1b477bf4405dcf05d2cfe733f318429afb53f76a50fbba28ca5678a4ac3a68"
+    },
+    {
+      "file": "src/+nbiot/+experiments/analyzeCollisionTrial.m",
+      "sha256": "518c14aa7de20a57e7383694d3d39e2dccccb6858ea9b651b8f4ab68449396e7"
+    },
+    {
+      "file": "src/+nbiot/+experiments/availableRealizationIds.m",
+      "sha256": "e44ea751a34da6f6b0c2c9cfa5e24eabf240d75f512ec17cf8aec1e24bdd62f2"
+    },
+    {
+      "file": "src/+nbiot/+experiments/checkpointIdentityHash.m",
+      "sha256": "f798ce71d274324e08eae8ab6f86f0cb2809e558d52c451f9845b424ee5a33ec"
+    },
+    {
+      "file": "src/+nbiot/+experiments/comparisonKpis.m",
+      "sha256": "43958dff201f7736977597b4b2ac3275b8067dcc7c7cd4ffceaade985dd5b089"
+    },
+    {
+      "file": "src/+nbiot/+experiments/finalizeCheckpointResult.m",
+      "sha256": "694109f18b5c55bec5dd9087f1aff12896e50528fa4d6b6113d2897d99e24f3a"
+    },
+    {
+      "file": "src/+nbiot/+experiments/loadCalibration.m",
+      "sha256": "0c3bcb77c5f18dc67bc97493658d2f7603a44b7080b6509387b3dca30662c36c"
+    },
+    {
+      "file": "src/+nbiot/+experiments/loadCheckpoint.m",
+      "sha256": "f77030a1f2ec66da96d35a4defcda601f7545f7faa3d449f88cb2acfe27d7ba8"
+    },
+    {
+      "file": "src/+nbiot/+experiments/loadVariant2BudgetLedger.m",
+      "sha256": "39bbc2bff22a4a5b8a77a96d420b42b3a12b4d0f32b077b1e6c06163f09cc9cc"
+    },
+    {
+      "file": "src/+nbiot/+experiments/reconcileFailedRealizationUse.m",
+      "sha256": "eb2354b79f0f2be40cc4544581fb5597ae1a85b215cf471b7d3890ed8e7b7b84"
+    },
+    {
+      "file": "src/+nbiot/+experiments/registerRealizationUse.m",
+      "sha256": "a88fd4b4a8eb45009f04f2cc252ab85b2110a0a21bd7d6edd4d10a3d2876ee7f"
+    },
+    {
+      "file": "src/+nbiot/+experiments/runCheckpointedExperiment.m",
+      "sha256": "8efaa1bf57ffeb836e5334c1a91b65c922dc60d78c0a4457f0166e7d6e264384"
+    },
+    {
+      "file": "src/+nbiot/+experiments/runComparisonCase.m",
+      "sha256": "b2bc2d7dbf464b81cbffcadf87a889d0cfb914851865fc4a45df783cced9727b"
+    },
+    {
+      "file": "src/+nbiot/+experiments/runStaticCase.m",
+      "sha256": "3613380ccc5dd673ef1ea2120e83f83fa9f4dfa48b19ba4c947e59f14cdf1dd7"
+    },
+    {
+      "file": "src/+nbiot/+experiments/runtimeManifest.m",
+      "sha256": "41032351205331c420a7f90010d49af670b2684b1ec507f95b4c5860acfb6b8e"
+    },
+    {
+      "file": "src/+nbiot/+experiments/saveCheckpoint.m",
+      "sha256": "e603db32f7b7d5955a30b318c4b3ec0742a393ee97ed4881fdb4cbce8acc59a8"
+    },
+    {
+      "file": "src/+nbiot/+experiments/saveVariant2BudgetLedger.m",
+      "sha256": "697fdcc590043a5999f926af50816e1bfbfe68f287f422844d26fb2afb9e5a64"
+    },
+    {
+      "file": "src/+nbiot/+experiments/updateRealizationUseStatus.m",
+      "sha256": "385c9883f74de045696a92dd198fa8dfa3a5247d1665e9a2f9575c2fb33a1173"
+    },
+    {
+      "file": "src/+nbiot/+experiments/validateComparisonAcceptanceScope.m",
+      "sha256": "b82ea1cdc2adc4e7e21a7d304ddfd781c5861472c38d649f1d7768e6b05cef5d"
+    },
+    {
+      "file": "src/+nbiot/+experiments/validateExecutionBudget.m",
+      "sha256": "d1128eda98de89719834037ad7fa4b059d746a3d85f397abbf599e15ed7ab30b"
+    },
+    {
+      "file": "src/+nbiot/+experiments/validateLoadProbeRuntime.m",
+      "sha256": "83715adf31d1123adfe3aa2597d872445f8c4412aea7962aebc9bf05423d84ec"
+    },
+    {
+      "file": "src/+nbiot/+experiments/validateStage2ReceiverChecks.m",
+      "sha256": "d41a044034c2bd97a0b64a07832fc34a2b0553e90c9478cc0c4a672ad3719d87"
+    },
+    {
+      "file": "src/+nbiot/+experiments/writeRuntimeProgress.m",
+      "sha256": "14765ad2a69fb1ee268daec56ab9d7399f9fb25895d42c83c7c905a79456506c"
+    },
+    {
+      "file": "src/+nbiot/+metrics/RadioDiagnosticsAccumulator.m",
+      "sha256": "21b5b79248aafa122104cbbac74e80c0d0b52289581efae18645c717d0aecfff"
+    },
+    {
+      "file": "src/+nbiot/+metrics/countTransmittedPackets.m",
+      "sha256": "06660d5d24741e85cb7878f351858c619314301715f4362fe7e70eae307e0301"
+    },
+    {
+      "file": "src/+nbiot/+metrics/harqSummary.m",
+      "sha256": "97fa7dec7a032f3654b427cae9bf19d7df1c9d0d1af49343a498d82066895bcb"
+    },
+    {
+      "file": "src/+nbiot/+metrics/radioDiagnostics.m",
+      "sha256": "b5bed96d686afad705108dc1278abf284b0bc053e436fdfae697f5c5b1891d20"
+    },
+    {
+      "file": "src/+nbiot/+metrics/serviceKpi.m",
+      "sha256": "0d23046eb25f08bbe306c60bc10584f75d0e0f5d1eb25cd5c481406f857a50ff"
+    },
+    {
+      "file": "src/+nbiot/+metrics/summarizeKpi.m",
+      "sha256": "ffc1fe6da2dc05dbe4ed0e0802dd0f95f3446b7769eed75143dd4938c56e4ecc"
+    },
+    {
+      "file": "src/+nbiot/+metrics/windowKpi.m",
+      "sha256": "f27196239b378dd26a46db1ca89f27d149e25b4b8b36aef3cd24b00981d1f564"
+    },
+    {
+      "file": "src/+nbiot/+ml/checkModelAcceptanceEvidence.m",
+      "sha256": "4757b9e73d69e5e93ea7726cf3a12ed5e52265a46bfef60b9a99615b2ea2e0a1"
+    },
+    {
+      "file": "src/+nbiot/+ml/fileSha256.m",
+      "sha256": "7e68441e819e97248068626ddb5b47abb73d6c1d9e876686f4d2d17472111941"
+    },
+    {
+      "file": "src/+nbiot/+ml/loadModelEvaluationMetrics.m",
+      "sha256": "f2017810cd8c83d76a3acd612c914cebb38cf232e29d321e129c6daaddc5f8c3"
+    },
+    {
+      "file": "src/+nbiot/+ml/predictLoad.m",
+      "sha256": "cbcc05567c0ff1a30c6f320ec925ca82a942900288883c1ec83754c915ababe4"
+    },
+    {
+      "file": "src/+nbiot/+ml/trainLoadModels.m",
+      "sha256": "e07b24d398bb1f61126711a24d6b3c898d08d585820514ed0240e14700b0662b"
+    },
+    {
+      "file": "src/+nbiot/+ml/validateModelAcceptance.m",
+      "sha256": "fb0bc165065a70164b24bc071f4c42de8698a63116e06e4ee7b384e1f1ae80ef"
+    },
+    {
+      "file": "src/+nbiot/+ml/validateModelBundle.m",
+      "sha256": "fefa26840efec7be3135c4aa7b331e3c47e0c10ef1526baf8f0061337fb9703e"
+    },
+    {
+      "file": "src/+nbiot/+ml/verifyModelAcceptanceRuntimeIdentity.m",
+      "sha256": "b619b3be2f5a088a68d69df1b6a0a690de5623a8d5bf141c548eb324b771aa6b"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npdcch/buildTransmission.m",
+      "sha256": "4f9f6730bca5ccf0ca0eb4502860be37dfb3ca8c18663a0230edfefd511aa154"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npdcch/packDci.m",
+      "sha256": "f13670196ed981744f9d49ab28fa4cd7a6feff90cb3a019b69fc29cba8e86e71"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npdcch/receive.m",
+      "sha256": "5f481a6bfd651b9ba0f5a8fee10636e054e8d24295fe765ec007a51d1ca72e4c"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npdcch/unpackDci.m",
+      "sha256": "f449e0ee2d967aae8aa4439ec56ef46df3e0e37909eea7eb6de186571a631ba0"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npdsch/buildTransmission.m",
+      "sha256": "acfd5a4c6a5fb3ea1a7ba72300aefc396b1f881eb75e0d2a4ebc16bf18b05680"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npdsch/receive.m",
+      "sha256": "2a23ed741818f122a8143991ab35f902a5e30f67c79062e56979b00f195f8208"
+    },
+    {
+      "file": "src/+nbiot/+phy/+nprach/buildTransmission.m",
+      "sha256": "4936f3022f41a9c3251a5301398c07ad419bd9001f61767c17c01b60c03f67f3"
+    },
+    {
+      "file": "src/+nbiot/+phy/+nprach/detect.m",
+      "sha256": "ee8de85e9012b5bc2af70adc357fbc8ff28cfd490f0b343969e6169c24a19497"
+    },
+    {
+      "file": "src/+nbiot/+phy/+nprach/groupMetrics.m",
+      "sha256": "ea19fd1a14470f8dd90004e8a9437c2db49445693578e505645def7de0c76461"
+    },
+    {
+      "file": "src/+nbiot/+phy/+nprach/receiverRevision.m",
+      "sha256": "c52faa3e4e5f579ec4e716b9156b50f76c2a66319bbf635cd63472b62a4da7bc"
+    },
+    {
+      "file": "src/+nbiot/+phy/+nprach/templates.m",
+      "sha256": "f9c5fe1229150c2d460f25254cdc7a6d29bda6d7612105b5545c35cff322d9a9"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npusch/buildTransmission.m",
+      "sha256": "fdb6e2c436d60d4e191f945bcfd8edc00d6f686acf5141b301574eafc8f97ad5"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npusch/configure.m",
+      "sha256": "ec2193d72dc5372c34860c514f904591fca88f3403f260129189c1c608638a73"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npusch/estimateTiming.m",
+      "sha256": "0e99eabee9e21ccacac82120a614a1d597e3d19099c64af9c3b5e0cbfdca6e91"
+    },
+    {
+      "file": "src/+nbiot/+phy/+npusch/receive.m",
+      "sha256": "31a71ec137f6c42d46281bd0376d38f54627647d8bdb91fed9adf1e8770363b6"
+    },
+    {
+      "file": "src/+nbiot/+phy/ProfileTables.m",
+      "sha256": "a715e61deca8ea377a8e673f98738603223a66febdcaa9f6ffb3249151590d57"
+    },
+    {
+      "file": "src/+nbiot/+phy/buildMandatoryTransmission.m",
+      "sha256": "0268098bba31cec3d2e5d0f4508cd738d73e95da7b1820b407049ed0e617908c"
+    },
+    {
+      "file": "src/+nbiot/+phy/dlConfig.m",
+      "sha256": "917e083d1de17e1a8a83c946df583e0b1727ed707b64e4f88e52c46ae28d8d6a"
+    },
+    {
+      "file": "src/+nbiot/+phy/dlModulate.m",
+      "sha256": "7f01a569ada0ba783462764177b44c4037d302742c9cb0b442e63167951a87dc"
+    },
+    {
+      "file": "src/+nbiot/+phy/dlReceiveGrid.m",
+      "sha256": "537318a277432b43d9e26ec5b260388bec5554d491c35cd9eb5ea07af57270f8"
+    },
+    {
+      "file": "src/+nbiot/+phy/extractWindow.m",
+      "sha256": "63ac922429a1425db86c5a1f5003938841eac2499d57cd1dbd0ed9ccb898c946"
+    },
+    {
+      "file": "src/+nbiot/+phy/mandatoryDL.m",
+      "sha256": "3be40a24d382a7699d66626a3b1ae6a95df27998dc5d82c577d7c61d4eec390e"
+    },
+    {
+      "file": "src/+nbiot/+phy/requireToolbox.m",
+      "sha256": "936babae3b59ea6901baa4ce2c8f9c0c5c27bc335d9821e3bb249f14119ff78e"
+    },
+    {
+      "file": "src/+nbiot/+phy/transmission.m",
+      "sha256": "55afa683c82549df2f74092bcbbf11aa1b6d39d87e68aafe2a82abba51c9fbfe"
+    },
+    {
+      "file": "src/+nbiot/+phy/verifyRoundtrips.m",
+      "sha256": "1a3f9e385518eb78dac34ea02966489205f423057cb1ee038e235804883f93ce"
+    },
+    {
+      "file": "src/+nbiot/+ra/RaContextStore.m",
+      "sha256": "867085bb8e39a50755ae7174de718484678eb5a037cfc607177773592dfdcef3"
+    },
+    {
+      "file": "src/+nbiot/+ra/decodeMessage.m",
+      "sha256": "2c3fed0bf258cf303120c2a78a6995cf31698830c08725169a74732a4ff5f532"
+    },
+    {
+      "file": "src/+nbiot/+ra/encodeMessage.m",
+      "sha256": "704a3548d19071d9f4a0fb6f6702637592b68b366c5998b5e5480fbee72c609b"
+    },
+    {
+      "file": "src/+nbiot/+randomness/RandomSources.m",
+      "sha256": "0fab661bbce6a727814589bbfb4d2de9e61c170861540fb1d3c551b1f6f5a382"
+    },
+    {
+      "file": "src/+nbiot/+randomness/substreamKey.m",
+      "sha256": "8532abf79928b93d9f94e6fcd8844d6ed9c6e5300109187c2cddffa1a68b954b"
+    },
+    {
+      "file": "src/+nbiot/+results/EventLog.m",
+      "sha256": "b004730d722e467b21c1f2023277742c7498faca94004ee4f6bb7f6bbf4a8652"
+    },
+    {
+      "file": "src/+nbiot/+results/aggregateRuns.m",
+      "sha256": "a0bbbbd8d4146e1dfb9fe832a8acb31f88b56a0321074b0bca5bd74e5c20c72d"
+    },
+    {
+      "file": "src/+nbiot/+results/buildKpiSummaryTable.m",
+      "sha256": "bd1ca4fa5b2bcc7fe491fd8b35ba8e79e3a95ed27cff2062a2335d4adad43dda"
+    },
+    {
+      "file": "src/+nbiot/+results/buildRadioDiagnosticsTable.m",
+      "sha256": "e7a5ba03ce161b3566e540187eb431cbdf0754333061449f2868ed27d720c7ca"
+    },
+    {
+      "file": "src/+nbiot/+results/buildReportMetadata.m",
+      "sha256": "6620180b927c0646476d4f9550fef8edd76dad2eeb9826a577be9a451e06a42f"
+    },
+    {
+      "file": "src/+nbiot/+results/buildUeSummary.m",
+      "sha256": "30b88f7d3fdee0c174f81ea63ab09665c2b19d65d4908801bc9fe35c445669b5"
+    },
+    {
+      "file": "src/+nbiot/+results/configSha256.m",
+      "sha256": "f3e3bb95c023fd2a50fb19d1807162584b3c51b663604ac627e20eaaf6d64cf1"
+    },
+    {
+      "file": "src/+nbiot/+results/finalizeResult.m",
+      "sha256": "0584e13c8c3a84344573af42c81547b49cdebb214ef5b0d09db4ab2100f7a6bf"
+    },
+    {
+      "file": "src/+nbiot/+results/plotSummary.m",
+      "sha256": "89a06bff49e0f473a307db93bfffa482c5dee5735891e16d07fb207d0da40e63"
+    },
+    {
+      "file": "src/+nbiot/+results/saveResult.m",
+      "sha256": "495c0b59134a26e3fb46e1d6abfd65faa66c384d873e05ea6c3e71649158b398"
+    },
+    {
+      "file": "src/+nbiot/+results/verifyCase.m",
+      "sha256": "a9820c01d1f6aecfd6240bbb0fc60fdeb2453db39a3ae4d8c6354834dd951aca"
+    },
+    {
+      "file": "src/+nbiot/+scenario/buildScenario.m",
+      "sha256": "ae4e0673ba3f9598b6992cf7e3d13c5d8b7925bc182bc18b12d8f42671465a42"
+    },
+    {
+      "file": "src/+nbiot/+scheduler/ResourceCalendar.m",
+      "sha256": "6192b90141077ce39b363ef235f0fccb65f41324cfd14f212aef9239d6e43a83"
+    },
+    {
+      "file": "src/+nbiot/+scheduler/Scheduler.m",
+      "sha256": "f1df90bac9f7f162fb0c1916d082470281c5987609fee50d1bffa92789d0bce4"
+    },
+    {
+      "file": "src/+nbiot/+scheduler/mandatoryDlMask.m",
+      "sha256": "97543d35ad96543e5fc8e0b90d175f9cf2e725d8b610a8039707457102c4bfa8"
+    },
+    {
+      "file": "src/+nbiot/+traffic/PacketStore.m",
+      "sha256": "13640fdafbd2648952ad66c1994dc9be59e96717b141c9e947817bc31efb9957"
+    },
+    {
+      "file": "src/+nbiot/+traffic/generateArrivals.m",
+      "sha256": "7e0ef505136c13f6cf7ef269e96293ea326253bf6dc7c20d7850e1e0aa64ed2d"
+    },
+    {
+      "file": "src/+nbiot/+traffic/generatePayload.m",
+      "sha256": "c9e46ff0b8b7fd8dd261237867df911aa460e33a01118ae45b4a8c96c9fb627e"
+    },
+    {
+      "file": "src/+nbiot/+traffic/reassemblePacket.m",
+      "sha256": "b1a9824a3807c19c1e0c2fd166a05c9c112a81f37d5abaabe3699b49ddc64c03"
+    },
+    {
+      "file": "src/+nbiot/+traffic/segmentPacket.m",
+      "sha256": "7f999f191ef20a80c346f88a2abab81b4bdbd1955a8c6cff887331cccd3f22b1"
+    },
+    {
+      "file": "src/+nbiot/+ui/SimulationSession.m",
+      "sha256": "9da4e300df02054802764efab7ca7a5b81e9b218bd2a8412b4a114af572f7f40"
+    },
+    {
+      "file": "src/+nbiot/+ui/buildControllerDisplayData.m",
+      "sha256": "c65abb4672ef331b37ac4d16ed758c8f4499fd6309d08762c8578be2a4b59007"
+    },
+    {
+      "file": "src/+nbiot/+ui/buildStaticChartData.m",
+      "sha256": "80ebfca4f32e43ad36896d0e5cb54d629e2f80b80b97249a288257439f59ffe5"
+    },
+    {
+      "file": "src/+nbiot/+ui/explainMetric.m",
+      "sha256": "fc75157f3094e068bc8c3e3fe547d32ebfc5ac2613f4b3b074d26df6f4d6c775"
+    },
+    {
+      "file": "src/+nbiot/+ui/exportDevelopmentDataset.m",
+      "sha256": "ec034c3550ca04e3514dc6ef0e67dc512023c646c8f5482c5826dd5530781246"
+    },
+    {
+      "file": "src/+nbiot/+ui/exportStaticCharts.m",
+      "sha256": "164f0bcec3b4c7a4cc71f820e182cbffd9ba26c13f55c6b6a40df5ca1b3eca1c"
+    },
+    {
+      "file": "src/+nbiot/+ui/formatLiveRadioSummary.m",
+      "sha256": "9a9a987171dfc5d9f68568c85224425260acacdd1066e08a828f3c7cfee75eea"
+    },
+    {
+      "file": "src/+nbiot/+ui/formatLiveStateSummary.m",
+      "sha256": "91e0fba756739405e408320098886cc1582955a40904745b5d672462b44f9161"
+    },
+    {
+      "file": "src/+nbiot/+ui/formatModelInfo.m",
+      "sha256": "e0be9b971e0aff1e1e0e3681b9894823288d791ecf59c18ccb94695e35ff5702"
+    },
+    {
+      "file": "src/+nbiot/+ui/formatObservedEvents.m",
+      "sha256": "2e8ff651bf2a332552afd9cef8248f11411ebaadbe8d7e5e8c21773ac64a6957"
+    },
+    {
+      "file": "src/+nbiot/+ui/formatResultSummary.m",
+      "sha256": "df7e817d82dbb1e0321b826ae57b52e61d5a33089cccf06914231a8dfe75d604"
+    },
+    {
+      "file": "src/+nbiot/+ui/formatUeDetail.m",
+      "sha256": "1af93631d35db3f42bc3b812716707c5a36525df09a29569638530baae1e0706"
+    },
+    {
+      "file": "src/+nbiot/+ui/loadComparisonSummary.m",
+      "sha256": "56ea02d14151519f15629b1f12c48c8fe2a3497e4430b6d76aa30d18dd71c70c"
+    },
+    {
+      "file": "src/+nbiot/+ui/loadKpiCsvFiles.m",
+      "sha256": "3d7e8dce40281f12d0c0389db1dca4259a9e5e896c36d1e1c98c3c2be165140c"
+    },
+    {
+      "file": "src/+nbiot/+ui/loadModelEvaluationMetrics.m",
+      "sha256": "6da073b130045b73f883039607ec91573214cd121dcffa38dc1168179cd41e0d"
+    },
+    {
+      "file": "src/+nbiot/+ui/loadReportMetadata.m",
+      "sha256": "5db7936213d1fd894581f3c57ea741be6edf98473997296e58a44cb95cd9d634"
+    },
+    {
+      "file": "src/+nbiot/+ui/shouldRefreshDisplay.m",
+      "sha256": "569afe07eff14dc084fae720659ffa706dcac089091217d3212a86c2bb6dbafb"
+    },
+    {
+      "file": "src/+nbiot/+util/fromBits.m",
+      "sha256": "d6dea6fdbf32c8af70f1fd11c234130b80de1f90de7c2f9f5970fa5260591c1e"
+    },
+    {
+      "file": "src/+nbiot/+util/toBits.m",
+      "sha256": "c14cfdc33a724a044c240ceebf2edf652c5bfb48cb48c9385e73bbe4620d2ffe"
+    },
+    {
+      "file": "src/+nbiot/NBIoTSimulator.m",
+      "sha256": "2512c0e5e253967d7ee41463f8f2c42f6619c0157c7c4c4fb3709a22bfebf28e"
+    },
+    {
+      "file": "src/+nbiot/runExperiment.m",
+      "sha256": "17a63c7f0b2c661f46b9cb0e7c4bc53ea38d68ce7baf6342b0e0f6be135e550b"
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "release": "v4.0.0",
+  "checkedAtUtc": "2026-10-20T19:46:27.281797+00:00",
+  "scope": "Fresh selected bounded engineering/release checks; not full regression or scientific acceptance",
+  "platform": "Windows x64",
+  "matlabRelease": "R2025b",
+  "requiredToolbox": "LTE Toolbox",
+  "maxUE": 10,
+  "maxCaseSeconds": 300,
+  "maxSuiteSeconds": 900,
+  "figureWindowsDisabled": true,
+  "sequentialWorkers": true,
+  "tests": [
+    {
+      "test": "TestV4Startup",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 58.5095622,
+      "timeoutSeconds": 300.0
+    },
+    {
+      "test": "TestV4PhysicalSmoke",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 139.5553895,
+      "timeoutSeconds": 300.0
+    },
+    {
+      "test": "TestLiveRadioSummary",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 16.2724489,
+      "timeoutSeconds": 300.0
+    },
+    {
+      "test": "TestSavedReportOverview",
+      "total": 26,
+      "passed": 26,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 41.8473042,
+      "timeoutSeconds": 300.0
+    },
+    {
+      "test": "TestExecutionBudget",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 17.3935833,
+      "timeoutSeconds": 300.0
+    },
+    {
+      "test": "TestExternalRunPackage",
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 17.975123,
+      "timeoutSeconds": 300.0
+    },
+    {
+      "test": "TestModelAcceptance",
+      "total": 41,
+      "passed": 41,
+      "failed": 0,
+      "incomplete": 0,
+      "processSeconds": 50.8971217,
+      "timeoutSeconds": 300.0
+    }
+  ],
+  "total": 107,
+  "passed": 107,
+  "windowsLauncherTests": {
+    "total": 5,
+    "passed": 5,
+    "realArgvDispatchWithHiddenStub": true
+  },
+  "physicalSmoke": {
+    "numUE": 1,
+    "horizonTicks": 5000,
+    "delivered": 1,
+    "payloadBits": 1600,
+    "pauseResumeChecked": true,
+    "savedCaseVerified": true
+  },
+  "releaseCorrectionsFromAcceptedSnapshot": [
+    "AGENTS.md",
+    "README.md",
+    "RELEASE.md",
+    "src/+nbiot/NBIoTSimulator.m",
+    "tests/TestSavedReportOverview.m"
+  ],
+  "originalWorkspace": {
+    "acceptedFiles": 384,
+    "allAcceptedHashesUnchanged": true,
+    "registryUnchanged": true
+  },
+  "fullSuiteRun": false,
+  "engineeringCoreReady": false,
+  "localReady": false,
+  "externalExperimentComplete": false,
+  "scientificFinalAcceptance": false,
+  "externalAdaptiveAccepted": false,
+  "historicalRunOpenedOrResumed": false,
+  "notes": "Saved 1/100 UE report bytes are inherited from v3. Extracted ZIP checks and final independent review accompany the release as separate assets."
+}

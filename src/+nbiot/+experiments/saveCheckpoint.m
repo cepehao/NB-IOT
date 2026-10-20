@@ -1,5 +1,8 @@
-function path=saveCheckpoint(sim,folder,identity)
+function [path,timing]=saveCheckpoint(sim,folder,identity)
 %SAVECHECKPOINT Atomically publish a read-back-verified simulator snapshot.
+totalClock=tic;
+timing=struct('existingHashSeconds',0,'exportStateSeconds',0,'saveSeconds',0, ...
+    'readbackSeconds',0,'hashSeconds',0,'publishSeconds',0,'totalSeconds',0,'bytes',0);
 if nargin~=3||~isa(sim,'nbiot.NBIoTSimulator')|| ...
         ~(ischar(folder)||(isstring(folder)&&isscalar(folder)))|| ...
         ~isstruct(identity)||~isscalar(identity)
@@ -39,12 +42,17 @@ if isfile(manifestPath)
             continue
         end
         oldPath=fullfile(folder,char(entry.file));
-        if isfile(oldPath)&&strcmp(fileHash(oldPath),char(entry.sha256))
-            entries(end+1)=entry; %#ok<AGROW>
+        if isfile(oldPath)
+            phaseClock=tic;
+            oldHash=fileHash(oldPath);
+            timing.existingHashSeconds=timing.existingHashSeconds+toc(phaseClock);
+            if strcmp(oldHash,char(entry.sha256)), entries(end+1)=entry; end %#ok<AGROW>
         end
     end
 end
+phaseClock=tic;
 state=sim.exportCheckpointState();
+timing.exportStateSeconds=toc(phaseClock);
 if ~isempty(entries)&&state.currentTick<entries(end).tick
     error('nbiot:experiments:CheckpointOrder', ...
         'A checkpoint cannot move behind the newest verified tick.');
@@ -62,11 +70,20 @@ try
         'identitySha256',identitySha256,'tick',double(state.currentTick), ...
         'nextTick',double(state.nextTick),'savedAtUtc',savedAtUtc);
     payload=struct('header',header,'state',state);
+    phaseClock=tic;
     save(temporaryMat,'payload','-v7.3');
+    timing.saveSeconds=toc(phaseClock);
+    phaseClock=tic;
     readback=load(temporaryMat,'payload');
     validatePayload(readback.payload,identitySha256,state.currentTick);
+    timing.readbackSeconds=toc(phaseClock);
+    phaseClock=tic;
     checkpointSha256=fileHash(temporaryMat);
+    timing.hashSeconds=toc(phaseClock);
+    fileInfo=dir(temporaryMat); timing.bytes=double(fileInfo.bytes);
+    phaseClock=tic;
     [ok,message]=movefile(temporaryMat,path);
+    timing.publishSeconds=toc(phaseClock);
     if ~ok
         error('nbiot:experiments:CheckpointWrite', ...
             'Cannot publish checkpoint data: %s',message);
@@ -77,8 +94,10 @@ try
     manifest=struct('manifestVersion',1,'checkpointSchemaVersion',1, ...
         'identity',identity,'identitySha256',identitySha256, ...
         'updatedAtUtc',savedAtUtc,'checkpoints',entries);
+    phaseClock=tic;
     writeJson(temporaryManifest,manifest);
     [ok,message]=movefile(temporaryManifest,manifestPath,'f');
+    timing.publishSeconds=timing.publishSeconds+toc(phaseClock);
     if ~ok
         error('nbiot:experiments:CheckpointWrite', ...
             'Cannot atomically update checkpoint manifest: %s',message);
@@ -101,6 +120,7 @@ for k=1:numel(oldFiles)
         deleteIfPresent(fullfile(folder,oldFiles(k).name));
     end
 end
+timing.totalSeconds=toc(totalClock);
 end
 
 function validatePayload(payload,identitySha256,tick)
@@ -133,13 +153,12 @@ clear cleanup
 end
 
 function digest=fileHash(path)
-fid=fopen(path,'rb');
-if fid<0, error('nbiot:experiments:CheckpointWrite','Cannot read checkpoint data for hashing.'); end
-cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
-bytes=fread(fid,Inf,'*uint8');
-sha=java.security.MessageDigest.getInstance('SHA-256');
-sha.update(typecast(bytes(:),'int8'));
-digest=lower(reshape(dec2hex(typecast(sha.digest(),'uint8'),2).',1,[]));
+try
+    digest=nbiot.ml.fileSha256(path);
+catch exception
+    error('nbiot:experiments:CheckpointWrite', ...
+        'Cannot hash checkpoint data (%s): %s',exception.identifier,exception.message);
+end
 end
 
 function deleteIfPresent(path)

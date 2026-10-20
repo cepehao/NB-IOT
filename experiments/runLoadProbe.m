@@ -12,6 +12,8 @@ plan=struct('scope','variant2-preliminary-load-probe', ...
 if options.designOnly, report=plan; return; end
 
 validateProbeMode(options);
+if isempty(options.runId), options.runId=char(java.util.UUID.randomUUID()); end
+ledgerWriterLease=acquireBudgetLedgerWriterLease(options.budgetLedgerFile); %#ok<NASGU>
 newRun=~options.resume;
 if newRun
     options.outputFolder=prepareOutputFolder(options.outputFolder,root);
@@ -33,6 +35,15 @@ else
     end
 end
 
+if isempty(options.runControlFolder)
+    options.runControlFolder=fileparts(canonicalPath(options.outputFolder));
+else
+    options.runControlFolder=canonicalPath(options.runControlFolder);
+end
+if ~isfolder(options.runControlFolder)
+    error('nbiot:experiments:LoadProbeControl','The scheduler run folder is missing.');
+end
+
 try
     [execution,acceptance,preflight]=validatePreflight(options,root,snapshotPath);
     writeJsonAtomic(fullfile(options.outputFolder,'preflight.json'),preflight);
@@ -52,6 +63,7 @@ if newRun
     syncBudgetLedgerSnapshot(options.outputFolder,options.budgetLedgerFile);
     [realizationId,source]=allocateRealization(options);
     progress=initialProgress(options,preflight,realizationId,source);
+    progress.runId=options.runId;
     progress.status='allocation-pending'; progress.phase='allocation-pending';
     writeProgress(progressPath,progress);
     nbiot.experiments.registerRealizationUse(options.registryFile, ...
@@ -67,6 +79,7 @@ else
         progress.activeCase=emptyActiveCase();
     end
     validateResumeState(progress,options,preflight,snapshotPath);
+    progress.runId=options.runId;
     realizationId=double(progress.realizationId);
     ledger=nbiot.experiments.loadVariant2BudgetLedger(options.budgetLedgerFile,false);
     [progress,ledger]=settleInterruptedCase(progress,ledger,options,progressPath);
@@ -85,6 +98,7 @@ if ismember(progress.status,{'preliminary-completed','test-only-completed'})
     return
 end
 
+runId=options.runId;
 clockRun=tic;
 while ~isempty(progress.pendingCounts)
     count=progress.pendingCounts(1);
@@ -96,15 +110,32 @@ while ~isempty(progress.pendingCounts)
         writeProgress(progressPath,progress);
         break
     end
+    if stopAfterCaseRequested(options,runId)
+        progress.status='paused'; progress.phase='paused';
+        progress.budgetElapsedSeconds=ledger.elapsedSeconds;
+        progress.updatedAtUtc=utcNow();
+        writeProgress(progressPath,progress);
+        break
+    end
 
     cfg=loadCaseConfig(count,realizationId,options);
     runtimeOptions=runtimeManifestOptions(options,root);
     identity=nbiot.experiments.runtimeManifest(cfg,runtimeOptions);
+    if stopAfterCaseRequested(options,runId)
+        progress.status='paused'; progress.phase='paused';
+        progress.budgetElapsedSeconds=ledger.elapsedSeconds;
+        progress.updatedAtUtc=utcNow();
+        writeProgress(progressPath,progress);
+        break
+    end
     caseFolder=fullfile(options.outputFolder,sprintf('n%05d-id%04d',count,realizationId));
     startedAt=utcNow(); wallClock=tic;
-    active=struct('caseKey',identity.caseKey,'numUE',count, ...
+    attemptId=char(java.util.UUID.randomUUID());
+    active=struct('runId',runId,'attemptId',attemptId, ...
+        'caseKey',identity.caseKey,'numUE',count, ...
         'startedAtUtc',startedAt,'lastProgressAtUtc',startedAt, ...
-        'runFolder',options.outputFolder);
+        'runFolder',options.runControlFolder);
+    ledger=beginBudgetAttempt(ledger,active);
     ledger.activeCase=active;
     ledger.pendingCases=progress.pendingCounts;
     ledger.phaseTimes(end+1)=phaseRecord('stage-3-load-probe',startedAt,'',0,identity.caseKey);
@@ -176,6 +207,13 @@ while ~isempty(progress.pendingCounts)
                 syncBudgetLedgerSnapshot(options.outputFolder,options.budgetLedgerFile);
             end
         end
+        if ~isempty(progress.pendingCounts)&&stopAfterCaseRequested(options,runId)
+            progress.status='paused'; progress.phase='paused';
+            progress.updatedAtUtc=utcNow();
+            writeWorkerProgress(options.outputFolder,'paused',5000,caseRecord.caseKey);
+            saveProgressAndSummary(progressPath,options.outputFolder,progress,plan);
+            break;
+        end
     catch exception
         wallSeconds=toc(wallClock);
         ledger=finishBudgetCase(ledger,active,wallSeconds,'needs-attention');
@@ -222,6 +260,60 @@ report=makeReport(progress,plan);
 writeSummary(options.outputFolder,report);
 end
 
+function ledgerWriterLease=acquireBudgetLedgerWriterLease(ledgerPath)
+lockPath=[char(ledgerPath) '.writer.lock'];
+leaseFile=[]; channel=[];
+try
+    leaseFile=java.io.RandomAccessFile(lockPath,'rw');
+    channel=leaseFile.getChannel();
+    fileLock=channel.tryLock();
+catch exception
+    closeBudgetLedgerLeaseHandles(channel,leaseFile);
+    leaseError=MException('nbiot:experiments:LoadProbeLedgerLease', ...
+        'Could not acquire budget-ledger writer lease %s: %s',lockPath,exception.message);
+    leaseError=addCause(leaseError,exception);
+    throw(leaseError);
+end
+if isempty(fileLock)
+    closeBudgetLedgerLeaseHandles(channel,leaseFile);
+    error('nbiot:experiments:LoadProbeLedgerLease', ...
+        'Budget-ledger writer lease is held by another process: %s',lockPath);
+end
+ledgerWriterLease=onCleanup(@() releaseBudgetLedgerWriterLease(fileLock,channel,leaseFile));
+end
+
+function releaseBudgetLedgerWriterLease(fileLock,channel,leaseFile)
+cleanupMessage='';
+try
+    if fileLock.isValid(), fileLock.release(); end
+catch exception
+    cleanupMessage=exception.message;
+end
+try
+    channel.close();
+catch exception
+    if isempty(cleanupMessage), cleanupMessage=exception.message; end
+end
+try
+    leaseFile.close();
+catch exception
+    if isempty(cleanupMessage), cleanupMessage=exception.message; end
+end
+if ~isempty(cleanupMessage)
+    warning('nbiot:experiments:LoadProbeLeaseCleanup', ...
+        'Could not cleanly release the budget-ledger writer lease: %s',cleanupMessage);
+end
+end
+
+function closeBudgetLedgerLeaseHandles(channel,leaseFile)
+if ~isempty(channel)
+    try, channel.close(); catch, end
+end
+if ~isempty(leaseFile)
+    try, leaseFile.close(); catch, end
+end
+end
+
 function options=loadProbeOptions(value,root)
 defaults=struct('designOnly',false,'counts',[100 500 1000 2500], ...
     'outputFolder','','stage2AcceptanceFile',fullfile(root,'verification', ...
@@ -232,7 +324,8 @@ defaults=struct('designOnly',false,'counts',[100 500 1000 2500], ...
     'maxUE',2500,'maxCaseSeconds',57600,'maxSuiteSeconds',57600, ...
     'timePolicy','finish-current'),'resume',false,'budgetLedgerFile','', ...
     'testMode',false,'runner',[],'runnerFiles',{{}},'runnerInputs',struct(), ...
-    'runnerDependenciesDeclared',false,'memoryRootFolder','');
+    'runnerDependenciesDeclared',false,'memoryRootFolder','', ...
+    'runId','','runControlFolder','');
 if ~isstruct(value)||~isscalar(value)
     error('nbiot:experiments:LoadProbeOptions','Options must be a scalar structure.');
 end
@@ -253,7 +346,8 @@ for k=1:numel(flags)
         error('nbiot:experiments:LoadProbeOptions','%s must be a scalar logical.',flags{k});
     end
 end
-paths={'outputFolder','stage2AcceptanceFile','calibrationFile','registryFile','budgetLedgerFile'};
+paths={'outputFolder','stage2AcceptanceFile','calibrationFile','registryFile', ...
+    'budgetLedgerFile','runControlFolder'};
 for k=1:numel(paths)
     if ~(ischar(options.(paths{k}))||(isstring(options.(paths{k}))&&isscalar(options.(paths{k}))))
         error('nbiot:experiments:LoadProbeOptions','%s must be a character vector or scalar string.',paths{k});
@@ -265,6 +359,10 @@ if ~(ischar(options.memoryRootFolder)||(isstring(options.memoryRootFolder)&&issc
         'memoryRootFolder must be a character vector or scalar string.');
 end
 options.memoryRootFolder=char(options.memoryRootFolder);
+if ~(ischar(options.runId)||(isstring(options.runId)&&isscalar(options.runId)))
+    error('nbiot:experiments:LoadProbeOptions','runId must be a character vector or scalar string.');
+end
+options.runId=char(options.runId);
 if isempty(options.memoryRootFolder), options.memoryRootFolder=options.outputFolder; end
 if isempty(options.budgetLedgerFile)
     options.budgetLedgerFile=fullfile(root,'verification','completion', ...
@@ -283,9 +381,10 @@ if options.testMode
         error('nbiot:experiments:LoadProbeTestRunner', ...
             'Test mode requires a registered runner and its defining file.');
     end
-    if isempty(options.outputFolder)||~insideTemp(options.outputFolder)|| ...
+        if isempty(options.outputFolder)||~insideTemp(options.outputFolder)|| ...
             ~insideTemp(options.registryFile)||isempty(options.budgetLedgerFile)|| ...
-            ~insideTemp(options.budgetLedgerFile)||~insideTemp(options.memoryRootFolder)
+            ~insideTemp(options.budgetLedgerFile)||~insideTemp(options.memoryRootFolder)|| ...
+            (~isempty(options.runControlFolder)&&~insideTemp(options.runControlFolder))
         error('nbiot:experiments:LoadProbeTestRunner', ...
             'Test mode output, registry and budget ledger must be isolated under tempdir.');
     end
@@ -484,8 +583,10 @@ if ~isempty(progress.caseRecords)
 end
 if ~isempty(completed)
     seconds=double(progress.caseRecords(completed).wallSeconds);
+    attemptStatus='completed';
 else
     seconds=0;
+    attemptStatus='interrupted';
     workerProgress=fullfile(options.outputFolder,'worker-progress.json');
     if isfile(workerProgress)
         worker=readJson(workerProgress,'nbiot:experiments:LoadProbeResume');
@@ -495,9 +596,7 @@ else
         end
     end
 end
-ledger.elapsedSeconds=ledger.elapsedSeconds+seconds;
-ledger=closeBudgetPhase(ledger,char(string(active.caseKey)),utcNow(),seconds);
-ledger.activeCase=emptyActiveCase();
+ledger=finishBudgetCase(ledger,active,seconds,attemptStatus);
 ledger.pendingCases=progress.pendingCounts;
 nbiot.experiments.saveVariant2BudgetLedger(options.budgetLedgerFile,ledger);
 progress.activeCase=emptyActiveCase(); progress.updatedAtUtc=utcNow();
@@ -626,8 +725,8 @@ record=struct('numUE',0,'realizationId',0,'status','','caseKey','','caseFolder',
 end
 
 function active=emptyActiveCase()
-active=struct('caseKey','','numUE',0,'startedAtUtc','','lastProgressAtUtc','', ...
-    'runFolder','');
+active=struct('runId','','attemptId','','caseKey','','numUE',0, ...
+    'startedAtUtc','','lastProgressAtUtc','','runFolder','');
 end
 
 function yes=isActiveCase(value)
@@ -707,8 +806,51 @@ record=struct('phase',phase,'startedAtUtc',started,'finishedAtUtc',finished, ...
     'elapsedSeconds',seconds,'caseKey',key);
 end
 
+function ledger=beginBudgetAttempt(ledger,active)
+ledger.accountingVersion=2;
+if ~isfield(ledger,'attempts')||isempty(ledger.attempts)
+    ledger.attempts=emptyBudgetAttempts();
+end
+if any(strcmp({ledger.attempts.attemptId},char(string(active.attemptId))))
+    error('nbiot:experiments:LoadProbeAttempt','Attempt UUID already exists in the budget ledger.');
+end
+attempt=struct('attemptId',char(string(active.attemptId)), ...
+    'runId',char(string(active.runId)),'caseKey',char(string(active.caseKey)), ...
+    'startedAtUtc',char(string(active.startedAtUtc)),'finishedAtUtc','', ...
+    'status','active','observedSeconds',0,'chargedSeconds',0, ...
+    'processReportSha256','');
+ledger.attempts(end+1)=attempt;
+end
+
+function attempts=emptyBudgetAttempts()
+attempts=struct('attemptId',{},'runId',{},'caseKey',{},'startedAtUtc',{}, ...
+    'finishedAtUtc',{},'status',{},'observedSeconds',{},'chargedSeconds',{}, ...
+    'processReportSha256',{});
+end
+
 function ledger=finishBudgetCase(ledger,active,seconds,status)
-ledger.elapsedSeconds=ledger.elapsedSeconds+seconds;
+seconds=double(seconds);
+delta=seconds;
+hasAttempt=isfield(active,'attemptId')&&~isempty(char(string(active.attemptId)));
+if hasAttempt
+    if ~isfield(ledger,'attempts')||isempty(ledger.attempts)
+        error('nbiot:experiments:LoadProbeAttempt', ...
+            'The budget ledger has no row for the active case attempt.');
+    end
+    matches=find(strcmp({ledger.attempts.attemptId},char(string(active.attemptId))));
+    if numel(matches)~=1
+        error('nbiot:experiments:LoadProbeAttempt', ...
+            'The active case attempt is missing or duplicated in the budget ledger.');
+    end
+    index=matches(1); attempt=ledger.attempts(index);
+    chargedSeconds=double(attempt.chargedSeconds);
+    delta=max(0,seconds-chargedSeconds);
+    attempt.observedSeconds=max(double(attempt.observedSeconds),seconds);
+    attempt.chargedSeconds=max(chargedSeconds,seconds);
+    attempt.finishedAtUtc=utcNow(); attempt.status=status;
+    ledger.attempts(index)=attempt;
+end
+ledger.elapsedSeconds=ledger.elapsedSeconds+delta;
 ledger=closeBudgetPhase(ledger,char(string(active.caseKey)),utcNow(),seconds);
 ledger.activeCase=emptyActiveCase();
 ledger.pendingCases=[]; ledger.lastCaseStatus=status;
@@ -809,6 +951,22 @@ function writeWorkerProgress(folder,phase,tick,lastCheckpoint)
 path=fullfile(folder,'worker-progress.json');
 writeJsonAtomic(path,struct('phase',phase,'currentTick',tick, ...
     'lastCheckpoint',lastCheckpoint,'updatedAtUtc',utcNow()));
+end
+
+function requested=stopAfterCaseRequested(options,runId)
+requested=false;
+markerPath=fullfile(options.runControlFolder,'stop-after-case.request.json');
+if ~isfile(markerPath), return; end
+marker=readJson(markerPath,'nbiot:experiments:LoadProbeControl');
+required={'schemaVersion','requestId','runId','action'};
+if ~isstruct(marker)||~isscalar(marker)||~all(isfield(marker,required))|| ...
+        double(marker.schemaVersion)~=1||isempty(char(string(marker.requestId)))|| ...
+        ~strcmp(char(string(marker.action)),'stop-after-case')|| ...
+        isempty(char(string(marker.runId)))
+    error('nbiot:experiments:LoadProbeControl', ...
+        'The stop-after-case marker is malformed or unsupported.');
+end
+requested=strcmp(char(string(marker.runId)),runId);
 end
 
 function syncBudgetLedgerSnapshot(outputFolder,sharedLedger)

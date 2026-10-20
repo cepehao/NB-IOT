@@ -25,25 +25,59 @@ ids=validateAssignments(options.idAssignments,registry);
 
 methods=string(options.caseMatrix.method);
 adaptive=any(ismember(methods,["Adaptive-P","Adaptive-RA/DT"]));
-model=struct('included',false,'path','','sha256','','packagePath','');
+model=struct('included',false,'path','','sha256','','packagePath', ...
+    '','sidecarPath','','sidecarSha256','','sidecarPackagePath','');
 modelFile='';
+modelSidecarFile='';
+acceptanceFile=''; acceptance=struct(); evidenceRefs=emptyEvidenceRefs();
+if isfield(options,'modelAcceptanceFile')&&~isempty(options.modelAcceptanceFile)
+    acceptanceFile=resolveFile(root,options.modelAcceptanceFile,'ModelAcceptance');
+    [acceptance,evidenceRefs]=readAcceptanceReferences(root,acceptanceFile);
+end
 if isfield(options,'modelFile')&&~isempty(options.modelFile)
     modelFile=resolveFile(root,options.modelFile,'Model');
+elseif ~isempty(acceptanceFile)
+    modelFile=acceptanceModelPath(root,acceptanceFile,acceptance);
+end
+if isempty(modelFile)&&adaptive
+    error('nbiot:externalRun:Model','Adaptive scenarios require an explicit model package.');
+end
+if ~isempty(modelFile)
     modelHash=nbiot.ml.fileSha256(modelFile);
     if isfield(options,'expectedModelSha256')&&~sameHash(modelHash,options.expectedModelSha256)
         error('nbiot:externalRun:ModelHash','Model hash does not match the declared value.');
     end
-    model=struct('included',true,'path',relative(root,modelFile),'sha256',modelHash, ...
-        'packagePath','project/artifacts/load-model.mat');
-elseif adaptive
-    error('nbiot:externalRun:Model','Adaptive scenarios require an explicit model package.');
+    modelSidecarFile=modelSidecar(modelFile,modelHash);
+    modelRel=relative(root,modelFile);
+    sidecarRel=relative(root,modelSidecarFile);
+    if ~isempty(acceptanceFile)
+        acceptedModel=acceptanceModelPath(root,acceptanceFile,acceptance);
+        if ~strcmpi(modelFile,acceptedModel)
+            error('nbiot:externalRun:ModelAcceptance', ...
+                'The selected model does not match the model referenced by acceptance.');
+        end
+    end
+    model=struct('included',true,'path',modelRel,'sha256',modelHash, ...
+        'packagePath',['project/' modelRel], ...
+        'sidecarPath',sidecarRel, ...
+        'sidecarSha256',nbiot.ml.fileSha256(modelSidecarFile), ...
+        'sidecarPackagePath',['project/' sidecarRel]);
+end
+if ~isempty(acceptanceFile)
+    validateAcceptanceModelBinding(root,acceptanceFile,acceptance,modelFile,modelSidecarFile);
 end
 resumeCase='';
 if isfield(options,'resumePath')&&~isempty(options.resumePath)
     resumeCase=validateResume(root,options.resumePath);
 end
 
-files=sourceFiles(root);
+files=sourceFiles(root,registryFile);
+preserveFiles={relative(root,calibration),relative(root,registryFile)};
+if ~isempty(modelFile), preserveFiles=[preserveFiles,{model.path,model.sidecarPath}]; end
+if ~isempty(acceptanceFile)
+    preserveFiles{end+1}=relative(root,acceptanceFile); %#ok<AGROW>
+    preserveFiles=[preserveFiles,{evidenceRefs.path}];
+end
 staging=fullfile(fileparts(outputFolder), ...
     ['.package-staging-' char(java.util.UUID.randomUUID())]);
 [ok,message]=mkdir(staging);
@@ -57,7 +91,7 @@ for k=1:numel(files)
     parent=fileparts(destination);
     if ~isfolder(parent), mkdir(parent); end
     [~,~,ext]=fileparts(source); sanitized=false;
-    if isText(ext)
+    if isText(ext)&&~isCode(ext)&&~any(strcmpi(rel,preserveFiles))
         [contents,sanitized]=sanitize(fileread(source),root);
         writeText(destination,contents);
     else
@@ -70,9 +104,42 @@ for k=1:numel(files)
 end
 
 calibrationRel=relative(root,calibration);
-copyArtifact(calibration,fullfile(staging,'project',strrep(calibrationRel,'/',filesep)));
+calibrationPackagePath=['project/' calibrationRel];
+copyArtifact(calibration,fullfile(staging,strrep(calibrationPackagePath,'/',filesep)));
+registryRel=relative(root,registryFile);
+registryPackagePath=['project/' registryRel];
+copyArtifact(registryFile,fullfile(staging,strrep(registryPackagePath,'/',filesep)));
 if model.included
-    copyArtifact(modelFile,fullfile(staging,'project','artifacts','load-model.mat'));
+    copyArtifact(modelFile,fullfile(staging,strrep(model.packagePath,'/',filesep)));
+    copyArtifact(modelSidecarFile,fullfile(staging,strrep(model.sidecarPackagePath,'/',filesep)));
+end
+evidenceEntries=emptyEvidenceEntries();
+modelAcceptance=struct('included',false,'path','','sha256','','packagePath', ...
+    '','packageSha256','','status','','evidenceKind','','references',evidenceEntries);
+if ~isempty(acceptanceFile)
+    acceptanceRel=relative(root,acceptanceFile);
+    acceptancePackagePath=['project/' acceptanceRel];
+    copyArtifact(acceptanceFile,fullfile(staging,strrep(acceptancePackagePath,'/',filesep)));
+    modelAcceptance=struct('included',true,'path',acceptanceRel, ...
+        'sha256',nbiot.ml.fileSha256(acceptanceFile), ...
+        'packagePath',acceptancePackagePath, ...
+        'packageSha256',nbiot.ml.fileSha256(fullfile(staging,strrep(acceptancePackagePath,'/',filesep))), ...
+        'status',textField(acceptance,'status'), ...
+        'evidenceKind',textField(acceptance,'evidenceKind'), ...
+        'references',evidenceEntries);
+    evidenceEntries=repmat(struct('name','','path','','sha256','', ...
+        'packagePath','','packageSha256',''),numel(evidenceRefs),1);
+    for k=1:numel(evidenceRefs)
+        packagePath=['project/' evidenceRefs(k).path];
+        source=evidenceRefs(k).source;
+        destination=fullfile(staging,strrep(packagePath,'/',filesep));
+        copyArtifact(source,destination);
+        evidenceEntries(k)=struct('name',evidenceRefs(k).name, ...
+            'path',evidenceRefs(k).path,'sha256',evidenceRefs(k).sha256, ...
+            'packagePath',packagePath, ...
+            'packageSha256',nbiot.ml.fileSha256(destination));
+    end
+    modelAcceptance.references=evidenceEntries;
 end
 if isempty(ids)
     idRows=struct('externalRealizationId',{},'role',{});
@@ -89,11 +156,13 @@ manifest=struct('schemaVersion',1,'createdAtUtc',char(created), ...
     'projectRevision','working-tree-snapshot','matlabRelease',version('-release'), ...
     'codeFiles',entries,'codeManifestSha256',sha256Text(jsonencode(entries)), ...
     'calibration',struct('path',calibrationRel,'sha256',calibrationHash, ...
-        'packagePath',['project/' calibrationRel]), ...
+        'packagePath',calibrationPackagePath), ...
     'model',model,'caseMatrix',table2struct(options.caseMatrix), ...
     'idAssignments',idRows,'registry',struct( ...
         'path',relative(root,registryFile),'sha256',nbiot.ml.fileSha256(registryFile), ...
+        'packagePath',registryPackagePath, ...
         'writerPolicy','External machine must be the only writer; this package does not reserve IDs.'), ...
+    'modelAcceptance',modelAcceptance,'evidenceFiles',evidenceEntries, ...
     'resourceBudget',resourceBudget,'resourceStatus',resourceStatus, ...
     'resumeCase',resumeCase,'requiresStage2Revalidation',true, ...
     'resumePolicy','Reuse only verifyCase-passing completed cases; .staging folders are not checkpoints.', ...
@@ -102,13 +171,12 @@ manifest=struct('schemaVersion',1,'createdAtUtc',char(created), ...
         'results except named artifacts', ...
         '.git','.env files','credentials and private keys'}}, ...
     'expectedCommands',{{'setupProject();', ...
-        'Run verification/completion/stage-2/runStage2Physical.ps1 -TargetedOnly; retain its 38/38 journal.', ...
-        'Run the fresh Stage 2 physical matrix with scheduled-local, realizationSeed=43, and finish-current under the shared 57600-second budget.', ...
-        'Resume the same physical run with runStage2Physical.ps1 -Resume -RunFolder <absolute path>; do not start a duplicate worker.', ...
-        'Create a fresh acceptance with acceptStage2Evidence after technical review.', ...
-        'Start the four-count preliminary probe with verification/completion/stage-3/runVariant2.ps1 -Execute.', ...
-        'Resume the same run with runVariant2.ps1 -Resume -RunFolder <absolute path>; do not start a duplicate worker.'}});
+        'Unpack the draft and run verification/external/validateExternalPreflight.m against its package root.', ...
+        'This draft does not authorize experiment stages; use the separately approved external-stage workflow after its gates are met.'}});
 writeText(fullfile(staging,'manifest.json'),jsonencode(manifest));
+if hasExternalStageWorkflow(root)
+    writeExternalStageWorkflow(staging,root,manifest,options);
+end
 [ok,message]=movefile(staging,outputFolder);
 if ~ok, error('nbiot:externalRun:Write','Could not finalize the handoff folder: %s',message); end
 clear cleanup
@@ -137,6 +205,157 @@ if isAbsolute(value)||contains(value,'..')||contains(value,':')
 end
 path=canonicalPath(fullfile(root,strrep(value,'/',filesep)));
 if ~isWithin(root,path)||~isfile(path), error(identifier,'%s file is missing or outside the project.',kind); end
+end
+
+function [acceptance,refs]=readAcceptanceReferences(root,acceptanceFile)
+try
+    acceptance=jsondecode(fileread(acceptanceFile));
+catch exception
+    error('nbiot:externalRun:ModelAcceptance', ...
+        'Model acceptance file is not valid JSON: %s',exception.message);
+end
+required={'schemaVersion','status','evidenceKind','model','modelSidecar', ...
+    'dataset','datasetManifest','datasetArtifacts','trainingManifest','metrics', ...
+    'sourceManifest','calibration','registry','policy','protocol','evaluation'};
+if ~isstruct(acceptance)||~isscalar(acceptance)||~all(isfield(acceptance,required))|| ...
+        ~strcmp(textField(acceptance,'schemaVersion'),'model-acceptance-v1')
+    error('nbiot:externalRun:ModelAcceptance', ...
+        'Acceptance must use the complete model-acceptance-v1 evidence schema.');
+end
+if ~ismember(textField(acceptance,'status'),{'candidate','accepted','rejected'})
+    error('nbiot:externalRun:ModelAcceptance','Acceptance status is unsupported.');
+end
+refs=collectAcceptanceRefs(acceptance,'');
+requiredNames=required(4:end);
+if ~all(ismember(requiredNames,{refs.name}))
+    error('nbiot:externalRun:ModelAcceptance', ...
+        'Acceptance is missing a required D2/D4 evidence reference.');
+end
+acceptanceFolder=fileparts(acceptanceFile);
+for k=1:numel(refs)
+    value=refs(k).path;
+    if isAbsolute(value)||contains(value,':')|| ...
+            any(strcmp(split(strrep(value,'\','/'),'/'),'..'))
+        error('nbiot:externalRun:ModelAcceptance', ...
+            'An acceptance reference is not a package-relative path.');
+    end
+    source=canonicalPath(fullfile(acceptanceFolder,strrep(value,'/',filesep)));
+    if ~isWithin(root,source)||~isfile(source)
+        error('nbiot:externalRun:ModelAcceptance', ...
+            'Required acceptance evidence is missing or outside the project: %s.',refs(k).name);
+    end
+    if ~sameHash(nbiot.ml.fileSha256(source),refs(k).sha256)
+        error('nbiot:externalRun:ModelAcceptance', ...
+            'Required acceptance evidence checksum differs: %s.',refs(k).name);
+    end
+    refs(k).path=relative(root,source);
+    refs(k).source=source;
+end
+end
+
+function refs=collectAcceptanceRefs(value,prefix)
+refs=emptyEvidenceRefs();
+if isstruct(value)&&isscalar(value)&&all(isfield(value,{'file','sha256'}))
+    name=prefix;
+    if isempty(name), name='reference'; end
+    file=textValue(value.file,'acceptance reference file');
+    hash=textValue(value.sha256,'acceptance reference hash');
+    refs=struct('name',name,'path',file,'sha256',hash,'source','');
+elseif isstruct(value)
+    fields=fieldnames(value);
+    for k=1:numel(fields)
+        child=value.(fields{k});
+        childPrefix=fields{k};
+        if ~isempty(prefix), childPrefix=[prefix '.' childPrefix]; end
+        nested=collectAcceptanceRefs(child,childPrefix);
+        refs=[refs;nested(:)]; %#ok<AGROW>
+    end
+elseif iscell(value)
+    for k=1:numel(value)
+        nested=collectAcceptanceRefs(value{k},prefix);
+        refs=[refs;nested(:)]; %#ok<AGROW>
+    end
+end
+end
+
+function path=acceptanceModelPath(root,acceptanceFile,acceptance)
+if ~isfield(acceptance,'model')||~isstruct(acceptance.model)|| ...
+        ~all(isfield(acceptance.model,{'file','sha256'}))
+    error('nbiot:externalRun:ModelAcceptance','Acceptance has no model file reference.');
+end
+value=textValue(acceptance.model.file,'acceptance model file');
+if isAbsolute(value)||contains(value,':')|| ...
+        any(strcmp(split(strrep(value,'\','/'),'/'),'..'))
+    error('nbiot:externalRun:ModelAcceptance','Acceptance model reference is not relative.');
+end
+path=canonicalPath(fullfile(fileparts(acceptanceFile),strrep(value,'/',filesep)));
+if ~isWithin(root,path)||~isfile(path)
+    error('nbiot:externalRun:ModelAcceptance','Acceptance model file is missing or outside the project.');
+end
+end
+
+function path=modelSidecar(modelFile,modelHash)
+[folder,base,extension]=fileparts(modelFile);
+if ~strcmpi(extension,'.mat')
+    error('nbiot:externalRun:ModelBundle','Adaptive model must be a MAT file.');
+end
+path=fullfile(folder,[base '.json']);
+if ~isfile(path)
+    error('nbiot:externalRun:ModelBundle', ...
+        'Model MAT requires its same-name JSON sidecar.');
+end
+try
+    sidecar=jsondecode(fileread(path));
+catch exception
+    error('nbiot:externalRun:ModelBundle', ...
+        'Model JSON sidecar is not valid JSON: %s',exception.message);
+end
+if ~isstruct(sidecar)||~isscalar(sidecar)|| ...
+        ~all(isfield(sidecar,{'artifactFile','artifactSha256'}))|| ...
+        ~strcmp(textValue(sidecar.artifactFile,'sidecar artifactFile'),[base extension])|| ...
+        ~sameHash(modelHash,sidecar.artifactSha256)
+    error('nbiot:externalRun:ModelBundle', ...
+        'Model sidecar must name and hash the selected MAT file.');
+end
+end
+
+function validateAcceptanceModelBinding(root,acceptanceFile,acceptance,modelFile,sidecarFile)
+acceptedModel=acceptanceModelPath(root,acceptanceFile,acceptance);
+if isempty(modelFile)||~strcmpi(modelFile,acceptedModel)
+    error('nbiot:externalRun:ModelAcceptance', ...
+        'The selected model does not match the model referenced by acceptance.');
+end
+if ~isfield(acceptance,'modelSidecar')|| ...
+        ~isstruct(acceptance.modelSidecar)||~isfield(acceptance.modelSidecar,'file')
+    error('nbiot:externalRun:ModelAcceptance','Acceptance has no model sidecar reference.');
+end
+value=textValue(acceptance.modelSidecar.file,'acceptance model sidecar file');
+acceptedSidecar=canonicalPath(fullfile(fileparts(acceptanceFile),strrep(value,'/',filesep)));
+if ~isWithin(root,acceptedSidecar)||~strcmpi(acceptedSidecar,sidecarFile)
+    error('nbiot:externalRun:ModelAcceptance', ...
+        'The selected model sidecar does not match acceptance.');
+end
+end
+
+function value=textField(item,name)
+if ~isfield(item,name), error('nbiot:externalRun:ModelAcceptance','Acceptance field is missing: %s.',name); end
+value=textValue(item.(name),name);
+end
+
+function value=textValue(value,name)
+if isstring(value)&&isscalar(value), value=char(value); end
+if ~ischar(value)||size(value,1)~=1||isempty(value)
+    error('nbiot:externalRun:ModelAcceptance','%s must be nonempty scalar text.',name);
+end
+end
+
+function refs=emptyEvidenceRefs()
+refs=repmat(struct('name','','path','','sha256','','source',''),0,1);
+end
+
+function entries=emptyEvidenceEntries()
+entries=repmat(struct('name','','path','','sha256','','packagePath','', ...
+    'packageSha256',''),0,1);
 end
 
 function validateCaseMatrix(value)
@@ -261,7 +480,38 @@ end
 path=value;
 end
 
-function files=sourceFiles(root)
+function files=sourceFiles(root,registryFile)
+registryRelative=relative(root,registryFile);
+requiredExternalSources={ ...
+    'verification/external/validateExternalPreflight.m', ...
+    'src/+nbiot/+ml/fileSha256.m'};
+for k=1:numel(requiredExternalSources)
+    source=fullfile(root,strrep(requiredExternalSources{k},'/',filesep));
+    if ~isfile(source)
+        error('nbiot:externalRun:PreflightSource', ...
+            'Required portable preflight source is missing: %s.',requiredExternalSources{k});
+    end
+end
+stageWorkflowSources={ ...
+    'verification/external/runExternalStages.ps1', ...
+    'verification/external/testExternalStages.ps1', ...
+    'verification/external/external-stages.schema.json', ...
+    'verification/external/runExternalStage.m', ...
+    'verification/external/validateExternalComparisonMatrix.m', ...
+    'docs/external-runbook.md'};
+stageFlags=cellfun(@(item)isfile(fullfile(root,strrep(item,'/',filesep))), ...
+    stageWorkflowSources);
+boundedProcessSources={ ...
+    'verification/local/InvokeBoundedProcess.ps1', ...
+    'verification/local/OwnedProcessJob.cs'};
+hasBoundedProcessSources=cellfun(@(item)isfile(fullfile(root, ...
+    strrep(item,'/',filesep))),boundedProcessSources);
+if any(stageFlags)&&(~all(stageFlags)||~all(hasBoundedProcessSources))
+    error('nbiot:externalRun:StageWorkflow', ...
+        ['The external-stage workflow is incomplete; include the runner, tests, schema, ' ...
+        'dispatcher, comparison matrix validator, bounded process supervisor and its ' ...
+        'OwnedProcessJob source, and runbook together.']);
+end
 folders={'apps','configs','docs','examples','experiments','src','tests'};
 files={'README.md','setupProject.m'};
 if isfile(fullfile(root,'AGENTS.md')), files{end+1}='AGENTS.md'; end
@@ -276,7 +526,9 @@ for k=1:numel(folders)
         [~,~,ext]=fileparts(full);
         if ~ismember(lower(ext),{'.m','.md','.json','.txt'}), continue; end
         rel=relative(root,full);
-        if ~isUnsafe(rel), files{end+1}=rel; end %#ok<AGROW>
+        if ~isUnsafe(rel)&&~strcmpi(rel,registryRelative)
+            files{end+1}=rel; %#ok<AGROW>
+        end
     end
 end
 stage2Folder=fullfile(root,'verification','completion','stage-2');
@@ -293,13 +545,101 @@ runnerSources={ ...
     'verification/completion/stage-3/runLoadPilot.ps1', ...
     'verification/local/InvokeScheduledProcess.ps1', ...
     'verification/local/InvokeBoundedProcess.ps1', ...
+    'verification/external/validateExternalPreflight.m', ...
     'verification/local/OwnedProcessJob.cs'};
+if all(stageFlags), runnerSources=[runnerSources,stageWorkflowSources(1:5)]; end
 for k=1:numel(runnerSources)
     if isfile(fullfile(root,strrep(runnerSources{k},'/',filesep)))
         files{end+1}=runnerSources{k}; %#ok<AGROW>
     end
 end
 files=sort(unique(files));
+end
+
+function yes=hasExternalStageWorkflow(root)
+paths={ ...
+    'verification/external/runExternalStages.ps1', ...
+    'verification/external/testExternalStages.ps1', ...
+    'verification/external/external-stages.schema.json', ...
+    'verification/external/runExternalStage.m', ...
+    'verification/external/validateExternalComparisonMatrix.m', ...
+    'docs/external-runbook.md'};
+flags=cellfun(@(item)isfile(fullfile(root,strrep(item,'/',filesep))),paths);
+hasBoundedProcessSource=isfile(fullfile(root,'verification','local', ...
+    'InvokeBoundedProcess.ps1'));
+hasOwnedProcessJob=isfile(fullfile(root,'verification','local', ...
+    'OwnedProcessJob.cs'));
+if any(flags)&&(~all(flags)||~hasBoundedProcessSource||~hasOwnedProcessJob)
+    error('nbiot:externalRun:StageWorkflow', ...
+        ['The external-stage workflow is incomplete; include the runner, tests, schema, ' ...
+        'dispatcher, bounded process supervisor and its OwnedProcessJob source, and runbook together.']);
+end
+yes=all(flags);
+end
+
+function writeExternalStageWorkflow(staging,root,manifest,options)
+names={'validate','pilot','data','assemble','train','freeze','evaluate', ...
+    'admit','compare','summarize'};
+dependencies={ {},{'validate'},{'pilot'},{'data'},{'assemble'}, ...
+    {'train'},{'freeze'},{'evaluate'},{'admit'},{'compare'} };
+template=struct('name','','dependencies',{{}},'command',struct(), ...
+    'inputs',struct([]),'outputs',struct([]),'executionBudget',struct(), ...
+    'requiredDecision','','configuration',struct(),'status','not-started','inputDigest','', ...
+    'outputDigest','','reportPath','','registryInputDigest','','worker',[]);
+stages=repmat(template,1,numel(names));
+manifestPath=fullfile(staging,'manifest.json');
+manifestHash=nbiot.ml.fileSha256(manifestPath);
+if isfield(options,'stageOptions')
+    if ~isstruct(options.stageOptions)||~isscalar(options.stageOptions)|| ...
+            ~all(ismember(fieldnames(options.stageOptions),names))
+        error('nbiot:externalRun:StageOptions', ...
+            'stageOptions must be a scalar structure with only supported stage names.');
+    end
+else
+    options.stageOptions=struct();
+end
+for k=1:numel(names)
+    name=names{k};
+    arguments={'-batch',sprintf("report=runExternalStage(pwd,'%s');",name)};
+    decision='';
+    if strcmp(name,'validate'), decision='stage-2-technical-review'; end
+    if strcmp(name,'pilot'), decision='professor-approval-for-5000-UE-load-pilot'; end
+    if strcmp(name,'admit'), decision='model-acceptance-review'; end
+    configuration=struct();
+    if isfield(options.stageOptions,name)
+        configuration=options.stageOptions.(name);
+        if ~isstruct(configuration)||~isscalar(configuration)
+            error('nbiot:externalRun:StageOptions', ...
+                'Each stage configuration must be a scalar structure.');
+        end
+        try, configuration=jsondecode(jsonencode(configuration));
+        catch exception
+            error('nbiot:externalRun:StageOptions', ...
+                'Stage configuration is not portable JSON: %s',exception.message);
+        end
+        encoded=jsonencode(configuration);
+        if contains(encoded,root)||~isempty(regexp(encoded,'(?i)[A-Z]:[\\/]|\\\\','once'))
+            error('nbiot:externalRun:StageOptions', ...
+                'Stage configuration must use package-relative paths only.');
+        end
+    end
+    stages(k)=struct('name',name,'dependencies',{dependencies{k}}, ...
+        'command',struct('executable','matlab','arguments',{arguments}), ...
+        'inputs',{{struct('path','manifest.json','sha256',manifestHash)}}, ...
+        'outputs',struct([]),'executionBudget',manifest.resourceBudget, ...
+        'requiredDecision',decision,'configuration',configuration, ...
+        'status','not-started','inputDigest','', ...
+        'outputDigest','','reportPath','','registryInputDigest','','worker',[]);
+end
+digest=manifest.codeManifestSha256;
+runId=['run-' digest(1:16)];
+state=struct('schemaVersion',1,'runId',runId,'packageDigest',digest, ...
+    'registryDigest',manifest.registry.sha256, ...
+    'updatedAtUtc',char(datetime('now','TimeZone','UTC', ...
+    'Format','yyyy-MM-dd''T''HH:mm:ss.SSS''Z''')),'stages',stages);
+writeText(fullfile(staging,'stages.json'),jsonencode(state));
+packageRunbook=fullfile(staging,'project','docs','external-runbook.md');
+writeText(fullfile(staging,'external-runbook.md'),fileread(packageRunbook));
 end
 
 function yes=isUnsafe(value)
@@ -312,18 +652,28 @@ function yes=isText(extension)
 yes=ismember(lower(extension),{'.m','.md','.json','.txt','.ps1','.cs'});
 end
 
+function yes=isCode(extension)
+yes=ismember(lower(extension),{'.m','.ps1','.cs'});
+end
+
 function [value,changed]=sanitize(value,root)
 original=value;
 value=strrep(value,root,'<PROJECT_ROOT>');
 value=strrep(value,strrep(root,'\','/'),'<PROJECT_ROOT>');
 value=strrep(value,strrep(root,'/','\'),'<PROJECT_ROOT>');
-value=regexprep(value,'(?i)[A-Z]:[\\/](?:[^\\/\r\n]+[\\/])*[^\\/\r\n]*','<LOCAL_PATH>');
+value=regexprep(value, ...
+    '(?i)(?<![A-Za-z0-9_])[A-Z]:(?:[\\/]{1,2})(?:[^\\/\r\n"<>|?*`]+[\\/]{1,2})*[^\\/\r\n"<>|?*`]*', ...
+    '<LOCAL_PATH>');
 changed=~strcmp(value,original);
 end
 
 function copyArtifact(source,destination)
 parent=fileparts(destination);
 if ~isfolder(parent), mkdir(parent); end
+if isfile(destination)
+    if strcmpi(nbiot.ml.fileSha256(source),nbiot.ml.fileSha256(destination)), return; end
+    error('nbiot:externalRun:Copy','A different package file already occupies the referenced path.');
+end
 [ok,message]=copyfile(source,destination);
 if ~ok, error('nbiot:externalRun:Copy','Could not copy an artifact: %s',message); end
 end

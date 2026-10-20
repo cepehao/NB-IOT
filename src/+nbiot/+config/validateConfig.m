@@ -1,6 +1,10 @@
 function cfg = validateConfig(cfg)
 %VALIDATECONFIG Validate configuration without opening MATLAB LTE functions.
 base = nbiot.config.defaultConfig();
+if isstruct(cfg)&&isscalar(cfg)&&isfield(cfg,'traffic')&&isstruct(cfg.traffic)&&isscalar(cfg.traffic)
+    if ~isfield(cfg.traffic,'activityMode'), cfg.traffic.activityMode=base.traffic.activityMode; end
+    if ~isfield(cfg.traffic,'activeUeIds'), cfg.traffic.activeUeIds=base.traffic.activeUeIds; end
+end
 checkFields(cfg,base,'cfg');
 unsupported(strcmp(cfg.profileVersion,base.profileVersion),'profileVersion','only static-v1 supported');
 s=cfg.simulation; c=cfg.cell; h=cfg.channel; t=cfg.traffic; r=cfg.ra;
@@ -16,6 +20,19 @@ must(isnumeric(h.tapDelaysSeconds)&&isvector(h.tapDelaysSeconds)&&all(isfinite(h
 must(isnumeric(h.tapPowersDb)&&numel(h.tapPowersDb)==numel(h.tapDelaysSeconds)&&all(isfinite(h.tapPowersDb)),'channel.tapPowersDb','requires one finite power per tap');
 integer(h.fractionalFilterLength,3,4095,'channel.fractionalFilterLength'); must(mod(h.fractionalFilterLength,2)==1,'channel.fractionalFilterLength','must be odd');
 must(any(strcmp(t.kind,{'burst','periodic','poisson','none'})),'traffic.kind','unknown traffic');
+must((ischar(t.activityMode)&&isrow(t.activityMode))|| ...
+    (isstring(t.activityMode)&&isscalar(t.activityMode)), ...
+    'traffic.activityMode','all or explicit required');
+must(any(strcmp(char(t.activityMode),{'all','explicit'})), ...
+    'traffic.activityMode','all or explicit required');
+if strcmp(char(t.activityMode),'explicit')
+    ids=t.activeUeIds;
+    must(isnumeric(ids)&&isreal(ids)&&(isempty(ids)||isvector(ids))&& ...
+        all(isfinite(ids(:)))&&all(ids(:)==fix(ids(:)))&& ...
+        all(ids(:)>=1)&&all(ids(:)<=s.numUE)&&numel(unique(ids))==numel(ids), ...
+        'traffic.activeUeIds','unique finite integer UE IDs in [1,numUE] required');
+    cfg.traffic.activeUeIds=sort(double(ids(:).'));
+end
 integer(t.packetBytes,1,6630,'traffic.packetBytes'); integer(t.queueLimit,1,65535,'traffic.queueLimit');
 for f={'periodTicks','burstDurationTicks','lifetimeTicks'}, integer(t.(f{1}),1,2^24-1,['traffic.' f{1}]); end
 integer(t.burstStartTick,0,2^24-1,'traffic.burstStartTick'); nonnegative(t.poissonRatePerSecond,'traffic.poissonRatePerSecond');

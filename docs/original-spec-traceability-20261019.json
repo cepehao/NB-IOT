@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "kind": "static-original-spec-traceability-audit",
+  "verifiedAtUtc": "2026-10-19T06:19:38Z",
+  "sourceSpecification": {
+    "path": "ТЗ_NB-IoT_обновленный.pdf",
+    "sha256": "09535695c28952890a309fa1e20af0a3bdf1a331742998abd324c514bd4166df",
+    "pages": 36,
+    "pathScope": "workspace-root",
+    "includedInPortablePackage": false
+  },
+  "traceability": {
+    "document": "docs/section-50-readiness.md",
+    "sourceSectionsCovered": 65,
+    "missingSourceSections": [],
+    "explicitSection50CriteriaCovered": 27,
+    "missingSection50Criteria": [],
+    "brokenLocalLinks": []
+  },
+  "boundedRunner": {
+    "path": "verification/local/runBoundedChecks.ps1",
+    "powershellSyntaxParse": "pass",
+    "execution": "not run in this audit"
+  },
+  "readiness": {
+    "engineeringCoreReady": false,
+    "localReady": false,
+    "externalExperimentComplete": false,
+    "scientificFinalAcceptance": false
+  },
+  "preRefreshPackageSnapshot": {
+    "sourceDigest": "9767c3004775ddc3108c0c0d670a8a334370588eef03cef7ceb8f3bbd90c8530",
+    "sourceManifestFileCount": 27,
+    "zipPath": "T3c19/portable-local-completion-9767c3004775.zip",
+    "zipSha256Expected": "71d14d6eb325bb5a2d8bd2ba6e28b3d1d99c7623ef173f37a53bf497ea4dd73d",
+    "zipSha256Actual": "71d14d6eb325bb5a2d8bd2ba6e28b3d1d99c7623ef173f37a53bf497ea4dd73d",
+    "zipIntegrity": true,
+    "scope": "Pre-refresh package snapshot at audit time; the final package digest is recorded in the later completion manifest.",
+    "synchronizedAtAudit": false,
+    "sourceMismatchesAtAudit": [
+      "README.md",
+      "docs/current-state.md",
+      "docs/local-completion-handoff.md",
+      "docs/section-50-readiness.md",
+      "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments/remaining-work-20261018.md"
+    ]
+  },
+  "portableTraceabilityAsset": {
+    "path": "docs/original-spec-traceability-20261019.json",
+    "collectedBy": "prepareExternalRun sourceFiles includes JSON under docs/",
+    "runtimePackageVerified": true,
+    "verificationReport": "verification/local/runtime-review/T3/GREEN-package-only-008-20261019/package-verification.json",
+    "verifiedAtUtc": "2026-10-19T06:54:31Z",
+    "verifiedSourceDigest": "fad579d051e1035f38583654041a8b1c48f5eafedae5513ede016e8238d19693",
+    "verifiedZipSha256": "c424c7c7cfc14606393e607dfc63fc061ac4a4b833864dbb0e7c83c65660f758",
+    "verifiedHandoffManifestSha256": "18e432a54fbfc4306bf0f0334eb6775a0172a38e278f3154253ca6572c824de4",
+    "verificationScope": "GREEN-package-only-008 snapshot before the result-note refresh; the final package hashes are recorded externally in local-completion.json."
+  }
+}

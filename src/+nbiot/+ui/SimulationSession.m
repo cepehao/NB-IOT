@@ -36,8 +36,13 @@ classdef SimulationSession < handle
             end
             budget=nbiot.experiments.validateExecutionBudget(cfg,obj.Execution);
             cfg=nbiot.config.validateConfig(cfg);
-            if cfg.simulation.numUE>budget.maxUE || cfg.simulation.durationTicks>5000
-                error('nbiot:ui:LocalLimit','The local interface is limited to 10 devices and 5 seconds.');
+            if cfg.simulation.numUE>budget.maxUE
+                error('nbiot:ui:ExecutionLimit', ...
+                    'The configured device count exceeds the selected execution profile.');
+            end
+            if cfg.simulation.durationTicks>5000
+                error('nbiot:ui:ExecutionHorizon', ...
+                    'The supported UI horizon is limited to 5000 ticks.');
             end
             if ~isfinite(cfg.phy.nprachThreshold)
                 error('nbiot:phy:Calibration','Load a matching accepted NPRACH calibration before starting.');
@@ -92,7 +97,9 @@ classdef SimulationSession < handle
         end
         function stop(obj)
             if any(strcmp(obj.Status,{'running','paused'}))
-                obj.Simulator.stop('user-stop');
+                if ~isempty(obj.Simulator)
+                    obj.Simulator.stop('user-stop');
+                end
                 obj.Status='stopped';
             end
         end
@@ -113,6 +120,9 @@ classdef SimulationSession < handle
             state.controllerLog=struct([]); state.controllerMethod='Static';
             state.controllerDiagnosticTargets=table(zeros(0,1),zeros(0,1), ...
                 'VariableNames',{'endTick','meanRaUe'});
+            state.liveRadioDiagnostics=struct('asOfTick',0,'status','pending', ...
+                'summary',struct('available',false,'actualTick',0, ...
+                'lastEventTick',NaN),'perUe',struct([]));
             state.ueDetails=struct('ueId',{},'xM',{},'yM',{},'distanceM',{}, ...
                 'indoor',{},'receivedPowerUlDbm',{},'receivedPowerDlDbm',{}, ...
                 'raAttempts',{},'state',{},'queueLength',{},'radioSummary',{});
@@ -176,28 +186,58 @@ classdef SimulationSession < handle
                         'perAttempt',struct([]),'receiverEstimates',struct([]), ...
                         'npuschReceiverEstimates',struct([])));
             end
-            if ~isempty(details)&&any(strcmp(obj.Status,{'completed','stopped','failed'}))
+            if ismethod(obj.Simulator,'liveRadioDiagnostics')
+                live=obj.Simulator.liveRadioDiagnostics();
+                state.liveRadioDiagnostics=live;
+                for k=1:numel(details)
+                    details(k).radioSummary=radioSummaryForLiveUe( ...
+                        details(k).radioSummary,live,details(k).ueId);
+                end
+            end
+            if any(strcmp(obj.Status,{'completed','stopped','failed'}))
+                batchDiagnostics=[];
                 if ismethod(obj.Simulator,'result')
                     try
                         finalResult=obj.Simulator.result();
                         if isstruct(finalResult)&&isscalar(finalResult)&& ...
-                                isfield(finalResult,'radioDiagnostics')
-                            for k=1:numel(details)
-                                details(k).radioSummary=radioSummaryForUe( ...
-                                    details(k).radioSummary,finalResult.radioDiagnostics, ...
-                                    details(k).ueId);
-                            end
-                        else
-                            for k=1:numel(details)
-                                details(k).radioSummary.status='unavailable';
-                            end
+                                isfield(finalResult,'radioDiagnostics')&& ...
+                                isstruct(finalResult.radioDiagnostics)&& ...
+                                isscalar(finalResult.radioDiagnostics)
+                            batchDiagnostics=finalResult.radioDiagnostics;
                         end
                     catch
-                        for k=1:numel(details)
-                            details(k).radioSummary.status='unavailable';
-                        end
+                        batchDiagnostics=[];
+                    end
+                end
+                lastEventTick=NaN;
+                if isstruct(state.liveRadioDiagnostics)&& ...
+                        isfield(state.liveRadioDiagnostics,'summary')&& ...
+                        isstruct(state.liveRadioDiagnostics.summary)&& ...
+                        isscalar(state.liveRadioDiagnostics.summary)&& ...
+                        isfield(state.liveRadioDiagnostics.summary,'lastEventTick')
+                    lastEventTick=state.liveRadioDiagnostics.summary.lastEventTick;
+                end
+                state.liveRadioDiagnostics.asOfTick=state.tick;
+                if ~isempty(batchDiagnostics)
+                    batchDiagnostics.lastEventTick=lastEventTick;
+                    state.liveRadioDiagnostics.summary=batchDiagnostics;
+                    if isfield(batchDiagnostics,'available')&& ...
+                            islogical(batchDiagnostics.available)&& ...
+                            isscalar(batchDiagnostics.available)&& ...
+                            batchDiagnostics.available
+                        state.liveRadioDiagnostics.status='available';
+                    else
+                        state.liveRadioDiagnostics.status='unavailable';
+                    end
+                    for k=1:numel(details)
+                        details(k).radioSummary=radioSummaryForUe( ...
+                            details(k).radioSummary,batchDiagnostics,details(k).ueId);
                     end
                 else
+                    state.liveRadioDiagnostics.status='unavailable';
+                    state.liveRadioDiagnostics.summary=struct( ...
+                        'available',false,'actualTick',state.tick, ...
+                        'lastEventTick',lastEventTick);
                     for k=1:numel(details)
                         details(k).radioSummary.status='unavailable';
                     end
@@ -269,6 +309,38 @@ summary.perAttempt=radioRowsForUe(diagnostics,'perAttempt',ueId);
 summary.receiverEstimates=radioRowsForUe(diagnostics,'receiverEstimates',ueId);
 summary.npuschReceiverEstimates=radioRowsForUe( ...
     diagnostics,'npuschReceiverEstimates',ueId);
+end
+
+function summary=radioSummaryForLiveUe(summary,live,ueId)
+if ~isstruct(live)||~isscalar(live)|| ...
+        ~all(isfield(live,{'status','summary','perUe'}))|| ...
+        ~isstruct(live.summary)||~isscalar(live.summary)
+    summary.status='unavailable';
+    return;
+end
+if isfield(live.summary,'available')&&islogical(live.summary.available)&& ...
+        isscalar(live.summary.available)&&live.summary.available
+    summary.status='available';
+elseif ischar(live.status)|| (isstring(live.status)&&isscalar(live.status))
+    summary.status=char(string(live.status));
+else
+    summary.status='pending';
+end
+if ~isstruct(live.perUe)||isempty(live.perUe)|| ...
+        ~isfield(live.perUe,'ueId')
+    return;
+end
+ueIds=[live.perUe.ueId];
+match=find(isfinite(ueIds)&ueIds==ueId,1,'last');
+if isempty(match), return; end
+ue=live.perUe(match);
+copyFields={'perAttempt','receiverEstimates','npuschReceiverEstimates'};
+for k=1:numel(copyFields)
+    field=copyFields{k};
+    if isfield(ue,field)&&isstruct(ue.(field))
+        summary.(field)=ue.(field);
+    end
+end
 end
 
 function rows=radioRowsForUe(diagnostics,name,ueId)

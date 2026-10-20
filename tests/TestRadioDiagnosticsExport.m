@@ -10,8 +10,41 @@ classdef TestRadioDiagnosticsExport < matlab.unittest.TestCase
             t.verifyEqual(loaded.result.lifecycleLog,result.lifecycleLog);
             t.verifyEqual(loaded.result.kpiSummary.service,result.kpiSummary.service);
             t.verifyEqual(loaded.result.groupKpi,result.groupKpi);
+            t.verifyEqual(result.actualTick,result.config.simulation.durationTicks);
+            t.verifyEqual(result.dataset.diagnostics.logicalAvailable,true);
+            t.verifyEqual(result.dataset.diagnostics.logicalCollisionGroups,0);
+            t.verifyEqual(result.dataset.diagnostics.physicalAvailable,true);
+            t.verifyEqual(result.dataset.diagnostics.physicalOverlapPairs,0);
+            t.verifyEqual(result.dataset.diagnostics.accessAvailable,true);
+            t.verifyEqual(result.dataset.diagnostics.successfulAccesses,0);
+            t.verifyEqual(result.dataset.diagnostics.retryAvailable,true);
+            t.verifyEqual(result.dataset.diagnostics.raRetryTransmissions,0);
+            t.verifyEqual(result.dataset.diagnostics.delayAvailable,false);
+            t.verifyEqual(result.dataset.diagnostics.delaySampleCount,0);
+            t.verifyTrue(isnan(result.dataset.diagnostics.meanDelayTicks));
+            t.verifyEqual(result.dataset.diagnostics.outcomeHorizonTick,result.actualTick);
             marker=jsondecode(fileread(fullfile(folder,'case-complete.json')));
-            t.verifyEqual(marker.tableExportVersion,4);
+            t.verifyEqual(marker.tableExportVersion,6);
+            t.verifyTrue(isfile(fullfile(folder,marker.reportMetadataFile)));
+            t.verifyEqual(marker.diagnosticsSchemaVersion,'window-diagnostics-v1');
+            diagnosticsSnapshot=load(destination,'datasetDiagnostics');
+            t.verifyTrue(isfield(diagnosticsSnapshot,'datasetDiagnostics'));
+            diagnosticFile=fullfile(folder,'static-v1_n1_r0007_diagnostics.csv');
+            t.verifyTrue(isfile(diagnosticFile));
+            if ~isfield(diagnosticsSnapshot,'datasetDiagnostics')||~isfile(diagnosticFile)
+                return
+            end
+            t.verifyEqual(diagnosticsSnapshot.datasetDiagnostics,result.dataset.diagnostics);
+            t.verifyTrue(any(strcmp({marker.tables.file},'static-v1_n1_r0007_diagnostics.csv')));
+            t.verifyTrue(any(strcmp({marker.files.name},'static-v1_n1_r0007_diagnostics.csv')));
+            diagnosticExport=readtable(diagnosticFile,'VariableNamingRule','preserve');
+            keys={'realizationId','windowId','startTick','endTick'};
+            t.verifyEqual(diagnosticExport(:,keys),result.dataset.diagnostics(:,keys));
+            expectedAvailability=repmat("false",height(result.dataset.diagnostics),1);
+            expectedAvailability(result.dataset.diagnostics.logicalAvailable)="true";
+            t.verifyEqual(string(diagnosticExport.logicalAvailable),expectedAvailability);
+            t.verifyEqual(isnan(diagnosticExport.meanDelayTicks), ...
+                isnan(result.dataset.diagnostics.meanDelayTicks));
             radioFile=fullfile(folder,'static-v1_n1_r0007_radio.csv');
             groupsFile=fullfile(folder,'static-v1_n1_r0007_groups.csv');
             t.verifyTrue(isfile(radioFile));
@@ -54,17 +87,28 @@ classdef TestRadioDiagnosticsExport < matlab.unittest.TestCase
             t.verifyTrue(isfile(fullfile(folder,'static-v1_n1_r0007_summary.csv')));
         end
 
-        function priorRadioExportVersionWithoutGroupsRemainsVerifiable(t)
+        function currentMetadataVersionWithoutGroupsRemainsVerifiable(t)
             [~,folder,result,metadata]=makeFixture(t,true);
             result=rmfield(result,'groupKpi');
+            result.dataset=rmfield(result.dataset,'diagnostics');
             result.kpiSummary=rmfield(result.kpiSummary,'service');
             nbiot.results.saveResult(result,folder,metadata);
 
             marker=jsondecode(fileread(fullfile(folder,'case-complete.json')));
-            t.verifyEqual(marker.tableExportVersion,3);
+            t.verifyEqual(marker.tableExportVersion,6);
             t.verifyFalse(isfile(fullfile(folder,'static-v1_n1_r0007_groups.csv')));
             report=nbiot.results.verifyCase(folder,metadata);
             t.verifyTrue(report.passed,evalc('disp(report.checks)'));
+        end
+
+        function unavailableRetryMetricCannotBeReportedAsZero(t)
+            [~,folder,result,metadata]=makeFixture(t,true);
+            result.dataset.diagnostics.retryAvailable=false;
+            result.dataset.diagnostics.raRetryTransmissions=0;
+
+            t.verifyError(@() nbiot.results.saveResult(result,folder,metadata), ...
+                'nbiot:results:Verify');
+            t.verifyFalse(isfile(fullfile(folder,'case-complete.json')));
         end
     end
 end
@@ -75,7 +119,7 @@ t.addTeardown(@()removeFixture(root));
 write(fullfile(root,'src','fixture.m'),'function value=fixture; value=1; end');
 cfg=nbiot.config.defaultConfig();
 cfg.simulation.numUE=1; cfg.simulation.realizationId=7;
-cfg.simulation.durationTicks=500;
+cfg.simulation.durationTicks=20;
 cfg.traffic.kind='none'; cfg.logging.outputFolder=root;
 options=struct('projectRoot',root, ...
     'calibrationFile',fullfile(root,'calibration.mat'), ...
@@ -108,6 +152,29 @@ result=struct('config',cfg,'status','completed','environment',environment, ...
         'observations',observations,'targets',targets,'manifest',manifestTable, ...
         'schema',nbiot.dataset.featureSchema()));
 if includeRadio
+    schema=result.dataset.schema;
+    observationValues=[7 1 0 20 zeros(1,numel(schema.observationNames)-4)];
+    targetValues=[7 1 0 20 zeros(1,numel(schema.targetNames)-4)];
+    result.dataset.observations=array2table(observationValues, ...
+        'VariableNames',schema.observationNames);
+    result.dataset.targets=array2table(targetValues, ...
+        'VariableNames',schema.targetNames);
+    result.dataset.diagnostics=table(7,1,0,20,0,0,0,0,0,0,NaN,0,0,0, ...
+        true,true,true,true,false,20, ...
+        'VariableNames',{'realizationId','windowId','startTick','endTick', ...
+        'logicalCollisionGroups','logicalCollidingAttempts','physicalOverlapPairs', ...
+        'physicalCollidingAttempts','successfulAccesses','raRetryTransmissions', ...
+        'meanDelayTicks','delaySampleCount','unfinishedAccessCohort', ...
+        'unfinishedPacketCohort','logicalAvailable','physicalAvailable', ...
+        'accessAvailable','retryAvailable','delayAvailable','outcomeHorizonTick'});
+    result.attempts=struct('attemptId',1,'packetId',1,'startTick',0, ...
+        'endTick',20,'status','failure');
+    result.packets=struct('packetId',1,'createdTick',0,'deliveredTick',NaN, ...
+        'status','dropped');
+else
+    % Preserve this fixture as a historical result without the D3 table.
+end
+if includeRadio
     result.kpiSummary.service=struct('definition','service-outage-horizon-v1', ...
         'available',true,'actualTick',20,'demandUeCount',0,'outageUeCount',0, ...
         'unfinishedUeCount',0,'probability',NaN);
@@ -136,7 +203,7 @@ if includeRadio
     result.truthLog=truth; result.observedLog=observed;
     result.radioReceptionLog=reception; result.radioReceptionSchemaVersion=1;
     result.lifecycleLog=[evt(0,'simulation_initialized',struct('profileVersion','static-v1')), ...
-        evt(0,'simulation_started',struct('untilTick',500)), ...
+        evt(0,'simulation_started',struct('untilTick',20)), ...
         evt(20,'simulation_completed',struct('actualTick',20,'reason','horizon'))];
     result.lifecycleLogSchemaVersion=1;
     result.radioDiagnostics=nbiot.metrics.radioDiagnostics(truth,observed,reception, ...

@@ -1,6 +1,12 @@
 function bundle=validateModelBundle(bundleOrFile,schema)
 %VALIDATEMODELBUNDLE Check schema, transformations, model metadata and file hash.
-if nargin<2||isempty(schema), schema=currentSchema(); end
+canonical=currentSchema();
+if nargin<2||isempty(schema)
+    schema=canonical;
+else
+    validateSchemaAssertion(schema,canonical);
+    schema=canonical;
+end
 if ischar(bundleOrFile)||(isstring(bundleOrFile)&&isscalar(bundleOrFile))
     file=char(string(bundleOrFile));
     if ~isfile(file), error('nbiot:ml:MissingModel','Model package file does not exist.'); end
@@ -39,14 +45,13 @@ required={'formatVersion','modelName','model','schemaVersion','featureNames','ke
 if ~isstruct(bundle)||~isscalar(bundle)||~all(isfield(bundle,required))
     error('nbiot:ml:InvalidModel','Model bundle is missing required metadata.');
 end
-if ~isstruct(schema)||~all(isfield(schema,{'version','inputNames'}))|| ...
-        ~strcmp(bundle.formatVersion,'load-model-bundle-v1')|| ...
+if ~strcmp(bundle.formatVersion,'load-model-bundle-v1')|| ...
         ~strcmp(bundle.schemaVersion,char(string(schema.version)))|| ...
         ~strcmp(bundle.targetName,'meanRaUe')
     error('nbiot:ml:SchemaMismatch','Model target or feature schema is incompatible.');
 end
-expectedFeatures=cellstr(string(schema.inputNames));
-expectedKeys={'realizationId','windowId','startTick','endTick'};
+expectedFeatures=schema.inputNames;
+expectedKeys=schema.keyNames;
 if ~isequal(cellstr(string(bundle.featureNames)),expectedFeatures)|| ...
         ~isequal(cellstr(string(bundle.keyNames)),expectedKeys)
     error('nbiot:ml:FeatureSchema','Model feature order is incompatible.');
@@ -89,9 +94,36 @@ end
 
 function schema=currentSchema()
 schema=nbiot.dataset.featureSchema();
-schema.inputNames=schema.observationNames(5:end);
 schema.keyNames=schema.observationNames(1:4);
+schema.inputNames=schema.observationNames(5:end);
 schema.targetName='meanRaUe';
+end
+
+function validateSchemaAssertion(asserted,canonical)
+if ~isstruct(asserted)||~isscalar(asserted)|| ...
+        ~all(isfield(asserted,{'version','keyNames','inputNames','targetName'}))
+    error('nbiot:ml:FeatureSchema','Schema assertion must declare version, keys, inputs and target.');
+end
+try
+    version=char(string(asserted.version));
+    keys=normalizeNames(asserted.keyNames);
+    inputs=normalizeNames(asserted.inputNames);
+    target=char(string(asserted.targetName));
+catch
+    error('nbiot:ml:FeatureSchema','Schema assertion is malformed.');
+end
+if ~strcmp(version,canonical.version)||~isequal(keys,canonical.keyNames)|| ...
+        ~isequal(inputs,canonical.inputNames)||~strcmp(target,canonical.targetName)
+    error('nbiot:ml:FeatureSchema','Schema assertion cannot extend the canonical whitelist.');
+end
+end
+
+function names=normalizeNames(value)
+names=cellstr(string(value));
+names=reshape(names,1,[]);
+if any(cellfun(@isempty,names))
+    error('nbiot:ml:FeatureSchema','Schema names must be non-empty text.');
+end
 end
 
 function matches=manifestMatches(manifest,bundle)
@@ -109,4 +141,7 @@ matches=strcmp(char(string(manifest.formatVersion)),bundle.formatVersion)&& ...
     isequal(double(manifest.trainingIds(:)),double(bundle.trainingIds(:)))&& ...
     isequal(double(manifest.validationIds(:)),double(bundle.validationIds(:)))&& ...
     isequal(double(manifest.testIds(:)),double(bundle.testIds(:)));
+if matches&&isfield(manifest,'dataKind')
+    matches=strcmp(char(string(manifest.dataKind)),char(string(bundle.dataKind)));
+end
 end

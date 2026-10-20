@@ -24,6 +24,14 @@ classdef NBIoTSimulator < handle
         observed
         truth
         radioReceptionDiagnostics
+        liveRadioAccumulator = []
+        liveRadioTruthCursor = 0
+        liveRadioObservedCursor = 0
+        liveRadioReceptionCursor = 0
+        liveRadioRefreshBusy = false
+        liveRadioLastSummary = struct('asOfTick',0,'status','pending', ...
+            'summary',struct('available',false,'actualTick',0,'lastEventTick',NaN), ...
+            'perUe',struct([]))
         lifecycleLog
         harqJournal
         queueSamples = zeros(0,3)
@@ -249,6 +257,34 @@ classdef NBIoTSimulator < handle
                 'controllerDiagnosticTargets',diagnosticTargets, ...
                 'tickSeconds',obj.cfg.simulation.tickSeconds);
         end
+        function live=liveRadioDiagnostics(obj)
+            % This cache is presentation-only and is deliberately absent from
+            % checkpoint state and scientific result export.
+            % Timer callbacks can re-enter a snapshot while it is refreshing.
+            % Keep journal reads, accumulator update and cursor commits atomic.
+            if obj.liveRadioRefreshBusy
+                live=obj.liveRadioLastSummary;
+                return;
+            end
+            obj.liveRadioRefreshBusy=true;
+            refreshGuard=onCleanup(@() obj.finishLiveRadioRefresh()); %#ok<NASGU>
+            if isempty(obj.liveRadioAccumulator)
+                obj.liveRadioAccumulator= ...
+                    nbiot.metrics.RadioDiagnosticsAccumulator( ...
+                    0:obj.cfg.ra.numSubcarriers-1);
+            end
+            [truthDelta,nextTruthCursor]=obj.truth.since(obj.liveRadioTruthCursor);
+            [observedDelta,nextObservedCursor]=obj.observed.since( ...
+                obj.liveRadioObservedCursor);
+            [receptionDelta,nextReceptionCursor]=obj.radioReceptionDiagnostics.since( ...
+                obj.liveRadioReceptionCursor);
+            live=obj.liveRadioAccumulator.update(truthDelta,observedDelta, ...
+                receptionDelta,obj.currentTick);
+            obj.liveRadioTruthCursor=nextTruthCursor;
+            obj.liveRadioObservedCursor=nextObservedCursor;
+            obj.liveRadioReceptionCursor=nextReceptionCursor;
+            obj.liveRadioLastSummary=live;
+        end
         function [events,nextIndex]=observedEventsSince(obj,afterIndex)
             if nargin<2, afterIndex=0; end
             [events,nextIndex]=obj.observed.since(afterIndex);
@@ -309,9 +345,18 @@ classdef NBIoTSimulator < handle
                 'decisionCount',numel(obj.controllerLog), ...
                 'configurationSwitches',controllerSwitchCount);
             schema=nbiot.dataset.featureSchema();
-            result.dataset=struct('observations',obj.rowsTable(obj.observationRows,schema.observationNames), ...
-                'targets',obj.rowsTable(obj.targetRows,schema.targetNames), ...
-                'schema',schema,'manifest',nbiot.dataset.buildManifest(obj.scenario.externalRealizationId));
+            observations=obj.rowsTable(obj.observationRows,schema.observationNames);
+            targets=obj.rowsTable(obj.targetRows,schema.targetNames);
+            windowKeys=observations(:,schema.keyNames);
+            if ~isequaln(windowKeys,targets(:,schema.keyNames))
+                error('nbiot:dataset:Diagnostics', ...
+                    'Observation and target window keys do not align.');
+            end
+            diagnostics=nbiot.dataset.windowDiagnostics(obj.cfg,packets,attempts,truth,obs, ...
+                result.radioReceptionLog,obj.currentTick,windowKeys);
+            result.dataset=struct('observations',observations,'targets',targets, ...
+                'diagnostics',diagnostics,'schema',schema, ...
+                'manifest',nbiot.dataset.buildManifest(obj.scenario.externalRealizationId));
             result.profiling=struct('elapsedSeconds',obj.elapsedSeconds,'matlabValidation','pending');
             obj.resultCache=result;
         end
@@ -403,6 +448,9 @@ classdef NBIoTSimulator < handle
         end
     end
     methods (Access=private)
+        function finishLiveRadioRefresh(obj)
+            obj.liveRadioRefreshBusy=false;
+        end
         function checkExecutionDeadline(obj)
             if isempty(obj.executionClock), obj.executionClock=tic; end
             elapsed=obj.executionElapsedOffset+toc(obj.executionClock);

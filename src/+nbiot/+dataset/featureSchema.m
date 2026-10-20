@@ -34,4 +34,10 @@ switch version
     otherwise
         error('nbiot:dataset:Schema','Unsupported feature schema version %s.',version);
 end
+
+if strcmp(version,'bs-known-v2.0')
+    s.keyNames=s.observationNames(1:4);
+    s.inputNames=s.observationNames(5:end);
+    s.targetName='meanRaUe';
+end
 end

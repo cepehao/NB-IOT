@@ -2,7 +2,9 @@ function arrivals=generateArrivals(cfg,sources)
 %GENERATEARRIVALS Generate continuous times before policy or queue decisions.
 cfg=nbiot.config.validateConfig(cfg); t=cfg.traffic; horizon=cfg.simulation.durationTicks;
 arrivals=struct('packetId',{},'ueId',{},'createdTick',{},'sequence',{},'payloadBits',{},'continuousTimeSeconds',{});
-for id=1:cfg.simulation.numUE
+ueIds=1:cfg.simulation.numUE;
+if strcmp(t.activityMode,'explicit'), ueIds=t.activeUeIds; end
+for id=ueIds
  s=sources.stream('traffic',0,id,0); times=[];
  switch t.kind
   case 'burst', times=t.burstStartTick+t.burstDurationTicks*rand(s);

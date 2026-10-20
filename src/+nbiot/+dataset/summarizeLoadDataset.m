@@ -106,6 +106,10 @@ summary=struct('formatVersion','load-dataset-summary-v1', ...
     'configuredRaShareValues',finiteUnique(configuredRaShare), ...
     'observedAccessProbabilityValues',settingValues(data.observations,'accessProbability',true(height(data.observations),1)), ...
     'observedRaShareValues',settingValues(data.observations,'raShare',true(height(data.observations),1)));
+if isfield(data.manifest,'diagnosticsComplete')&&isfield(data.manifest,'diagnosticsSchemaVersion')
+    summary.diagnosticsComplete=isequal(data.manifest.diagnosticsComplete,true);
+    summary.diagnosticsSchemaVersion=char(string(data.manifest.diagnosticsSchemaVersion));
+end
 end
 
 function text=settingValues(observations,name,rowMask)

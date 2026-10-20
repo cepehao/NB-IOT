@@ -55,7 +55,8 @@ classdef TestCaseResume < matlab.unittest.TestCase
             t.verifyEqual(marker.manifestVersion,3);
             t.verifyEqual(marker.resultSchemaVersion,3);
             t.verifyEqual(marker.controllerLogSchemaVersion,1);
-            t.verifyEqual(marker.tableExportVersion,2);
+            t.verifyEqual(marker.tableExportVersion,6);
+            t.verifyTrue(isfile(fullfile(folder,marker.reportMetadataFile)));
             t.verifyEqual(numel(marker.tables),8);
             t.verifyTrue(any(strcmp({marker.tables.file}, ...
                 'adaptive-p-v1_n1_r0007_controller.csv')));
@@ -72,9 +73,13 @@ classdef TestCaseResume < matlab.unittest.TestCase
             marker=jsondecode(fileread(markerPath));
             summaryFile='static-v1_n1_r0007_summary.csv';
             delete(fullfile(folder,summaryFile));
+            reportFile=marker.reportMetadataFile;
+            delete(fullfile(folder,reportFile));
+            marker=rmfield(marker,'reportMetadataFile');
             marker=rmfield(marker,'tableExportVersion');
             marker.tables=marker.tables(~strcmp({marker.tables.file},summaryFile));
             marker.files=marker.files(~strcmp({marker.files.name},summaryFile));
+            marker.files=marker.files(~strcmp({marker.files.name},reportFile));
             writeJson(markerPath,marker);
 
             report=nbiot.results.verifyCase(folder,metadata);

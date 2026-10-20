@@ -72,6 +72,22 @@ manifest=data.manifest; manifest.assignments=table2struct(manifest.assignments);
 writeJson(fullfile(folder,'manifest.json'),manifest);
 writeJson(fullfile(folder,'dataset-summary.json'),datasetSummary);
 writetable(scenarioCoverage,fullfile(folder,'scenario-coverage.csv'));
+diagnostics=data.diagnostics;
+writetable(diagnostics,fullfile(folder,'diagnostics.csv'));
+artifactNames={'dataset.mat','observations.csv','targets.csv','features.csv','rows.csv', ...
+    'manifest.json','dataset-summary.json','scenario-coverage.csv','diagnostics.csv'};
+artifactFiles=repmat(struct('name','','bytes',0,'sha256',''),numel(artifactNames),1);
+for k=1:numel(artifactNames)
+    artifactPath=fullfile(folder,artifactNames{k});
+    fileInfo=dir(artifactPath);
+    if isempty(fileInfo)||fileInfo.isdir
+        error('nbiot:dataset:Output','Expected dataset artifact was not written: %s',artifactNames{k});
+    end
+    artifactFiles(k).name=artifactNames{k};
+    artifactFiles(k).bytes=double(fileInfo.bytes);
+    artifactFiles(k).sha256=fileSha256(artifactPath);
+end
+writeJson(fullfile(folder,'artifacts.json'),struct('schemaVersion',1,'files',artifactFiles));
 end
 
 function writeJson(file,value)
@@ -79,4 +95,12 @@ fid=fopen(file,'w','n','UTF-8');
 if fid<0, error('nbiot:dataset:Output','Cannot write dataset report.'); end
 cleanup=onCleanup(@() fclose(fid));
 fwrite(fid,unicode2native(jsonencode(value,'PrettyPrint',true),'UTF-8'),'uint8');
+end
+
+function digest=fileSha256(file)
+md=java.security.MessageDigest.getInstance('SHA-256'); fid=fopen(file,'rb');
+if fid<0, error('nbiot:dataset:Output','Cannot read dataset artifact for hashing.'); end
+cleanup=onCleanup(@() fclose(fid));
+while ~feof(fid), md.update(typecast(fread(fid,1024*1024,'*uint8'),'int8')); end
+digest=lower(reshape(dec2hex(typecast(md.digest(),'uint8'),2).',1,[]));
 end

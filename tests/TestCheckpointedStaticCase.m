@@ -15,17 +15,23 @@ classdef TestCheckpointedStaticCase < matlab.unittest.TestCase
             options.checkpoint.pauseRequestFile=pauseFile;
             options.checkpoint.progressFile=progressFile;
             options.checkpoint.budgetLedgerFile=ledgerPath;
+            options.checkpoint.progressPhase='static-fixture';
 
             paused=nbiot.experiments.runStaticCase( ...
                 cfg,caseFolder,metadata,[],options);
             t.verifyEqual(paused.status,'paused');
+            pauseProgress=jsondecode(fileread(progressFile));
+            t.verifyEqual(pauseProgress.phase,'paused');
+            t.verifyEqual(pauseProgress.status,'paused');
             t.verifyTrue(isfile(fullfile(paused.checkpointFolder,'checkpoint-manifest.json')));
             t.verifyFalse(isfile(fullfile(paused.stagingFolder,'case-complete.json')));
             ledger=nbiot.experiments.loadVariant2BudgetLedger(ledgerPath,false);
             t.verifyEqual(numel(ledger.warnings),1);
-            [pauseState,~]=nbiot.experiments.loadCheckpoint( ...
+            [pauseState,checkpointInfo]=nbiot.experiments.loadCheckpoint( ...
                 paused.checkpointFolder,metadata,options.execution);
             t.verifyEqual(pauseState.status,'partial');
+            t.verifyTrue(isfield(checkpointInfo,'timing'));
+            t.verifyEqual(checkpointInfo.timing.bytes,double(dir(checkpointInfo.checkpointPath).bytes));
             attemptId=paused.attemptId;
             delete(pauseFile);
 
@@ -45,6 +51,13 @@ classdef TestCheckpointedStaticCase < matlab.unittest.TestCase
             t.verifyEqual(progress.phase,'completed');
             t.verifyEqual(progress.currentTick,2);
             t.verifyNotEmpty(progress.lastCheckpoint);
+            t.verifyEqual(progress.status,'completed');
+            t.verifyEqual(progress.phaseContext,'static-fixture');
+            t.verifyTrue(isfield(progress.phaseElapsedSeconds,'exporting'));
+            t.verifyTrue(isfield(progress.phaseElapsedSeconds,'verifying'));
+            t.verifyTrue(isfield(first.checkpoint,'checkpointTimings'));
+            fprintf('RUNTIME_PROGRESS_SNAPSHOT %s\n',jsonencode(pauseProgress));
+            fprintf('RUNTIME_PROGRESS_SNAPSHOT %s\n',jsonencode(progress));
             ledger=nbiot.experiments.loadVariant2BudgetLedger(ledgerPath,false);
             t.verifyEqual(numel(ledger.warnings),1);
         end
@@ -88,7 +101,7 @@ cfg.policy.name='Static'; cfg.policy.windowTicks=500; cfg.dataset.windowTicks=50
 cfg=nbiot.experiments.loadCalibration(cfg,calibrationFile);
 scenario=nbiot.scenario.buildScenario(cfg);
 options=struct('projectRoot',root,'calibrationFile',calibrationFile, ...
-    'scenario',scenario,'execution',struct(), ...
+    'scenario',scenario,'execution',localDevelopment(), ...
     'checkpoint',struct('intervalSeconds',600));
 metadata=nbiot.experiments.runtimeManifest(cfg,options);
 end

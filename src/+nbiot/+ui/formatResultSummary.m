@@ -14,6 +14,8 @@ lines{end+1}=sprintf('Пакеты: создано %s, доставлено %s, 
     numberText(numberValue(k,'delivered'),'%.0f'), ...
     numberText(numberValue(k,'dropped'),'%.0f'), ...
     numberText(numberValue(k,'unfinished'),'%.0f'));
+lines{end+1}='Завершение по горизонту наблюдения не гарантирует доставку всех сообщений.';
+lines{end+1}='Для показателей без выборки тире означает «нет данных», а не нулевую задержку или ноль ошибок.';
 lines{end+1}=sprintf(['RA: попыток %s, успешно %s, неуспешно %s, незавершено %s; ' ...
     'успех %s; в среднем %s попытки на пакет; максимум на пакет %s'], ...
     numberText(numberValue(k,'raStarted'),'%.0f'), ...
@@ -57,13 +59,13 @@ lines{end+1}=sprintf(['Доставка: успех %s, потери %s; ско�
     percentText(numberValue(k,'dropProbability')), ...
     numberText(numberValue(k,'throughputBitsPerSecond')), ...
     numberText(1000*delaySeconds(k,'meanDelaySeconds','meanDelayTicks',result),'%.1f'), ...
-    numberText(1000*numberValue(k,'p95DelaySeconds'),'%.1f'));
+    unavailableNumberText(1000*numberValue(k,'p95DelaySeconds'),'%.1f'));
 lines{end+1}=sprintf('Занятость UL/DL/NPRACH: %s / %s / %s', ...
     percentText(numberValue(k,'ulOccupancy')), ...
     percentText(numberValue(k,'dlOccupancy')), ...
     percentText(numberValue(k,'nprachOccupancy')));
 lines{end+1}=sprintf(['Очередь BS: средняя %s, максимум %s; ' ...
-    'очередь UE: средняя %s, максимум %s'], ...
+    'пакетов в очереди UE: среднее %s, максимум %s'], ...
     numberText(numberValue(k,'meanBsQueueLength'),'%.1f'), ...
     numberText(numberValue(k,'maxBsQueueLength'),'%.0f'), ...
     numberText(numberValue(k,'meanUeQueueLength'),'%.1f'), ...
@@ -82,7 +84,7 @@ end
 access=numberValue(action,'accessProbability');
 raShare=numberValue(action,'raShare');
 if isfinite(raShare), raDt=sprintf('%d/%d',round(100*raShare),round(100*(1-raShare)));
-else, raDt='—'; end
+else, raDt='нет данных'; end
 if ~strcmp(method,'Static')
     decisions=NaN; switches=NaN;
     if isfield(k,'controller')&&isstruct(k.controller)
@@ -237,7 +239,7 @@ end
 function value=crcPassed(summary,decodedName,failedName)
 decoded=numberValue(summary,decodedName); failed=numberValue(summary,failedName);
 if isfinite(decoded)&&isfinite(failed), value=numberText(max(0,decoded-failed));
-else, value='—'; end
+else, value='нет данных'; end
 end
 
 function value=delaySeconds(summary,secondsName,ticksName,result)
@@ -270,10 +272,15 @@ end
 function text=numberText(value,format)
 if nargin<2, format='%.3g'; end
 if ~isnumeric(value)||~isscalar(value)||~isreal(value)||~isfinite(value)
-    text='—';
+    text='нет данных';
 else
     text=sprintf(format,double(value));
 end
+end
+
+function text=unavailableNumberText(value,format)
+text=numberText(value,format);
+if strcmp(text,'нет данных'), text='—'; end
 end
 
 function text=percentText(value)

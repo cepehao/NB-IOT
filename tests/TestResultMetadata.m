@@ -27,8 +27,16 @@ classdef TestResultMetadata < matlab.unittest.TestCase
         function adaptiveResultCarriesModelScoresOnlyForItsVerifiedPackage(t)
             folder=tempname; mkdir(folder);
             t.addTeardown(@() removeFolder(folder));
-            modelFile=writeModelPackage(folder);
-            writeTrainingMetrics(folder,modelFile);
+            trainingOptions=mlTrainingDefaults();
+            trainingOptions.seed=17;
+            trainingOptions.outputFolder=fullfile(folder,'training');
+            trainingOptions.forestNumTrees=2;
+            trainingOptions.boostNumLearningCycles=2;
+            data=smallLoadTrainingFixture();
+            [bundles,trainingReport]=nbiot.ml.trainLoadModels(data,trainingOptions);
+            modelIndex=find(strcmp({bundles.name},'linearRegression'),1);
+            t.assertNotEmpty(modelIndex);
+            modelFile=bundles(modelIndex).file;
             cfg=nbiot.config.defaultConfig();
             cfg.simulation.numUE=1;
             cfg.simulation.durationTicks=1;
@@ -39,15 +47,23 @@ classdef TestResultMetadata < matlab.unittest.TestCase
 
             result=simulator.result();
             schema=nbiot.dataset.featureSchema();
+            expectedMetrics=trainingReport.metrics( ...
+                string(trainingReport.metrics.model)=="linearRegression", ...
+                {'split','sampleCount','idCount','mae','rmse'});
 
+            t.verifyEqual(trainingReport.phase,'evaluated');
             t.verifyEqual(result.controllerModel.modelName,'linearRegression');
             t.verifyEqual(result.controllerModel.targetName,'meanRaUe');
             t.verifyEqual(result.controllerModel.featureNames,schema.observationNames(5:end));
             t.verifyEqual(result.controllerModel.seed,17);
             t.verifyEqual(result.controllerModel.sha256,nbiot.ml.fileSha256(modelFile));
+            actualMetrics=result.controllerModel.evaluationMetrics;
             t.verifyEqual(string(result.controllerModel.evaluationMetrics.split), ...
                 ["train";"validation";"test"]);
-            t.verifyEqual(result.controllerModel.evaluationMetrics.mae,[.2;.3;.4]);
+            t.verifyEqual(actualMetrics.sampleCount,expectedMetrics.sampleCount);
+            t.verifyEqual(actualMetrics.idCount,expectedMetrics.idCount);
+            t.verifyEqual(actualMetrics.mae,expectedMetrics.mae,'AbsTol',1e-12);
+            t.verifyEqual(actualMetrics.rmse,expectedMetrics.rmse,'AbsTol',1e-12);
             t.verifyEqual(result.controllerModel.evaluationStatus,'verified');
             outputFolder=tempname; mkdir(outputFolder);
             t.addTeardown(@() removeFolder(outputFolder));
@@ -70,45 +86,60 @@ classdef TestResultMetadata < matlab.unittest.TestCase
             t.verifyEqual(result.controllerModel.evaluationStatus,'not-applicable');
             t.verifyEmpty(result.controllerModel.evaluationMetrics);
         end
+
+        function manifestedCaseIncludesVerifiedReportMetadata(t)
+            cfg=nbiot.config.defaultConfig();
+            cfg.simulation.numUE=1;
+            cfg.simulation.durationTicks=1;
+            cfg.traffic.kind='none';
+            simulator=nbiot.NBIoTSimulator(cfg,[],localDevelopment());
+            result=simulator.result();
+            folder=tempname; mkdir(folder);
+            t.addTeardown(@() removeFolder(folder));
+            metadata=nbiot.experiments.runtimeManifest(cfg,struct());
+
+            nbiot.results.saveResult(result,folder,metadata);
+
+            marker=jsondecode(fileread(fullfile(folder,'case-complete.json')));
+            reportPath=fullfile(folder,'static-v1_n1_r0000_report.json');
+            t.verifyEqual(marker.tableExportVersion,6);
+            t.verifyEqual(marker.reportMetadataFile,'static-v1_n1_r0000_report.json');
+            t.verifyTrue(isfile(reportPath));
+            t.verifyTrue(any(strcmp({marker.files.name},'static-v1_n1_r0000_report.json')));
+            reportJson=jsondecode(fileread(reportPath));
+            t.verifyEqual(reportJson.caseKey,metadata.caseKey);
+            t.verifyEqual(reportJson.canonicalConfigSha256,metadata.canonicalConfigSha256);
+            t.verifyTrue(any(strcmp({marker.files.name},reportJson.files.kpi.name)));
+            savedSchema=load(fullfile(folder,marker.resultFile),'resultSchemaVersion');
+            t.verifyEqual(savedSchema.resultSchemaVersion,metadata.resultSchemaVersion);
+            view=nbiot.ui.loadReportMetadata( ...
+                fullfile(folder,'static-v1_n1_r0000_kpi.csv'));
+            t.verifyEqual(view.status,'verified');
+            t.verifyEqual(view.caseKey,metadata.caseKey);
+            accepted=nbiot.results.verifyCase(folder);
+            t.verifyTrue(accepted.passed);
+
+            markerWithoutSidecar=marker;
+            markerWithoutSidecar.files=marker.files(~strcmp( ...
+                {marker.files.name},marker.reportMetadataFile));
+            writeJson(fullfile(folder,'case-complete.json'),markerWithoutSidecar);
+            excluded=nbiot.results.verifyCase(folder);
+            t.verifyFalse(excluded.passed);
+
+            writeJson(fullfile(folder,'case-complete.json'),marker);
+            delete(reportPath);
+            missing=nbiot.results.verifyCase(folder);
+            t.verifyFalse(missing.passed);
+
+            tamperedFolder=tempname; mkdir(tamperedFolder);
+            t.addTeardown(@() removeFolder(tamperedFolder));
+            nbiot.results.saveResult(result,tamperedFolder,metadata);
+            tamperedPath=fullfile(tamperedFolder,'static-v1_n1_r0000_report.json');
+            fid=fopen(tamperedPath,'ab'); fwrite(fid,uint8('changed'),'uint8'); fclose(fid);
+            tampered=nbiot.results.verifyCase(tamperedFolder);
+            t.verifyFalse(tampered.passed);
+        end
     end
-end
-
-function modelFile=writeModelPackage(folder)
-schema=nbiot.dataset.featureSchema();
-featureNames=schema.observationNames(5:end);
-keyNames=schema.observationNames(1:4);
-bundle=struct('formatVersion','load-model-bundle-v1', ...
-    'modelName','linearRegression','model',FixedRegressionPredictor(2), ...
-    'schemaVersion',schema.version,'featureNames',{featureNames}, ...
-    'keyNames',{keyNames},'targetName','meanRaUe', ...
-    'transform',struct('median',zeros(1,numel(featureNames)), ...
-        'mean',zeros(1,numel(featureNames)),'scale',ones(1,numel(featureNames))), ...
-    'trainingIds',[1 2],'validationIds',3,'testIds',4,'seed',17, ...
-    'status','development','dataKind','development-fixture');
-modelFile=fullfile(folder,'linearRegression.mat');
-save(modelFile,'bundle');
-hash=nbiot.ml.fileSha256(modelFile);
-modelManifest=struct('formatVersion',bundle.formatVersion, ...
-    'artifactFile','linearRegression.mat','artifactSha256',hash, ...
-    'modelName',bundle.modelName,'schemaVersion',bundle.schemaVersion, ...
-    'targetName',bundle.targetName,'featureNames',{featureNames}, ...
-    'keyNames',{keyNames},'seed',bundle.seed,'status',bundle.status, ...
-    'trainingIds',bundle.trainingIds,'validationIds',bundle.validationIds, ...
-    'testIds',bundle.testIds);
-writeJson(fullfile(folder,'linearRegression.json'),modelManifest);
-end
-
-function writeTrainingMetrics(folder,modelFile)
-metrics=table(repmat("linearRegression",3,1), ...
-    ["train";"validation";"test"],[4;2;2],[2;1;1], ...
-    [.2;.3;.4],[.3;.4;.5], ...
-    'VariableNames',{'model','split','sampleCount','idCount','mae','rmse'});
-writetable(metrics,fullfile(folder,'metrics.csv'));
-[~,base,extension]=fileparts(modelFile);
-trainingManifest=struct('modelNames',{{'linearRegression'}}, ...
-    'artifactFiles',{{[base extension]}}, ...
-    'artifactSha256',{{nbiot.ml.fileSha256(modelFile)}});
-writeJson(fullfile(folder,'training-manifest.json'),trainingManifest);
 end
 
 function writeJson(path,value)

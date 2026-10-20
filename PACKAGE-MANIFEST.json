@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "v3.0.0",
-  "scope": "All distributed Git files except PACKAGE-MANIFEST.json itself",
+  "release": "v4.0.0",
+  "selfHashExcluded": true,
+  "savedV3ReportFilesUnchanged": 30,
   "files": [
     {
       "file": ".gitattributes",
@@ -10,28 +11,43 @@
     },
     {
       "file": ".gitignore",
-      "bytes": 274,
-      "sha256": "57507808db7587a24db7e6f3a047566808c1b02e494112d07bfae4a9b472ad33"
+      "bytes": 327,
+      "sha256": "fc34863730ab467d7ac4411c58bb76ff0ce01f010b28c16da8cfb43ece29a31f"
     },
     {
       "file": "AGENTS.md",
-      "bytes": 1390,
-      "sha256": "ec0d6a8382e684fabc22e8b2ce0e5ac8bbc77699fc1b8612f72759f1efbab47f"
+      "bytes": 1428,
+      "sha256": "afe87f680ad3eedbc6b8d1e70c5abbbeb0dc9e188c4a2dc915c4ab195ce34cd8"
+    },
+    {
+      "file": "CHECK.cmd",
+      "bytes": 89,
+      "sha256": "f52a68c43b83b302b49bcec87020e40018205801a096e8720903cbc4403d879c"
     },
     {
       "file": "README.md",
-      "bytes": 6110,
-      "sha256": "3dfb86705050e231135db8b90b91771a67ce123ba5a630deb948b2c4cc052b71"
+      "bytes": 7106,
+      "sha256": "6e29f54f3f50b02453a1c6f385e7a48420ef600887907059fb26f685825b208a"
     },
     {
       "file": "RELEASE.md",
-      "bytes": 3761,
-      "sha256": "8ebf30b7b27701c694e0507fe28b20bb6aaccd78de758062090b97ae7e99a5e1"
+      "bytes": 3602,
+      "sha256": "7c2915b81a0d24fc1886dc6a903201191f564c3b0ea17c8cee78686e55cecba4"
+    },
+    {
+      "file": "SAVED-100.cmd",
+      "bytes": 92,
+      "sha256": "245d2ac8f3ee50b879238c314a7eec0b854eee87d3710aeb8aa6a4b278526c2a"
+    },
+    {
+      "file": "START.cmd",
+      "bytes": 2242,
+      "sha256": "e5a593de75e129bddf4663cae00f761736a974596e7d22577ae6db3e0337f7b6"
     },
     {
       "file": "apps/NBIoTApp.m",
-      "bytes": 69631,
-      "sha256": "527b4814b853a20dbd632fda0bb403327bcd4666ca51a4b03aa4dab89743e5cc"
+      "bytes": 103147,
+      "sha256": "d530b1a3c73b4f69b430297d3289d4ac827d890d997243a819a9a24365f08031"
     },
     {
       "file": "configs/adaptiveDefaults.m",
@@ -50,8 +66,8 @@
     },
     {
       "file": "configs/mlTrainingDefaults.m",
-      "bytes": 350,
-      "sha256": "ebc5224332eac33e9ee52be3ba63875ac5d3ef5a458b71aaabcff05e0d754aa8"
+      "bytes": 418,
+      "sha256": "e55ab7c0cb85cb079425e6a3bfbae36eea6eb711e1e6dd58834b97407d4ad769"
     },
     {
       "file": "configs/trafficPeriodic.m",
@@ -95,8 +111,8 @@
     },
     {
       "file": "docs/current-state.md",
-      "bytes": 1286,
-      "sha256": "5618ed0438c8ada02f0c0c05d3c95f2eee99d783e7eeae22fd74ec070be7b7a0"
+      "bytes": 107090,
+      "sha256": "33046f67bde74e7095cb60572621aba18b40149e96faed74e53345e0892da80f"
     },
     {
       "file": "docs/experiment-budget.md",
@@ -109,19 +125,24 @@
       "sha256": "403960836339989f35ddd3d0ce90e07696e3dfff3f8f558cf5773e54642490c2"
     },
     {
+      "file": "docs/external-runbook.md",
+      "bytes": 17439,
+      "sha256": "976a3f2689cdbdc213a2346e93f781a8efe0ef79b2c9d9b0f8235e20af455720"
+    },
+    {
       "file": "docs/final-acceptance-evidence.template.json",
       "bytes": 43,
       "sha256": "807ba86d4f9acb9356c573fdacbaa03ad88303ac6b5ffa73a9ed70c51775a4e4"
     },
     {
       "file": "docs/final-acceptance.md",
-      "bytes": 11787,
-      "sha256": "6941c269a0272a3292cdc6991b691248879e7594e72bb0726b74e7281383a155"
+      "bytes": 12728,
+      "sha256": "1f2b173c8794f23e2f8c5b611964ef02083cd132dc9f99a329ec82f77174bc1a"
     },
     {
       "file": "docs/final-report.md",
-      "bytes": 4881,
-      "sha256": "b9cc74a2068674d798c9a1ba977553f8edb8c5a203aafe43f66e97d51497e203"
+      "bytes": 5907,
+      "sha256": "dc1e22f82106ae66dde6e9be16809b2d28bd6b437c1f5b9653e86cf41d96e453"
     },
     {
       "file": "docs/foundation-report.md",
@@ -135,13 +156,18 @@
     },
     {
       "file": "docs/gui-guide.md",
-      "bytes": 13393,
-      "sha256": "88cf02fbb6081ec2f0446a1c322f04ca216fb14e52eafb27bec0ef3a8accb99a"
+      "bytes": 19653,
+      "sha256": "e732e298cb397bd69873c5e11af4a335f74bbfc3b35ddf1430bc5031c44d28d5"
     },
     {
       "file": "docs/gui-requirements-audit.md",
       "bytes": 27678,
       "sha256": "3fda9ba1661efbabe1d088181245567875c0230633f928e518be78f809c6bc06"
+    },
+    {
+      "file": "docs/gui-walkthrough.md",
+      "bytes": 2576,
+      "sha256": "652af3805962dd40c14b90dccbbbf26c00d7bb367bc26401b593853ea747c1b7"
     },
     {
       "file": "docs/implementation-plan.md",
@@ -169,19 +195,29 @@
       "sha256": "2c9c46561409ccc3ee744f991fab0efa90d98cadb55168f225137eb5987bb0b3"
     },
     {
+      "file": "docs/local-completion-handoff.md",
+      "bytes": 9663,
+      "sha256": "1aa2d11740c91372ab698f49d3455b83678eaa6733d7598947bd74fd0a56e9d6"
+    },
+    {
       "file": "docs/meeting-guide-2026-10-16.md",
       "bytes": 19724,
       "sha256": "e48526950274938ba714c9e6bb4981195cd202317caf909dbddcd08f752660b7"
     },
     {
       "file": "docs/metrics-contract.md",
-      "bytes": 18169,
-      "sha256": "7c34d0aa3f1e469069f62a58050ebbc71796ea59cb3140cacb7db2a2a9048b68"
+      "bytes": 22910,
+      "sha256": "72a606595bd874cc85e23b3e66b4e89a924e78afa3d3663c5d6cf7f5a0549abd"
     },
     {
       "file": "docs/ml-validation.md",
       "bytes": 7406,
       "sha256": "cedff2b691c62cf746d4e3bd1c0765d4a8e5a0f47b26c664aa4c6773441aa3ee"
+    },
+    {
+      "file": "docs/model-acceptance-contract.md",
+      "bytes": 8002,
+      "sha256": "3cbd7152201cc16e714dfe9c496bcb5cbf8c7cee2ac146ee0c1b19c295847f58"
     },
     {
       "file": "docs/model-profile.md",
@@ -192,6 +228,11 @@
       "file": "docs/offline-contracts.md",
       "bytes": 8906,
       "sha256": "7b960d469e40a2dfe3d1ed92064661d308379317fe5dc75db5bf97c39a75db2e"
+    },
+    {
+      "file": "docs/original-spec-traceability-20261019.json",
+      "bytes": 2730,
+      "sha256": "119e66f5ced32886994b9de83c6270e2a25b0ea2478789d5d22e90aadfdd32c6"
     },
     {
       "file": "docs/performance-report.md",
@@ -229,6 +270,11 @@
       "sha256": "3fbc6003491c3e8b570618cda331b2f0d6fc3e1257c4a1d63c3926d05426aba7"
     },
     {
+      "file": "docs/requirements-decisions.md",
+      "bytes": 12087,
+      "sha256": "ee9fe5a2b0305bff1c22bb991f74bc0b0d3dcc5e93cb19a681c9bc2f7a5adda5"
+    },
+    {
       "file": "docs/runtime-verification.md",
       "bytes": 11034,
       "sha256": "d003cc2bd0ca331a4a3111b075a654162f387bb535d34e7a6d984d4c65d4e73f"
@@ -240,8 +286,8 @@
     },
     {
       "file": "docs/section-50-readiness.md",
-      "bytes": 22802,
-      "sha256": "5ae9e209aaac39bf9d06fd2a19194ef4a6f249e4d3f3a15d521ad5254ac01baa"
+      "bytes": 43795,
+      "sha256": "32f491807c1a8d7e0fd7d77305ab3b50ead63e21f043abfdfda0c3be4c1ffe50"
     },
     {
       "file": "docs/static-analysis.txt",
@@ -270,28 +316,38 @@
     },
     {
       "file": "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments.md",
-      "bytes": 15945,
-      "sha256": "8c75f3df1e23374ded3d3cc9b304f888c34e84af85b3f3f43fd05b463891b9e8"
+      "bytes": 28320,
+      "sha256": "5d457c820bfcd85a9b9d7f9e7dec32d4b442859782dcc1ca5bd53445dc7dd623"
     },
     {
       "file": "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments/coordination.md",
-      "bytes": 14548,
-      "sha256": "47c5562c6235e5a33b8b187af1cf86adde617b5d9536ecd28a9699a2393421b0"
+      "bytes": 18812,
+      "sha256": "f37404ad71ce8c1f8aa3199bc824ed424e63b018e0d1eaa70483d6b2cbb0aa9c"
     },
     {
       "file": "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments/data-model.md",
-      "bytes": 64700,
-      "sha256": "08248f23f1b607f67a38ea7246c5bb232e8ccf1a29a1823266406586dca1ef4f"
+      "bytes": 64138,
+      "sha256": "7990c489d5384c65290c9214ced84394df596203b2824f5b534c560dd4a2bba9"
+    },
+    {
+      "file": "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments/remaining-work-20261018.md",
+      "bytes": 50308,
+      "sha256": "3d4dd2c3e0cdd684cb11e608c19117387adb33183dd515c6705ac17c267a584e"
     },
     {
       "file": "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments/runtime.md",
-      "bytes": 50000,
-      "sha256": "c8fceda0eedb378e50bb0b8068206131cc2d579e269788bc6a84a01a6bab36a8"
+      "bytes": 52136,
+      "sha256": "044e9ab95afcbde99dafd5e8994655d7026f5641409bac99e017382c95edf813"
     },
     {
       "file": "docs/superpowers/plans/2026-10-15-local-completion-and-external-experiments/ui-delivery.md",
-      "bytes": 42015,
-      "sha256": "823b1b5d787e98b6859b9ce5bb9c455663b378786f2292eae5e7cb2490e8140b"
+      "bytes": 55815,
+      "sha256": "55a7d35c9578ad565532824ccd7c93ca627f6e55cdfd20c49657db245643bf68"
+    },
+    {
+      "file": "docs/superpowers/plans/2026-10-16-resume-engineering.md",
+      "bytes": 17976,
+      "sha256": "0b310e83d8d4c9f9e9df24848f007a3d6fb3762a9b9aea321a769eebabd7703f"
     },
     {
       "file": "docs/superpowers/specs/2026-10-13-local-development-design.md",
@@ -324,6 +380,16 @@
       "sha256": "7cfd3b9bb8f9cb497c9bec390c54dabc6458cd665cf91c46a72c0c2b63dd241a"
     },
     {
+      "file": "docs/v4-install.md",
+      "bytes": 5947,
+      "sha256": "04e062e29fec38e77bc6a61d8630945041decafe9c05fa576d4df15cda06e67c"
+    },
+    {
+      "file": "docs/v4-status.md",
+      "bytes": 4861,
+      "sha256": "4902bc1c2eb086fe9d93765a8240bbdaee24d493cd79432b792908da227e0694"
+    },
+    {
       "file": "docs/work-audit-2026-10-13.md",
       "bytes": 28759,
       "sha256": "dd6b912c9dcd35a7e77fc1a9da5c2484738e67e73e42d2f15a5a8800e65378ae"
@@ -340,8 +406,8 @@
     },
     {
       "file": "examples/openNBIoTApp.m",
-      "bytes": 416,
-      "sha256": "24c09a92faf04c0fb4ba9148dd651924aca89471fb63102e4174565c704b6cea"
+      "bytes": 462,
+      "sha256": "9f5cfbfa2a7b67a1ae8848024f6542c058788bc8c1b07aed9e575a97d6679fe5"
     },
     {
       "file": "examples/runBaseline.m",
@@ -360,13 +426,23 @@
     },
     {
       "file": "experiments/buildLoadDataset.m",
-      "bytes": 4508,
-      "sha256": "e263625d441d3b622b231af2fa575370f682c9528c0194822656f5add3769a88"
+      "bytes": 5770,
+      "sha256": "0d16f70a4075990b42061b4c3667d3d2524ed6bcb964705e4313dc5a29c5da4e"
     },
     {
       "file": "experiments/captureFailure.m",
       "bytes": 4219,
       "sha256": "e209e541f6ead58d3bd4d8a5bb9d9661733ee1369e6c3a0d1a239d730a2243af"
+    },
+    {
+      "file": "experiments/evaluateFrozenLoadModels.m",
+      "bytes": 64463,
+      "sha256": "a6216ee2456d4fab29b8836fb0898d6cc198641f891f1231e01e1ada45a33a81"
+    },
+    {
+      "file": "experiments/freezeLoadModelSelection.m",
+      "bytes": 33048,
+      "sha256": "cde954d686bcbbd50a04f10bb5e3d5fc5464f131ac9590368a70a6bba49d67b0"
     },
     {
       "file": "experiments/optimizationSourceManifest.m",
@@ -385,13 +461,23 @@
     },
     {
       "file": "experiments/prepareExternalRun.m",
-      "bytes": 17083,
-      "sha256": "9ddec4ad134fb544c61e31e69ad191a8cd71e2b317e8de415472e2fdbdd24b03"
+      "bytes": 33314,
+      "sha256": "ea3ce0b7421cff3138aae8c463157f825c5dd9360bed3b00e2b2a484b476b7ae"
+    },
+    {
+      "file": "experiments/prepareModelAcceptance.m",
+      "bytes": 8498,
+      "sha256": "b747336495712f57f942a8867081883614f34be7fcf23ee4d5a803ff16612614"
     },
     {
       "file": "experiments/profileBaseline.m",
       "bytes": 1148,
       "sha256": "4058f06cdca6c67cf38492cad9b6f2c393e287ad86ba2b8380a41e78947dc7cc"
+    },
+    {
+      "file": "experiments/publishModelAcceptance.m",
+      "bytes": 6437,
+      "sha256": "159ed5e0161dd42ba557cf4301c345c0d67e9ac488421273f200eb3991e6a70d"
     },
     {
       "file": "experiments/realizationRegistry.json",
@@ -405,8 +491,8 @@
     },
     {
       "file": "experiments/runComparisonSweep.m",
-      "bytes": 21935,
-      "sha256": "8e3f237201cb3b1e58db76ce88914a75e7b8d0c12f1215003aace423846e082b"
+      "bytes": 28618,
+      "sha256": "d0d5189f66db1f4c0911651843cea9cd35c62ea397f93301fa1ec30678d0f66b"
     },
     {
       "file": "experiments/runFinalAcceptance.m",
@@ -420,8 +506,8 @@
     },
     {
       "file": "experiments/runLoadProbe.m",
-      "bytes": 46999,
-      "sha256": "f2146f2b0837f6ec5b50bbf2697584b042832f4087114b60c0489da92c0ac4dd"
+      "bytes": 53428,
+      "sha256": "d755017cadecc9ee3cdece655f834829174628a0d37b1f6dbf6728d9464e3a06"
     },
     {
       "file": "experiments/runOptimizationCase.m",
@@ -440,8 +526,8 @@
     },
     {
       "file": "experiments/trainLoadModels.m",
-      "bytes": 2016,
-      "sha256": "1a977a45806c12c038ae816b415976ceea51c94dc58cf59ac861e1d08d127b5c"
+      "bytes": 2142,
+      "sha256": "bb9ce8c467594c47310c9f24d37e351198d053dc9170d2c3caca3a101d3c5b89"
     },
     {
       "file": "experiments/validateCollisionCapture.m",
@@ -525,8 +611,8 @@
     },
     {
       "file": "reports/README.md",
-      "bytes": 1958,
-      "sha256": "13b1ea5a1609a8890583a43661baf704651728164f47f934854639b1baa62eb5"
+      "bytes": 2244,
+      "sha256": "3cf7ea40bb65aced766298005e1152c9ade978a37f1246e36e600752c39aabb1"
     },
     {
       "file": "reports/charts-single-ue/active-ue.png",
@@ -630,8 +716,8 @@
     },
     {
       "file": "setupProject.m",
-      "bytes": 261,
-      "sha256": "cd6ae506f8d115369550c496003b7eae7128d641c1a89ffc292afe2d2e6377a4"
+      "bytes": 305,
+      "sha256": "627c2fa958058cd81107e275bc5aa621e19910cffa27fd01839e80209009541a"
     },
     {
       "file": "showRadioLog.m",
@@ -660,13 +746,13 @@
     },
     {
       "file": "src/+nbiot/+config/defaultConfig.m",
-      "bytes": 2471,
-      "sha256": "4a29615ba180d77261860b9d8172065b6c022d9fbe05162b87eda574fe1e42f0"
+      "bytes": 2509,
+      "sha256": "d7d4fc5956b555a3f9cae50389c061319ded2b293dfbc86bef4a6fabef294bd6"
     },
     {
       "file": "src/+nbiot/+config/validateConfig.m",
-      "bytes": 5934,
-      "sha256": "f475b9d62516fea3d51f213248cbf82651f87027d7e8427b139b232e3788b485"
+      "bytes": 6960,
+      "sha256": "a1f46f2b66ef6c0f819ddc451ca6d91628f12a71354a208f87803be19c0d473a"
     },
     {
       "file": "src/+nbiot/+controller/applyAction.m",
@@ -684,14 +770,19 @@
       "sha256": "5b645ba70c3c09dbc69e6fbc1fd5c57c1c660402569d4506689da9fdb19976d9"
     },
     {
+      "file": "src/+nbiot/+controller/policySha256.m",
+      "bytes": 2039,
+      "sha256": "2ecef88eb77acad1cbb24272e9de5e7276e4b89aceebb89fa7ddb908610d4b86"
+    },
+    {
       "file": "src/+nbiot/+controller/prepareRuntime.m",
-      "bytes": 4787,
-      "sha256": "81eb2dc8a2c24c4f1bba4c02f370750a67ebb5f50fb197a26f770f43d5856493"
+      "bytes": 6915,
+      "sha256": "98195b58f0afca584917b1c0cff5135129f3d2029f59fc0120a65f558ad0a7bd"
     },
     {
       "file": "src/+nbiot/+dataset/assembleLoadDataset.m",
-      "bytes": 11593,
-      "sha256": "79bfe60aa9650efedc0687c5d6524edccb81b11471ce926b3306c0212057d432"
+      "bytes": 16481,
+      "sha256": "98903668946cb9d40b333ece451c8664279754c555887c3734128b4d9c309df4"
     },
     {
       "file": "src/+nbiot/+dataset/buildManifest.m",
@@ -705,13 +796,18 @@
     },
     {
       "file": "src/+nbiot/+dataset/featureSchema.m",
-      "bytes": 2086,
-      "sha256": "abc72af3bd7b9ba33611d4f5afb1f8d3ca47cdad12bbd51ff09645f4203b6e6a"
+      "bytes": 2239,
+      "sha256": "f7bd9c4a668d1fe5c0b18570125a5b6f25b77305acb176699ff7cccf64d3799b"
     },
     {
       "file": "src/+nbiot/+dataset/summarizeLoadDataset.m",
-      "bytes": 6485,
-      "sha256": "8c8607bc9665a12a024b4a8d59c463127b6b56684f681879d2fff71a5e389cf3"
+      "bytes": 6760,
+      "sha256": "60d72584cc736ac157823136a189218873371f9b53fa1e1052d7992b6f57dd0d"
+    },
+    {
+      "file": "src/+nbiot/+dataset/windowDiagnostics.m",
+      "bytes": 14068,
+      "sha256": "7055ffa2580c4cec8aaf7561d23305f349d4af520772d2f2cebc3d42494f4075"
     },
     {
       "file": "src/+nbiot/+devices/DeviceStore.m",
@@ -749,19 +845,24 @@
       "sha256": "43958dff201f7736977597b4b2ac3275b8067dcc7c7cd4ffceaade985dd5b089"
     },
     {
+      "file": "src/+nbiot/+experiments/finalizeCheckpointResult.m",
+      "bytes": 913,
+      "sha256": "694109f18b5c55bec5dd9087f1aff12896e50528fa4d6b6113d2897d99e24f3a"
+    },
+    {
       "file": "src/+nbiot/+experiments/loadCalibration.m",
-      "bytes": 1144,
-      "sha256": "b62d7e431dba9adefe78ad48dd2fe0471502925259dbf4feae18f955aa2faa2b"
+      "bytes": 1376,
+      "sha256": "0c3bcb77c5f18dc67bc97493658d2f7603a44b7080b6509387b3dca30662c36c"
     },
     {
       "file": "src/+nbiot/+experiments/loadCheckpoint.m",
-      "bytes": 6260,
-      "sha256": "9a15252b729b67166b776df2bd76d46672b9864f07cb37baa61b7feb53a3c88f"
+      "bytes": 7095,
+      "sha256": "f77030a1f2ec66da96d35a4defcda601f7545f7faa3d449f88cb2acfe27d7ba8"
     },
     {
       "file": "src/+nbiot/+experiments/loadVariant2BudgetLedger.m",
-      "bytes": 2446,
-      "sha256": "880605c74f2a3d71a5d2e92596ccc0bc30da5551af5f9fa805aeb8e519604853"
+      "bytes": 5004,
+      "sha256": "39bbc2bff22a4a5b8a77a96d420b42b3a12b4d0f32b077b1e6c06163f09cc9cc"
     },
     {
       "file": "src/+nbiot/+experiments/reconcileFailedRealizationUse.m",
@@ -775,28 +876,28 @@
     },
     {
       "file": "src/+nbiot/+experiments/runCheckpointedExperiment.m",
-      "bytes": 9459,
-      "sha256": "57b4de3041c97fd754f28dbbcd64c7e9a3465be8cd205dcd1fc9dc9032d1b819"
+      "bytes": 9618,
+      "sha256": "8efaa1bf57ffeb836e5334c1a91b65c922dc60d78c0a4457f0166e7d6e264384"
     },
     {
       "file": "src/+nbiot/+experiments/runComparisonCase.m",
-      "bytes": 4278,
-      "sha256": "be5695665398059228f40ef8b0e8f9b50211af5ea4f765a9737090b7a2ec03d7"
+      "bytes": 13078,
+      "sha256": "b2bc2d7dbf464b81cbffcadf87a889d0cfb914851865fc4a45df783cced9727b"
     },
     {
       "file": "src/+nbiot/+experiments/runStaticCase.m",
-      "bytes": 9754,
-      "sha256": "85133d01d54ef36eb2818756a6eddebf3fd5cd8c990f075d79bf393c4b3cf93e"
+      "bytes": 11968,
+      "sha256": "3613380ccc5dd673ef1ea2120e83f83fa9f4dfa48b19ba4c947e59f14cdf1dd7"
     },
     {
       "file": "src/+nbiot/+experiments/runtimeManifest.m",
-      "bytes": 7929,
-      "sha256": "d0968768b8842098915945bbd7939872a47f59cbaae410c0d00945de2acf7f42"
+      "bytes": 11466,
+      "sha256": "41032351205331c420a7f90010d49af670b2684b1ec507f95b4c5860acfb6b8e"
     },
     {
       "file": "src/+nbiot/+experiments/saveCheckpoint.m",
-      "bytes": 6457,
-      "sha256": "f08451c8422055910d7d9536634312b0d8b811e25f7e8619d0eae27faa0905c4"
+      "bytes": 7127,
+      "sha256": "e603db32f7b7d5955a30b318c4b3ec0742a393ee97ed4881fdb4cbce8acc59a8"
     },
     {
       "file": "src/+nbiot/+experiments/saveVariant2BudgetLedger.m",
@@ -807,6 +908,11 @@
       "file": "src/+nbiot/+experiments/updateRealizationUseStatus.m",
       "bytes": 2517,
       "sha256": "385c9883f74de045696a92dd198fa8dfa3a5247d1665e9a2f9575c2fb33a1173"
+    },
+    {
+      "file": "src/+nbiot/+experiments/validateComparisonAcceptanceScope.m",
+      "bytes": 2063,
+      "sha256": "b82ea1cdc2adc4e7e21a7d304ddfd781c5861472c38d649f1d7768e6b05cef5d"
     },
     {
       "file": "src/+nbiot/+experiments/validateExecutionBudget.m",
@@ -824,6 +930,16 @@
       "sha256": "d41a044034c2bd97a0b64a07832fc34a2b0553e90c9478cc0c4a672ad3719d87"
     },
     {
+      "file": "src/+nbiot/+experiments/writeRuntimeProgress.m",
+      "bytes": 5144,
+      "sha256": "14765ad2a69fb1ee268daec56ab9d7399f9fb25895d42c83c7c905a79456506c"
+    },
+    {
+      "file": "src/+nbiot/+metrics/RadioDiagnosticsAccumulator.m",
+      "bytes": 37168,
+      "sha256": "21b5b79248aafa122104cbbac74e80c0d0b52289581efae18645c717d0aecfff"
+    },
+    {
       "file": "src/+nbiot/+metrics/countTransmittedPackets.m",
       "bytes": 1219,
       "sha256": "06660d5d24741e85cb7878f351858c619314301715f4362fe7e70eae307e0301"
@@ -835,8 +951,8 @@
     },
     {
       "file": "src/+nbiot/+metrics/radioDiagnostics.m",
-      "bytes": 20805,
-      "sha256": "4e5426789b713295c91dcfae0875410d019c81bf983be8e6b5a8f49ce9f5d37d"
+      "bytes": 23937,
+      "sha256": "b5bed96d686afad705108dc1278abf284b0bc053e436fdfae697f5c5b1891d20"
     },
     {
       "file": "src/+nbiot/+metrics/serviceKpi.m",
@@ -854,14 +970,19 @@
       "sha256": "f27196239b378dd26a46db1ca89f27d149e25b4b8b36aef3cd24b00981d1f564"
     },
     {
+      "file": "src/+nbiot/+ml/checkModelAcceptanceEvidence.m",
+      "bytes": 80347,
+      "sha256": "4757b9e73d69e5e93ea7726cf3a12ed5e52265a46bfef60b9a99615b2ea2e0a1"
+    },
+    {
       "file": "src/+nbiot/+ml/fileSha256.m",
       "bytes": 582,
       "sha256": "7e68441e819e97248068626ddb5b47abb73d6c1d9e876686f4d2d17472111941"
     },
     {
       "file": "src/+nbiot/+ml/loadModelEvaluationMetrics.m",
-      "bytes": 2134,
-      "sha256": "e80d3f3955d56f8fb11edf8205b56e9e4d6097da386c58b60bac20aa907fdd37"
+      "bytes": 13974,
+      "sha256": "f2017810cd8c83d76a3acd612c914cebb38cf232e29d321e129c6daaddc5f8c3"
     },
     {
       "file": "src/+nbiot/+ml/predictLoad.m",
@@ -870,13 +991,23 @@
     },
     {
       "file": "src/+nbiot/+ml/trainLoadModels.m",
-      "bytes": 17597,
-      "sha256": "cea4c7abd3e8fd57a7fc303680b404e1139dde0e7b2431de56d15f5881d6b4ed"
+      "bytes": 30235,
+      "sha256": "e07b24d398bb1f61126711a24d6b3c898d08d585820514ed0240e14700b0662b"
+    },
+    {
+      "file": "src/+nbiot/+ml/validateModelAcceptance.m",
+      "bytes": 12092,
+      "sha256": "fb0bc165065a70164b24bc071f4c42de8698a63116e06e4ee7b384e1f1ae80ef"
     },
     {
       "file": "src/+nbiot/+ml/validateModelBundle.m",
-      "bytes": 5770,
-      "sha256": "74d51cd7bb4a8945bbbdd785a005a0b82e706270c1ae774be5a3280c136d81a1"
+      "bytes": 6899,
+      "sha256": "fefa26840efec7be3135c4aa7b331e3c47e0c10ef1526baf8f0061337fb9703e"
+    },
+    {
+      "file": "src/+nbiot/+ml/verifyModelAcceptanceRuntimeIdentity.m",
+      "bytes": 1639,
+      "sha256": "b619b3be2f5a088a68d69df1b6a0a690de5623a8d5bf141c548eb324b771aa6b"
     },
     {
       "file": "src/+nbiot/+phy/+npdcch/buildTransmission.m",
@@ -1049,6 +1180,11 @@
       "sha256": "e7a5ba03ce161b3566e540187eb431cbdf0754333061449f2868ed27d720c7ca"
     },
     {
+      "file": "src/+nbiot/+results/buildReportMetadata.m",
+      "bytes": 6504,
+      "sha256": "6620180b927c0646476d4f9550fef8edd76dad2eeb9826a577be9a451e06a42f"
+    },
+    {
       "file": "src/+nbiot/+results/buildUeSummary.m",
       "bytes": 3943,
       "sha256": "30b88f7d3fdee0c174f81ea63ab09665c2b19d65d4908801bc9fe35c445669b5"
@@ -1070,13 +1206,13 @@
     },
     {
       "file": "src/+nbiot/+results/saveResult.m",
-      "bytes": 11376,
-      "sha256": "2a2ccc50294bf7bb2018c0179d2cb7244e27e41a49acba597280e27b663019ac"
+      "bytes": 14647,
+      "sha256": "495c0b59134a26e3fb46e1d6abfd65faa66c384d873e05ea6c3e71649158b398"
     },
     {
       "file": "src/+nbiot/+results/verifyCase.m",
-      "bytes": 21690,
-      "sha256": "cbeabc401d5f725d4542790bb6cdfc0fa93c51dfecadb22fc252de25f09113af"
+      "bytes": 42413,
+      "sha256": "a9820c01d1f6aecfd6240bbb0fc60fdeb2453db39a3ae4d8c6354834dd951aca"
     },
     {
       "file": "src/+nbiot/+scenario/buildScenario.m",
@@ -1105,8 +1241,8 @@
     },
     {
       "file": "src/+nbiot/+traffic/generateArrivals.m",
-      "bytes": 1529,
-      "sha256": "af533aa377c695a40ab8174376ce031385816e5e0a6a8064ab7ac90e12447e6e"
+      "bytes": 1605,
+      "sha256": "7e0ef505136c13f6cf7ef269e96293ea326253bf6dc7c20d7850e1e0aa64ed2d"
     },
     {
       "file": "src/+nbiot/+traffic/generatePayload.m",
@@ -1125,8 +1261,8 @@
     },
     {
       "file": "src/+nbiot/+ui/SimulationSession.m",
-      "bytes": 13979,
-      "sha256": "cc1298a0f5f82a8e7824b73f9b33ee4fce0703a4b1e6b31034c92cc318b180c5"
+      "bytes": 17271,
+      "sha256": "9da4e300df02054802764efab7ca7a5b81e9b218bd2a8412b4a114af572f7f40"
     },
     {
       "file": "src/+nbiot/+ui/buildControllerDisplayData.m",
@@ -1139,6 +1275,11 @@
       "sha256": "80ebfca4f32e43ad36896d0e5cb54d629e2f80b80b97249a288257439f59ffe5"
     },
     {
+      "file": "src/+nbiot/+ui/explainMetric.m",
+      "bytes": 6560,
+      "sha256": "fc75157f3094e068bc8c3e3fe547d32ebfc5ac2613f4b3b074d26df6f4d6c775"
+    },
+    {
       "file": "src/+nbiot/+ui/exportDevelopmentDataset.m",
       "bytes": 1804,
       "sha256": "ec034c3550ca04e3514dc6ef0e67dc512023c646c8f5482c5826dd5530781246"
@@ -1149,9 +1290,14 @@
       "sha256": "164f0bcec3b4c7a4cc71f820e182cbffd9ba26c13f55c6b6a40df5ca1b3eca1c"
     },
     {
+      "file": "src/+nbiot/+ui/formatLiveRadioSummary.m",
+      "bytes": 8341,
+      "sha256": "9a9a987171dfc5d9f68568c85224425260acacdd1066e08a828f3c7cfee75eea"
+    },
+    {
       "file": "src/+nbiot/+ui/formatLiveStateSummary.m",
-      "bytes": 2757,
-      "sha256": "58d01ba2a0cbb0f93028f6ca211558e8fa71f8393e25487e3e8e9f77bf3b79c3"
+      "bytes": 2834,
+      "sha256": "91e0fba756739405e408320098886cc1582955a40904745b5d672462b44f9161"
     },
     {
       "file": "src/+nbiot/+ui/formatModelInfo.m",
@@ -1160,18 +1306,18 @@
     },
     {
       "file": "src/+nbiot/+ui/formatObservedEvents.m",
-      "bytes": 1989,
-      "sha256": "5a909053ad09f36e74b16fb153f4116d8e0b6f1ffb9fd9287e8cb90f2fb9ed10"
+      "bytes": 2928,
+      "sha256": "2e8ff651bf2a332552afd9cef8248f11411ebaadbe8d7e5e8c21773ac64a6957"
     },
     {
       "file": "src/+nbiot/+ui/formatResultSummary.m",
-      "bytes": 13136,
-      "sha256": "f8ef7002bb7d10dc797d2aa9bdd5f00963cca413c7e92dab7331c40494b8bed7"
+      "bytes": 13699,
+      "sha256": "df7e817d82dbb1e0321b826ae57b52e61d5a33089cccf06914231a8dfe75d604"
     },
     {
       "file": "src/+nbiot/+ui/formatUeDetail.m",
-      "bytes": 7174,
-      "sha256": "fd125737d4ff0088c85383085e5495c33cacb4212b48ec8290590bc5219477aa"
+      "bytes": 7599,
+      "sha256": "1af93631d35db3f42bc3b812716707c5a36525df09a29569638530baae1e0706"
     },
     {
       "file": "src/+nbiot/+ui/loadComparisonSummary.m",
@@ -1180,13 +1326,18 @@
     },
     {
       "file": "src/+nbiot/+ui/loadKpiCsvFiles.m",
-      "bytes": 1591,
-      "sha256": "5df5659cfbf462a65e5f60d83fa45b3249f3b526d17ec9d765bf07be17074b28"
+      "bytes": 1720,
+      "sha256": "3d7e8dce40281f12d0c0389db1dca4259a9e5e896c36d1e1c98c3c2be165140c"
     },
     {
       "file": "src/+nbiot/+ui/loadModelEvaluationMetrics.m",
       "bytes": 209,
       "sha256": "6da073b130045b73f883039607ec91573214cd121dcffa38dc1168179cd41e0d"
+    },
+    {
+      "file": "src/+nbiot/+ui/loadReportMetadata.m",
+      "bytes": 15485,
+      "sha256": "5db7936213d1fd894581f3c57ea741be6edf98473997296e58a44cb95cd9d634"
     },
     {
       "file": "src/+nbiot/+ui/shouldRefreshDisplay.m",
@@ -1205,8 +1356,8 @@
     },
     {
       "file": "src/+nbiot/NBIoTSimulator.m",
-      "bytes": 60449,
-      "sha256": "bd22c6994ca68e3638112cde8b0c1c6e525b672ec651373aa28b0cfb2273e72d"
+      "bytes": 62970,
+      "sha256": "2512c0e5e253967d7ee41463f8f2c42f6619c0157c7c4c4fb3709a22bfebf28e"
     },
     {
       "file": "src/+nbiot/runExperiment.m",
@@ -1217,6 +1368,11 @@
       "file": "startDemo.m",
       "bytes": 189,
       "sha256": "46aa3d6de4b497f5380caa41d53585ae002c94b4a39a8d0cb91aa155327a947b"
+    },
+    {
+      "file": "startNBIoT.m",
+      "bytes": 2237,
+      "sha256": "4f44224172554ab44e9267f0c65372e7fbbffff57856d29d001c7573a6b38ce1"
     },
     {
       "file": "test.m",
@@ -1239,6 +1395,11 @@
       "sha256": "a0c370f39bcebba09ef51b5961a6ec6e6b23a21eadb94c25dfa67e6820951885"
     },
     {
+      "file": "tests/LiveRadioCountingSimulator.m",
+      "bytes": 969,
+      "sha256": "c08401e6bec7f28c15568dff195cb24276f97bb4ae243742c38fe774c5bcdb0c"
+    },
+    {
       "file": "tests/NaNRegressionPredictor.m",
       "bytes": 164,
       "sha256": "0d361141266906dabf58e544c6ef40ba51b2923e89aec3db242d6c385acf680d"
@@ -1249,14 +1410,49 @@
       "sha256": "2810142ad44695909477c721124a07a2d2c0a8fe829a20c4380a7369871dd27c"
     },
     {
+      "file": "tests/TestAcceptanceEvidenceSnapshotCaseInputs.m",
+      "bytes": 908,
+      "sha256": "cb88f9ea47e6f18b1207a0c1aa0b43fc451aaf4b105f3731b794363ceb703840"
+    },
+    {
+      "file": "tests/TestAcceptanceEvidenceSnapshotDataset.m",
+      "bytes": 936,
+      "sha256": "6594c0dc42da96ff1cbe7449ad43124efb361221a93d212d7f773444bfce65c7"
+    },
+    {
+      "file": "tests/TestAcceptanceEvidenceSnapshotDependencies.m",
+      "bytes": 821,
+      "sha256": "1e4a47945eea7f80d2c17c07fc1b56b72b6c73693a2db480e8d312e2ef9d247f"
+    },
+    {
+      "file": "tests/TestAcceptanceEvidenceSnapshotHashes.m",
+      "bytes": 650,
+      "sha256": "a3b8f735c72b067a9114b276193f6f13d7336f5999f5a5c0b4183b3fad7b37a3"
+    },
+    {
+      "file": "tests/TestAcceptanceEvidenceSnapshotReferenceSetB.m",
+      "bytes": 708,
+      "sha256": "d5961b1931f2bc855877810ad766a8a2138df523ba5dc4fd21a2915f0f2073e6"
+    },
+    {
+      "file": "tests/TestAcceptanceEvidenceSnapshotReferences.m",
+      "bytes": 753,
+      "sha256": "b67e91831c8060eba8c7f2ce767392085f0bab8a0e4da80afbf8c1e7ccbf92ee"
+    },
+    {
       "file": "tests/TestAdaptiveIntegration.m",
-      "bytes": 5971,
-      "sha256": "82c4c7d06fb412c2413ed2e5d3e7f274d914d971338d1d1cf0a7e931be734f12"
+      "bytes": 6586,
+      "sha256": "8e2e02e56341ce72e7e7799b99094d236f0021ff35053572f98cda77bb6e6551"
     },
     {
       "file": "tests/TestAdaptivePolicySelection.m",
       "bytes": 1635,
       "sha256": "4ab0fa93998403bfc1e2b549bf299d332e1793f0d24dc28e756115c0fa2696be"
+    },
+    {
+      "file": "tests/TestBudgetLedgerReconcileContract.m",
+      "bytes": 7625,
+      "sha256": "4403f505984123c8ce8bad4d3a972eb651fdcb32bce70e8fc6a9d9315023dd60"
     },
     {
       "file": "tests/TestCalendar.m",
@@ -1265,18 +1461,38 @@
     },
     {
       "file": "tests/TestCaseResume.m",
-      "bytes": 15946,
-      "sha256": "e841621b443b2e37f7b28cf60ae141c057df8188b7a5a4934edce8963a135351"
+      "bytes": 16260,
+      "sha256": "fcf42e107790e3534f2ee590d7f933c59e2ef9ea65eae9b92a29e128a87b7b89"
+    },
+    {
+      "file": "tests/TestCheckpointFileHash.m",
+      "bytes": 1798,
+      "sha256": "60105770e448bb58a2b549afe6daf188a40df81a39e15d6166749e0bab3ab731"
+    },
+    {
+      "file": "tests/TestCheckpointProcessReader.m",
+      "bytes": 3151,
+      "sha256": "8dbaa15f797fa517a153d3fb9fbe47f01ad1949f1e3227dadda0e7e94989fde6"
+    },
+    {
+      "file": "tests/TestCheckpointProcessWriter.m",
+      "bytes": 1913,
+      "sha256": "2005900001e1ac706cc3c6de03b4e92152c524c420b3ca1dc0047b8655f2d632"
+    },
+    {
+      "file": "tests/TestCheckpointTiming.m",
+      "bytes": 3816,
+      "sha256": "b628aeb9fd0f5311f8a26bd8a60e0851465e41a16b0bc87c042569880742883f"
     },
     {
       "file": "tests/TestCheckpointedExperimentRunner.m",
-      "bytes": 1858,
-      "sha256": "14bbdc86c1d470ea2b4c46dc40a5606ed8d2f75c5e8ac36afc3e73a0ae21997f"
+      "bytes": 9169,
+      "sha256": "a4c299bc9bdb97b8966e61a1a267e58f1f656a3dae72002c7c6e4816c7f4a4bf"
     },
     {
       "file": "tests/TestCheckpointedStaticCase.m",
-      "bytes": 5767,
-      "sha256": "549e764365ea98747f3134d68b0596b1ac6cd9dd703708aeb57dfac1a9989a35"
+      "bytes": 6702,
+      "sha256": "6f0c706dfdb0e095cdf76531631e5e4e170205f8ee8e58b48d8a8b31a55355e2"
     },
     {
       "file": "tests/TestCollisionCapture.m",
@@ -1290,8 +1506,8 @@
     },
     {
       "file": "tests/TestComparisonSweep.m",
-      "bytes": 14434,
-      "sha256": "b8958b25e2e2977c7e763a0518882e9756db2bcb9405912166151f27bbc38980"
+      "bytes": 32494,
+      "sha256": "2f08411151312c2e26dcf32f8ca9843d76cbbf37d42742beb1928b2eeeec5af2"
     },
     {
       "file": "tests/TestConfig.m",
@@ -1314,14 +1530,19 @@
       "sha256": "d5d6d271341c36bdfc91e553cc4c346eac430ce4cd4f27629d68efb2ab0206a1"
     },
     {
+      "file": "tests/TestDatasetDiagnostics.m",
+      "bytes": 19710,
+      "sha256": "6ec90f39bfaca197bf0e2fa18281d4c44a26e3d0ccc5ad5c80c2bc85b1977244"
+    },
+    {
       "file": "tests/TestDiagnosticCapture.m",
       "bytes": 3448,
       "sha256": "d24aa5ca563a5ac42f24f90c3222ed9d9621f0e1cc62aa4526538b2f2a60fd31"
     },
     {
       "file": "tests/TestDisplayRefresh.m",
-      "bytes": 577,
-      "sha256": "8567793bb2b49f560b83d52b378986cf4f2eeabc1fdd5893c2669974482719a4"
+      "bytes": 5584,
+      "sha256": "552d4f96490438554255273011567bebe4555c7e2327f47ecd6718fc722376e5"
     },
     {
       "file": "tests/TestDlCalendarIndex.m",
@@ -1337,6 +1558,11 @@
       "file": "tests/TestDownlinkTiming.m",
       "bytes": 1720,
       "sha256": "926b0b92621e5085a9ac800e64430efa3f0693e092176f92612d90d9577fc98a"
+    },
+    {
+      "file": "tests/TestEmptyDiagnosticsExport.m",
+      "bytes": 2879,
+      "sha256": "879a56394b3a2de205c5d4bc483ac87ec6635d9fe731e996ff6707c18da4f8a6"
     },
     {
       "file": "tests/TestEndToEnd.m",
@@ -1365,8 +1591,18 @@
     },
     {
       "file": "tests/TestExport.m",
-      "bytes": 2771,
-      "sha256": "6cf2edd0c1c27016610d7058784c6b3d6aca0705183075e8328cbefc8cd6cbef"
+      "bytes": 5074,
+      "sha256": "37e1d8916c43e29c45a1dd5da59f1878c2edf4550297cc893733702423d0bc9d"
+    },
+    {
+      "file": "tests/TestExternalGuiProfile.m",
+      "bytes": 20018,
+      "sha256": "e9f19c69e9ee00d627cc96113dff603a072f20f67898470f9af1187e959a2f4f"
+    },
+    {
+      "file": "tests/TestExternalPreflight.m",
+      "bytes": 20923,
+      "sha256": "d09efae0507eca25f5b2ce2bd4f5adb9184332f786da787ca86f3eb2a6a92f6a"
     },
     {
       "file": "tests/TestExternalRealizations.m",
@@ -1374,14 +1610,39 @@
       "sha256": "c9eb1939e9d34df88d2d013433998d2a878b772d163e7d9a1bbb8e88b6c63626"
     },
     {
+      "file": "tests/TestExternalRegistryTransitions.m",
+      "bytes": 9374,
+      "sha256": "4fdc64aa703a82e1cd1a2d93cc1a28a9eaa49644febfdd75a0fa4a1e9bdffda8"
+    },
+    {
       "file": "tests/TestExternalRunPackage.m",
-      "bytes": 12129,
-      "sha256": "fbcd416f73ee9b26696059f4b7f419d42ef97a423fd50a2bedb78dd829588c25"
+      "bytes": 20278,
+      "sha256": "b46281cb940ce28eb5cebf384c901bba367235cbccbfb7b1930ff5dc78d7e181"
+    },
+    {
+      "file": "tests/TestExternalStageContracts.m",
+      "bytes": 10830,
+      "sha256": "d4a647b16b54fa606530a8175d61a7dcfc70409e92b5db4dc91bd16354815a50"
+    },
+    {
+      "file": "tests/TestExternalStageDispatch.m",
+      "bytes": 11728,
+      "sha256": "1e489a6300208f28b54103f3e78d5232bd7c68f0592c76b7642dfb5bcd215bc0"
     },
     {
       "file": "tests/TestFinalAcceptance.m",
       "bytes": 5312,
       "sha256": "9df85d41d1eebf8054203edfcbbeb57eebc71f1d01714f31d1229f3ff2baf879"
+    },
+    {
+      "file": "tests/TestFrozenModelEvaluation.m",
+      "bytes": 22175,
+      "sha256": "1ab6ea783ab8a8fb90ffbbf4ab0ff3a0ee2fdf3a0696530393a12373639073c7"
+    },
+    {
+      "file": "tests/TestFrozenModelSelection.m",
+      "bytes": 12708,
+      "sha256": "8f6df3dbc97d71041bfd42dd34bfc8bbe9c8fa8326bf088fd81488d630ce3a4e"
     },
     {
       "file": "tests/TestFullAdaptiveChain.m",
@@ -1395,8 +1656,8 @@
     },
     {
       "file": "tests/TestKpiCsvLoading.m",
-      "bytes": 2017,
-      "sha256": "ddb6032d09978ac04d88616f46adb8e12366ea95269bf719cc06840237d9a444"
+      "bytes": 2183,
+      "sha256": "c18669236c90f792d5d4bfdcc18fed352cfd7c6270c2f68b6493c71f92068a98"
     },
     {
       "file": "tests/TestLayout.m",
@@ -1409,19 +1670,24 @@
       "sha256": "c105c7c1f7f3e3c04d63f09d72c264860f471382992c5e246995e0ac371f8218"
     },
     {
+      "file": "tests/TestLiveRadioSummary.m",
+      "bytes": 12837,
+      "sha256": "3deb7f3b9f71aab08ffac3afc2394ed395645d3ea09dce63d51aecbe70aa76fe"
+    },
+    {
       "file": "tests/TestLiveStateSummaryFormatting.m",
       "bytes": 1462,
       "sha256": "482d1a10ae7e8bbefc2a78aa6a0e44bceac8d2dfa9731ec8175ba7f93477b5e5"
     },
     {
       "file": "tests/TestLoadDataset.m",
-      "bytes": 18059,
-      "sha256": "ce7a45fb6f2e218ceb0566f61ef63434a515aae852895b6e664448922dc59b66"
+      "bytes": 26287,
+      "sha256": "3f31278bee555592eb85c53519120383849e211d0c1a189c6f95d8d300be533c"
     },
     {
       "file": "tests/TestLoadModels.m",
-      "bytes": 13141,
-      "sha256": "0d398a6c1ca72b27f0b63c599a497cc90d2456d62e11d0b52830337bd612bc45"
+      "bytes": 26804,
+      "sha256": "4136224132a3eb7ee43787c1d4f7cb9cd4787410e6ee292a38ae14a881a30d36"
     },
     {
       "file": "tests/TestLoadPilot.m",
@@ -1430,8 +1696,13 @@
     },
     {
       "file": "tests/TestLoadProbe.m",
-      "bytes": 15769,
-      "sha256": "489f9bc4e064926f0d49d41c4fc62dee88a4d7670151e6367ecd9b20d38e1bc1"
+      "bytes": 26360,
+      "sha256": "de21ab2e8ceadede55b4d53bb4c5523eea3e937f8927c1dfa6adcd9b5fc85f31"
+    },
+    {
+      "file": "tests/TestLocalCompletionPipeline.m",
+      "bytes": 9545,
+      "sha256": "ef0270979027936c8c1be83d383223fc8aac81aa71775317be286d5af2675920"
     },
     {
       "file": "tests/TestMetrics.m",
@@ -1439,9 +1710,14 @@
       "sha256": "1fcf5607fd99fe307d7629ebc4cd50465c2bc170e30a90c400df110fd3b03ba8"
     },
     {
+      "file": "tests/TestModelAcceptance.m",
+      "bytes": 50451,
+      "sha256": "7af7574b2777246c00809f857cc413f51080e134ba0cddeb01129e4729e5bdd3"
+    },
+    {
       "file": "tests/TestModelEvaluationMetrics.m",
-      "bytes": 2204,
-      "sha256": "aac3f2cd176f45b70329cde162bbb45b60f14040ff7dfbfc534e1663115250f7"
+      "bytes": 19741,
+      "sha256": "64ae63fe5acc277e272fc55b7d8087eec5c77bf7e03f57fa6724d82a8d0cafc5"
     },
     {
       "file": "tests/TestModelInfoFormatting.m",
@@ -1460,8 +1736,8 @@
     },
     {
       "file": "tests/TestNBIoTAppChartExport.m",
-      "bytes": 2157,
-      "sha256": "4b9dbc3debf2790ee74768aa5b3dd85bf1706eb39bdf704dccf6fd3a2c6b287b"
+      "bytes": 1664,
+      "sha256": "61ffc72fa0309fc5c002f7eb1e228ea0d56855ad9a1750c644ebae43274b827a"
     },
     {
       "file": "tests/TestNBIoTAppComparison.m",
@@ -1480,8 +1756,8 @@
     },
     {
       "file": "tests/TestNBIoTAppDialogs.m",
-      "bytes": 13761,
-      "sha256": "d65ffa9b7616bd3997f728dcb54fc00f5c7f7647e96087f475ea3cfcf5f2e4f8"
+      "bytes": 22657,
+      "sha256": "2357be09701b8734e84920566872562b23b30b08d35e10ec9fc39ec3f3c4e0fa"
     },
     {
       "file": "tests/TestNBIoTAppLiveCharts.m",
@@ -1504,14 +1780,19 @@
       "sha256": "3e0fe8d0ad7c76abf7395111f875ddf66599aea7c987fd442fca26b8ba8604bf"
     },
     {
+      "file": "tests/TestNBIoTAppUsability.m",
+      "bytes": 4700,
+      "sha256": "6d3f307b36419fa36ae526ef2695f6a5f429b29c63d51d5604ba0ee8a87ab812"
+    },
+    {
       "file": "tests/TestNprachInterference.m",
       "bytes": 4847,
       "sha256": "a81ead1f1ea66b2d16d54ff9922f9d8fa0b09c166ff8342779f1922bbde7cc4d"
     },
     {
       "file": "tests/TestObservedEventFormatting.m",
-      "bytes": 1727,
-      "sha256": "11e1fa50a2464ad0050a5cbe94000a94d60a0e3a1b3b8d5065edae6ea659201b"
+      "bytes": 3470,
+      "sha256": "0ccfb806760698ecfb8fdf87fb5bcb1f95d5efce3208688e04ca749950b4f062"
     },
     {
       "file": "tests/TestOptimizationEquivalence.m",
@@ -1555,13 +1836,23 @@
     },
     {
       "file": "tests/TestRadioDiagnostics.m",
-      "bytes": 15340,
-      "sha256": "863cf4a6d3c16f1dd03d7c0573815f123075a01cb97bb11502aad2b7ab059397"
+      "bytes": 22726,
+      "sha256": "c2dc1e74a9d30d1e604b1c583c93320113f93c136c03445f50f37f5ce3eb88f7"
     },
     {
       "file": "tests/TestRadioDiagnosticsExport.m",
-      "bytes": 8784,
-      "sha256": "acdfe286a536b71bffac8448a667946c99a11ed7b162c8eddbef3e9bacac2aa1"
+      "bytes": 13157,
+      "sha256": "e1da0c8bc0a945abdbc75a1f8facf02932dac9b0745b6d8e69d6a876fa288e12"
+    },
+    {
+      "file": "tests/TestRadioDiagnosticsSavedEvidence.m",
+      "bytes": 3436,
+      "sha256": "ab22a170f017ed59d000633fe79cf6c4db8e417822bc1f303695d3d9f5514913"
+    },
+    {
+      "file": "tests/TestRadioDiagnosticsScale.m",
+      "bytes": 1039,
+      "sha256": "d612a554bb082cbec3ef3d00a7d09146a1a4ce852c08a9969c0430a2e432f378"
     },
     {
       "file": "tests/TestRadioProtocol.m",
@@ -1580,8 +1871,8 @@
     },
     {
       "file": "tests/TestResultMetadata.m",
-      "bytes": 5801,
-      "sha256": "6e72fe586b4a3ae68555e5fef1559dc28207d8dbb928fd3d889277d24185ee1d"
+      "bytes": 7705,
+      "sha256": "b355fce1fe6c330c640ea0ecf4467d36db05bc96bf91b56befddffd99028f704"
     },
     {
       "file": "tests/TestResultSummaryFormatting.m",
@@ -1590,8 +1881,18 @@
     },
     {
       "file": "tests/TestRuntimeManifest.m",
-      "bytes": 18268,
-      "sha256": "d8d7ba045290f9b2a6633bc887b306d784b083310a94438c209b6167da5ffc59"
+      "bytes": 23324,
+      "sha256": "3d31fe74262b663c28983909967a223a93366635ed4ad5075aa8aeb4e9512175"
+    },
+    {
+      "file": "tests/TestRuntimeProgress.m",
+      "bytes": 9101,
+      "sha256": "3fcebdffdaa4f716fc8060839cb821b39f036205cd1f4d9f5885ca83640b836d"
+    },
+    {
+      "file": "tests/TestSavedReportOverview.m",
+      "bytes": 29343,
+      "sha256": "c14215c853af260db82b4b2930abc0311ba8205a583b0f76cb2f5c14fec94b5b"
     },
     {
       "file": "tests/TestScheduledExecutionBudget.m",
@@ -1620,8 +1921,8 @@
     },
     {
       "file": "tests/TestSimulationCheckpoint.m",
-      "bytes": 10496,
-      "sha256": "8d5205f0a9672fa4a7604010f45511a41a3e9487ba715295f23c43d7bdf3ab4e"
+      "bytes": 10728,
+      "sha256": "abf10cbd92cef95272900253b03829dc459f8bc6b8f1ac076e266dfaab10f3a9"
     },
     {
       "file": "tests/TestSimulationSession.m",
@@ -1664,6 +1965,11 @@
       "sha256": "5864e3a364bb4a613281a8630c70d7bb8643d718c01373560bc6f27a5f575ad3"
     },
     {
+      "file": "tests/TestTrafficActivity.m",
+      "bytes": 8799,
+      "sha256": "f8fc935409918bd52e573e5c7a06adea652ec23f9b8bd12ea11b11a66bd8ddb0"
+    },
+    {
       "file": "tests/TestTransmittedPacketCount.m",
       "bytes": 1150,
       "sha256": "e2e8dc23b15fae0ad2c9e67bf00ba54baefda044f99a757e6399fd497f48e408"
@@ -1684,9 +1990,19 @@
       "sha256": "db4e823f7e9ad4786b5d890986bdd28c650096b0b99068d8faaaa3a7c68dd57b"
     },
     {
-      "file": "tests/TestV3Package.m",
-      "bytes": 2319,
-      "sha256": "c5300d8629c97b0261e37e9f36d73f41f6e1e1aa674c806f037e52cdb98b580f"
+      "file": "tests/TestV4Package.m",
+      "bytes": 2274,
+      "sha256": "06e73223e3348a8ee35f72517659d2b486de1ae6cee3459730cccb858824f2b0"
+    },
+    {
+      "file": "tests/TestV4PhysicalSmoke.m",
+      "bytes": 1927,
+      "sha256": "afa61535187b037339b7cc0d31690c0b82a59bca8f11af52b51cb5a28ce1723d"
+    },
+    {
+      "file": "tests/TestV4Startup.m",
+      "bytes": 2103,
+      "sha256": "26a49f499dfda2ce9890e2b4e9dda4178fa53e3604989c1607db88a760a83170"
     },
     {
       "file": "tests/TestWaveformChannel.m",
@@ -1702,6 +2018,16 @@
       "file": "tests/fixtures/dl-multipath-noisy-failure.mat",
       "bytes": 64675,
       "sha256": "77cc958cdc2921df71fe3120045f1f5411609ff54d821640fca705bb6d267d40"
+    },
+    {
+      "file": "tests/helpers/makeRadioDiagnosticsScaleFixture.m",
+      "bytes": 1878,
+      "sha256": "1d14af83b60e90f6e046246993b9a19241973eb94504bada472c09dcd4a55627"
+    },
+    {
+      "file": "tests/helpers/smallLoadTrainingFixture.m",
+      "bytes": 2251,
+      "sha256": "5cdaa867a5554ddeeef2858040f1137cc9cac3a32223ddece6052d18c69d05d0"
     },
     {
       "file": "tests/verification/completion/evidence.json",
@@ -2130,8 +2456,38 @@
     },
     {
       "file": "verification/completion/stage-3/runVariant2.ps1",
-      "bytes": 12892,
-      "sha256": "813c22983685d3bec764a978c47e8c966e42c1e88de7583fa59b7fc443ca7c54"
+      "bytes": 54161,
+      "sha256": "7905691f3ff3e9fe4c642c37025453ced4f924a2fac70b4dae93c4d4084f7ef7"
+    },
+    {
+      "file": "verification/external/external-stages.schema.json",
+      "bytes": 5149,
+      "sha256": "b4ab504c6b2905ed1d8e17725ebc0adc2fa611ce6053f1e3b61cdbecce139243"
+    },
+    {
+      "file": "verification/external/runExternalStage.m",
+      "bytes": 28859,
+      "sha256": "58e26a94ed6307433284b620da2742176a6326e907c611e138de52c37cf0ba07"
+    },
+    {
+      "file": "verification/external/runExternalStages.ps1",
+      "bytes": 58240,
+      "sha256": "54e499bd9caf71fbced3a27cf1687c3dc3efaa376ad3e05be2b6d0f9985ebaaa"
+    },
+    {
+      "file": "verification/external/testExternalStages.ps1",
+      "bytes": 105167,
+      "sha256": "ec13f9a30307618654c1d97685fe2e69c1719c2851180b6d86596fe070210155"
+    },
+    {
+      "file": "verification/external/validateExternalComparisonMatrix.m",
+      "bytes": 5846,
+      "sha256": "bf85e1e9db9629ec0bfe05902b7888b8df038a2dea5d161a462792498b80ece5"
+    },
+    {
+      "file": "verification/external/validateExternalPreflight.m",
+      "bytes": 23599,
+      "sha256": "fd591f0a2add7d0177d0c90cd63954575cce79c397724cc4ef2c20a2d30589d2"
     },
     {
       "file": "verification/fixtures/r1-weak-parameters.mat",
@@ -2164,14 +2520,24 @@
       "sha256": "8ee4fb5e8997ae5cb77ae30e622e67534346399e16842381554c4ef2b70757de"
     },
     {
+      "file": "verification/history/v3/TestV3Package.m",
+      "bytes": 2319,
+      "sha256": "c5300d8629c97b0261e37e9f36d73f41f6e1e1aa674c806f037e52cdb98b580f"
+    },
+    {
+      "file": "verification/local/ControlScheduledRun.ps1",
+      "bytes": 21333,
+      "sha256": "321e99112a8b81996e2446ff85fa6eeb515913a2ff10d9f4eda55b57dbde65f8"
+    },
+    {
       "file": "verification/local/InvokeBoundedProcess.ps1",
       "bytes": 2589,
       "sha256": "0d8780c07735244587f197b7fcf839a0af220720a69e074788e54e8d80edf8c6"
     },
     {
       "file": "verification/local/InvokeScheduledProcess.ps1",
-      "bytes": 17513,
-      "sha256": "1d77aeb0775727e82b97420629d74472cd17b8d6a7e77b5c25d1ccdc16e23a37"
+      "bytes": 22747,
+      "sha256": "9657e18e815858f0a67097e55202ab04d59357d4a419292cd44715f009c4a788"
     },
     {
       "file": "verification/local/OwnedProcessJob.cs",
@@ -2179,14 +2545,29 @@
       "sha256": "2c103057e98f22f944898cfd000abdf2ffd58d36232df354bd6670f189c0d8d5"
     },
     {
+      "file": "verification/local/ReconcileScheduledRun.ps1",
+      "bytes": 82893,
+      "sha256": "1d21aeeafeffcffca3d929876c922dd8712142b9ae2c6bf82380ba8d648120d1"
+    },
+    {
       "file": "verification/local/assembleSavedPilot.m",
       "bytes": 1274,
       "sha256": "3b6d3a951472003cd9cf2ff94abbdda2c42a15688110eca3f3c73ba2ae6e9bfb"
     },
     {
+      "file": "verification/local/benchmarkRadioDiagnostics.m",
+      "bytes": 2680,
+      "sha256": "784c4a6393fbc40d0850d8be7a8482a054a60f88f5c30a1e96c31947bbe38bae"
+    },
+    {
       "file": "verification/local/captureControllerSettingsPreview.m",
       "bytes": 717,
       "sha256": "ef3f38a74889e5cc753e3410839b3a560a20c4ed824226d604916b4e1898ded7"
+    },
+    {
+      "file": "verification/local/checkMatlabQueue.mjs",
+      "bytes": 4043,
+      "sha256": "137ee32285a3d3d1a52996765f862361fc5c8ba5e2f89f7da8ba1472c0a3661c"
     },
     {
       "file": "verification/local/closeInterruptedPilot.m",
@@ -2197,6 +2578,16 @@
       "file": "verification/local/gui-radio-diagnostics-preview-20261014.png",
       "bytes": 102475,
       "sha256": "1108f2a7b00b17b9d82723d5b2b14c71e211e471aa6cc639737b6ffd30f774f5"
+    },
+    {
+      "file": "verification/local/implementation-20261015/T3/runLocalCompletionPipeline.m",
+      "bytes": 72668,
+      "sha256": "790cc97411924f16c935441aa9d382084312b4ee3e80bbc98dd298258c0cba67"
+    },
+    {
+      "file": "verification/local/measureCheckpointHash.m",
+      "bytes": 1536,
+      "sha256": "152e13fa9d61289a74325bdcee09b58682d4ea88e23e23981066677efd8eb489"
     },
     {
       "file": "verification/local/meeting-20261015/checkLaunchers.m",
@@ -2325,8 +2716,8 @@
     },
     {
       "file": "verification/local/runBoundedChecks.ps1",
-      "bytes": 3431,
-      "sha256": "212e1496160d90a374bd6d419cca7cc01636f5a4ba34bae8980d9443f5ae9b1e"
+      "bytes": 3562,
+      "sha256": "6cd7bb1a5fd9c7f13172c77fe5af0240c43a653a01c7acf0088e761c6398b7fb"
     },
     {
       "file": "verification/local/stage2IdAvailabilityProbe.m",
@@ -2335,13 +2726,33 @@
     },
     {
       "file": "verification/local/testBoundedProcess.ps1",
-      "bytes": 4695,
-      "sha256": "20df364d9f7fd60d0ddf7263725a82e07018021b5779526c946eedb01262c4f9"
+      "bytes": 12805,
+      "sha256": "cfbe4410539f07655471f2f334a3e6f49d1de5dec0c662e5279e95fc951aaecc"
+    },
+    {
+      "file": "verification/local/testRunLoadProbeAdmissionAccountingContract.ps1",
+      "bytes": 5941,
+      "sha256": "c7a83fd377c41056f104a1c92a01851ebe8fe215cd02965e8b919452c6f5af00"
+    },
+    {
+      "file": "verification/local/testRunLoadProbeLeaseContract.ps1",
+      "bytes": 2783,
+      "sha256": "9f6a40caf9ab4159768457868a2bde9187843b630cdc26aeb72d9d50d97609fe"
     },
     {
       "file": "verification/local/testScheduledProcess.ps1",
-      "bytes": 9355,
-      "sha256": "f4287dfeab4784eacc381aeac2e86f8c1a20a7534ecc9ebd341bf7fbf839ca32"
+      "bytes": 18494,
+      "sha256": "d89e8be7d2ba74c3a5104244768ba2cc6848759e69a982393bdeb72390037a1e"
+    },
+    {
+      "file": "verification/local/testScheduledRunControl.ps1",
+      "bytes": 25616,
+      "sha256": "6d3e0ba2947a00d652989c90a5bd54616ce6fa75325273b7ff857881f174937f"
+    },
+    {
+      "file": "verification/local/testScheduledRunReconcile.ps1",
+      "bytes": 120430,
+      "sha256": "ff2cab8d7a2fc4c5283985fed7ab30cfbae09961d591072b532348e32c14f4bd"
     },
     {
       "file": "verification/local/verifyDatasetRoleSeparationFinal.m",
@@ -2474,6 +2885,31 @@
       "sha256": "4d129d5e17b61c5616753b9ae252406334177f54d2a8ff871f456af5403912ea"
     },
     {
+      "file": "verification/v4/accepted-engineering-snapshot.json",
+      "bytes": 131223,
+      "sha256": "0852eedc1ff926b03e6670032836f485428e86c13e3edf3355a76312e7f9d8d2"
+    },
+    {
+      "file": "verification/v4/release-context.md",
+      "bytes": 2489,
+      "sha256": "3a698cfa46ac98d594cc5ec6138ca89c6317e8b86252a103338a0b3980e92d52"
+    },
+    {
+      "file": "verification/v4/source-manifest.json",
+      "bytes": 20182,
+      "sha256": "6d83a94c87571cb3348755db0f81936a2e432454146da551722bc59e3b53742a"
+    },
+    {
+      "file": "verification/v4/test_windows_launcher.py",
+      "bytes": 4674,
+      "sha256": "23994634032a81030420a4a1f74806eb766e443dbee7322f0930251dbd3224a4"
+    },
+    {
+      "file": "verification/v4/validation.json",
+      "bytes": 2816,
+      "sha256": "dacbf72480ca58aeecc8b0dba0e968538101fa3ac8ef8fbef398a4a804b4754c"
+    },
+    {
       "file": "viewDevices100.m",
       "bytes": 181,
       "sha256": "7f282acefc5ed937c49188aee7aea62a754c1e0b619d3b80e12d5149799d0d1f"
@@ -2482,6 +2918,11 @@
       "file": "viewSaved100.m",
       "bytes": 180,
       "sha256": "368498fd4c9f7fa7110ddae559466522229cc5d62e16a2becbf7d43cf24efc5c"
+    },
+    {
+      "file": "НАЧНИТЕ ЗДЕСЬ.txt",
+      "bytes": 648,
+      "sha256": "7af877b208d31cb7ba3925223f36941e8ad29fdcb6b5b49606d9d0161548f94e"
     },
     {
       "file": "ТЗ_NB-IoT_обновленный.pdf",

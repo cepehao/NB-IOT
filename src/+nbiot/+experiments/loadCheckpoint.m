@@ -1,5 +1,7 @@
 function [sim,info]=loadCheckpoint(folder,expectedIdentity,execution)
 %LOADCHECKPOINT Verify identity and hashes, then restore the newest valid state.
+totalClock=tic;
+timing=struct('hashSeconds',0,'loadSeconds',0,'restoreSeconds',0,'totalSeconds',0,'bytes',0);
 if nargin<3, execution=struct(); end
 if ~(ischar(folder)||(isstring(folder)&&isscalar(folder)))|| ...
         ~isfolder(folder)||~isstruct(expectedIdentity)||~isscalar(expectedIdentity)
@@ -46,18 +48,40 @@ for k=numel(entries):-1:1
         if ~isfile(checkpointPath)
             error('nbiot:experiments:CheckpointCorrupt','Checkpoint data file is missing.');
         end
-        actualHash=fileHash(checkpointPath);
+        phaseClock=tic;
+        try
+            actualHash=fileHash(checkpointPath);
+        catch exception
+            timing.hashSeconds=timing.hashSeconds+toc(phaseClock);
+            rethrow(exception);
+        end
+        timing.hashSeconds=timing.hashSeconds+toc(phaseClock);
         if ~strcmp(actualHash,char(entry.sha256))
             error('nbiot:experiments:CheckpointCorrupt','Checkpoint data hash does not match the manifest.');
         end
-        data=load(checkpointPath,'payload'); payload=data.payload;
+        phaseClock=tic;
+        try
+            data=load(checkpointPath,'payload');
+        catch exception
+            timing.loadSeconds=timing.loadSeconds+toc(phaseClock);
+            rethrow(exception);
+        end
+        timing.loadSeconds=timing.loadSeconds+toc(phaseClock);
+        payload=data.payload;
         if ~isstruct(payload)||~all(isfield(payload,{'header','state'}))|| ...
                 payload.header.checkpointSchemaVersion~=1|| ...
                 ~strcmp(payload.header.identitySha256,manifest.identitySha256)|| ...
                 payload.header.tick~=entry.tick||payload.state.currentTick~=entry.tick
             error('nbiot:experiments:CheckpointCorrupt','Checkpoint payload header or tick is inconsistent.');
         end
-        sim=nbiot.NBIoTSimulator.fromCheckpointState(payload.state,execution);
+        phaseClock=tic;
+        try
+            sim=nbiot.NBIoTSimulator.fromCheckpointState(payload.state,execution);
+        catch exception
+            timing.restoreSeconds=timing.restoreSeconds+toc(phaseClock);
+            rethrow(exception);
+        end
+        timing.restoreSeconds=timing.restoreSeconds+toc(phaseClock);
         fallbackUsed=(k<numel(entries));
         info=struct('checkpointFile',fileName,'checkpointPath',checkpointPath, ...
             'checkpointTick',double(entry.tick),'newestCheckpointFile',char(newest.file), ...
@@ -69,6 +93,9 @@ for k=numel(entries):-1:1
             info.fallbackReason=strjoin(failures,' | ');
             info.recoveryRecord=writeRecoveryRecord(folder,info);
         end
+        fileInfo=dir(checkpointPath); timing.bytes=double(fileInfo.bytes);
+        timing.totalSeconds=toc(totalClock);
+        info.timing=timing;
         return
     catch exception
         if strcmp(exception.identifier,'nbiot:experiments:CheckpointRecoveryRecord')
@@ -115,13 +142,12 @@ valid=~isempty(value)&&isempty(fileparts(value))&& ...
 end
 
 function digest=fileHash(path)
-fid=fopen(path,'rb');
-if fid<0, error('nbiot:experiments:CheckpointCorrupt','Cannot open checkpoint data.'); end
-cleanup=onCleanup(@() fclose(fid)); %#ok<NASGU>
-bytes=fread(fid,Inf,'*uint8');
-sha=java.security.MessageDigest.getInstance('SHA-256');
-sha.update(typecast(bytes(:),'int8'));
-digest=lower(reshape(dec2hex(typecast(sha.digest(),'uint8'),2).',1,[]));
+try
+    digest=nbiot.ml.fileSha256(path);
+catch exception
+    error('nbiot:experiments:CheckpointCorrupt', ...
+        'Cannot hash checkpoint data (%s): %s',exception.identifier,exception.message);
+end
 end
 
 function deleteIfPresent(path)

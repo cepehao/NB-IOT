@@ -21,14 +21,15 @@ if detail.ueId<1||detail.ueId~=fix(detail.ueId)||detail.distanceM<0|| ...
 end
 location='снаружи';
 if detail.indoor, location='внутри здания'; end
-state=stateLabel(char(string(detail.state)));
+stateCode=upper(char(string(detail.state)));
+state=stateLabel(stateCode);
 lines={sprintf('UE %d',detail.ueId), ...
     sprintf('Координаты: X = %.1f м; Y = %.1f м',detail.xM,detail.yM), ...
     sprintf('Расстояние до станции: %.1f м · %s',detail.distanceM,location), ...
     ['Мощность UL: ' powerText(detail.receivedPowerUlDbm)], ...
     ['Мощность DL: ' powerText(detail.receivedPowerDlDbm)], ...
     sprintf('Попытки доступа: %d',detail.raAttempts), ...
-    ['Этап: ' state], ...
+    ['Этап: ' stateCode ' — ' state], ...
     ['Очередь: ' packetCountText(detail.queueLength)]};
 if isfield(detail,'radioSummary')&&isstruct(detail.radioSummary)&& ...
         isscalar(detail.radioSummary)
@@ -158,13 +159,15 @@ end
 
 function label=stateLabel(state)
 switch state
-    case 'IDLE', label='ожидание';
-    case 'WAIT_RA', label='подготовка попытки доступа';
-    case 'WAIT_RAR', label='ожидание ответа станции';
-    case 'WAIT_MSG4', label='завершение доступа к сети';
-    case 'BACKOFF', label='ожидание перед повтором доступа';
-    case 'DATA', label='передача данных';
-    case 'WAIT_RECEIPT', label='ожидание подтверждения доставки';
+    case 'IDLE', label='устройство свободно и сейчас не передаёт';
+    case 'WAIT_RA', label='подготовка попытки доступа к сети';
+    case 'WAIT_RAR', label='ожидание ответа станции на запрос доступа';
+    case 'WAIT_MSG4', label='завершение служебной процедуры доступа';
+    case 'BACKOFF', label='ожидание перед повторной попыткой доступа';
+    case 'DATA', label='передача полезных данных';
+    case 'WAIT_RECEIPT', label='ожидание подтверждения доставки данных';
+    case 'MSG4_ACK', label='подтверждение служебной процедуры доступа';
+    case 'RECEIPT_ACK', label='подтверждение доставки данных';
     otherwise, label=state;
 end
 end

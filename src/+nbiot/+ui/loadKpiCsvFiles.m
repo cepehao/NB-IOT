@@ -9,6 +9,7 @@ end
 
 paths=cell(size(filePaths));
 tables=cell(size(filePaths));
+reportMetadata=cell(size(filePaths));
 required={'endTick','throughputBitsPerSecond','cohortDeliveryProbability'};
 for k=1:numel(filePaths)
     path=filePaths{k};
@@ -32,6 +33,7 @@ for k=1:numel(filePaths)
     end
     paths{k}=path;
     tables{k}=data;
+    reportMetadata{k}=nbiot.ui.loadReportMetadata(path);
 end
-loaded=struct('files',{paths},'tables',{tables});
+loaded=struct('files',{paths},'tables',{tables},'reportMetadata',{reportMetadata});
 end

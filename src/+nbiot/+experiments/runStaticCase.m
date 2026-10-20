@@ -28,9 +28,18 @@ elseif isfield(provenance,'runtimeVersion')
 end
 cfg.logging.outputFolder=caseFolder;
 if ~isfolder(caseFolder), mkdir(caseFolder); end
+runtimePhase='initializing'; progressTick=0; lastCheckpoint='';
+runnerOwnsFailure=false; progress=struct();
+try
 if checkpointMode
+    publishPhase('verifying','running');
     [meta,alreadyComplete]=existingCheckpointResult(caseFolder,provenance);
-    if alreadyComplete, return; end
+    if alreadyComplete
+        progressTick=cfg.simulation.durationTicks;
+        publishPhase('completed','completed');
+        return
+    end
+    publishPhase('initializing','running');
     [id,staging,checkpointFolder,resume]=checkpointAttempt(caseFolder);
     attempt=fullfile(caseFolder,['run-' id]);
     checkpointOptions=struct('folder',checkpointFolder,'identity',provenance, ...
@@ -45,8 +54,16 @@ if checkpointMode
     if isfield(runtimeOptions,'controllerOptions')
         controllerOptions=runtimeOptions.controllerOptions;
     end
+    runnerOwnsFailure=true;
     [result,checkpointInfo]=nbiot.experiments.runCheckpointedExperiment( ...
         cfg,scenario,runtimeOptions.execution,controllerOptions,checkpointOptions);
+    runnerOwnsFailure=false;
+    progressTick=result.actualTick;
+    if ~isempty(checkpointInfo.checkpointPaths)
+        lastCheckpoint=checkpointInfo.checkpointPaths{end};
+    elseif isfield(checkpointInfo.resumeInfo,'checkpointPath')
+        lastCheckpoint=checkpointInfo.resumeInfo.checkpointPath;
+    end
     if strcmp(checkpointInfo.status,'paused')
         meta=struct('caseKey',char(string(provenance.caseKey)), ...
             'status','paused','attemptId',id,'caseFolder',caseFolder, ...
@@ -55,6 +72,7 @@ if checkpointMode
         return
     end
     if ~strcmp(result.status,'completed')
+        runtimePhase='simulating';
         error('nbiot:experiments:CheckpointIncomplete', ...
             'Checkpointed case ended with status %s; its checkpoint and staging ID were preserved.', ...
             result.status);
@@ -80,12 +98,45 @@ else
         result=runner(cfg);
     end
 end
+publishPhase('exporting','running');
 nbiot.results.saveResult(result,staging,provenance);
+publishPhase('verifying','running');
+if checkpointMode
+    report=nbiot.results.verifyCase(staging,provenance);
+    if ~report.passed
+        error('nbiot:experiments:CheckpointCompletedCase', ...
+            'Staged completion marker failed verification: %s',strjoin(report.errors,'; '));
+    end
+end
 [ok,message]=movefile(staging,attempt);
 if ~ok, error('nbiot:experiments:Commit','Cannot commit case folder: %s',message); end
 marker=jsondecode(fileread(fullfile(attempt,'case-complete.json')));
 meta=caseMeta(caseFolder,attempt,marker);
-if checkpointMode, meta.checkpoint=checkpointInfo; end
+publishPhase('completed','completed');
+if checkpointMode
+    checkpointInfo.phaseElapsedSeconds=progress.phaseElapsedSeconds;
+    meta.checkpoint=checkpointInfo;
+end
+catch exception
+    if checkpointMode&&~runnerOwnsFailure
+        update=struct('phase','failed','status','failed','caseKey',char(string(provenance.caseKey)), ...
+            'currentTick',double(progressTick),'failedPhase',runtimePhase, ...
+            'errorIdentifier',exception.identifier,'phaseContext',checkpointOptions.progressPhase);
+        if ~isempty(lastCheckpoint), update.lastCheckpoint=lastCheckpoint; end
+        nbiot.experiments.writeRuntimeProgress(checkpointOptions.progressFile,update);
+    end
+    rethrow(exception);
+end
+
+    function publishPhase(phase,status)
+        if ~checkpointMode, return; end
+        runtimePhase=phase;
+        update=struct('phase',phase,'status',status,'caseKey',char(string(provenance.caseKey)), ...
+            'currentTick',double(progressTick),'phaseContext',checkpointOptions.progressPhase, ...
+            'errorIdentifier','','failedPhase','');
+        if ~isempty(lastCheckpoint), update.lastCheckpoint=lastCheckpoint; end
+        progress=nbiot.experiments.writeRuntimeProgress(checkpointOptions.progressFile,update);
+    end
 end
 
 function settings=checkpointSettings(value)
