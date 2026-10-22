@@ -1,5 +1,10 @@
 function runtime=prepareRuntime(cfg,execution,options)
 %PREPARERUNTIME Validate the model and policy before an adaptive run starts.
+% Пояснение (рус.): подготовка контроллера перед запуском. Для Static
+% контроллер выключен. Для Adaptive-* нужна проверенная ML-модель
+% (options.model) и политика; development-модель допускается только
+% явно (allowDevelopmentModel) и только для отладки. Без модели адаптивный
+% запуск не начинается (§46.4 ТЗ).
 if nargin<3||isempty(options), options=struct(); end
 if ~isstruct(options)||~isscalar(options)
     error('nbiot:controller:Options','Controller options must be a scalar structure.');

@@ -1,5 +1,10 @@
 classdef EventQueue < handle
     %EVENTQUEUE Stable queue of deferred physical receiver completions.
+    %
+    % Пояснение (рус.): очередь отложенных событий «приём будет готов в тик N».
+    % Передача длится несколько миллисекунд, и результат приёма появляется
+    % только после её окончания и обработки. popReady(now) выдаёт все
+    % готовые события в стабильном порядке: по тику, затем по порядку добавления.
     properties (Access=private)
         entries = struct('tick',{},'sequence',{},'kind',{},'payload',{})
         nextSequence = 1

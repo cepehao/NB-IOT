@@ -1,4 +1,15 @@
 function [decode,state]=receive(cfg,rx,g,state)
+% Пояснение (рус.): приёмник NPUSCH на базовой станции (§20 ТЗ): Msg3,
+% блоки данных и короткие ACK. Шаги:
+%  1) оценить задержку сигнала и вырезать нужный интервал;
+%  2) оценить CFO по пилотным сигналам DM-RS соседних слотов и убрать его;
+%  3) по слотам: демодуляция SC-FDMA, оценка канала по пилотам,
+%     демодуляция символов (lteNPUSCHDecode);
+%  4) в конце блока - канальное декодирование и проверка CRC (lteNULSCHDecode).
+% state хранит «мягкие» данные прошлых попыток для объединения HARQ.
+% Для данных и Msg3 результат - CRC (crcError=0 - принят без ошибок).
+% ACK (формат Control) не имеет CRC: его присутствие решается по
+% согласованности пилотов и повторённых бит (uciDetected).
 if nargin<4 || isempty(state), state=struct(); end
 nbiot.phy.requireToolbox({'lteNPUSCHDecode','lteNULSCHDecode','lteULChannelEstimateNPUSCH'});
 [ue,chs]=nbiot.phy.npusch.configure(cfg,g); p=g.profile;

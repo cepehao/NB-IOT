@@ -1,8 +1,20 @@
 function arrivals=generateArrivals(cfg,sources)
 %GENERATEARRIVALS Generate continuous times before policy or queue decisions.
+%
+% Пояснение (рус.): генератор трафика (§11 ТЗ). Заранее, до начала опыта,
+% создаёт расписание всех сообщений всех UE. Поэтому политика управления
+% (Static/Adaptive) не может повлиять на трафик. Виды трафика (cfg.traffic.kind):
+%   'burst'    - массовый всплеск: каждое UE создаёт одно сообщение в
+%                случайный момент интервала [burstStartTick, +burstDurationTicks);
+%   'periodic' - сообщение каждые periodTicks со случайной начальной фазой;
+%   'poisson'  - интервалы между сообщениями экспоненциальны с
+%                интенсивностью poissonRatePerSecond.
+% Содержимое сообщения (200 байт) - случайные биты. Время округляется
+% вверх до тика; packetId присваивается по порядку времени.
 cfg=nbiot.config.validateConfig(cfg); t=cfg.traffic; horizon=cfg.simulation.durationTicks;
 arrivals=struct('packetId',{},'ueId',{},'createdTick',{},'sequence',{},'payloadBits',{},'continuousTimeSeconds',{});
 ueIds=1:cfg.simulation.numUE;
+% В режиме 'explicit' сообщения создают только перечисленные UE.
 if strcmp(t.activityMode,'explicit'), ueIds=t.activeUeIds; end
 for id=ueIds
  s=sources.stream('traffic',0,id,0); times=[];

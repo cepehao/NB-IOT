@@ -1,5 +1,20 @@
 function s=featureSchema(version)
 %FEATURESCHEMA Ordered, versioned whitelist of BS-observable inputs and targets.
+%
+% Пояснение (рус.): «паспорт» датасета для ML (§21-22 ТЗ).
+% observationNames - признаки, которые знает станция (4 ключа + признаки):
+%   detectedCandidates - сколько преамбул нашёл детектор за окно;
+%   meanPeakMetric/maxPeakMetric - уверенность детектора; meanRxEnergyW -
+%   энергия в окнах NPRACH; ulTbDecodes/ulCrcFailures - декодирования и
+%   ошибки CRC на станции; rarSent/grantsSent - отправленные RAR и
+%   разрешения; pendingRequestsMean - очередь запросов станции; в версии
+%   bs-known-v2.0 ещё занятость RA/DT в UL/DL и действовавшие P и доля RA.
+% targetNames - правда за окно: meanRaUe (среднее число UE в процедуре
+%   доступа - это и есть оцениваемая «нагрузка»), meanActiveUe и др.
+% allowedObservationKinds - единственные разрешённые источники признаков;
+% excludedSources - то, что запрещено подавать в признаки (истинные очереди
+% UE, метки коллизий, результаты приёма на UE, канал, поступления).
+% Это защита от «утечки» правды в признаки (§40 ТЗ).
 if nargin<1||isempty(version), version='bs-known-v2.0'; end
 if isstring(version)&&isscalar(version), version=char(version); end
 if ~ischar(version)||size(version,1)~=1

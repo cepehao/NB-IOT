@@ -1,5 +1,8 @@
 function [waveform,activePowerW]=normalizePower(waveform,activeRanges,txPowerDbm)
 % Normalize zero-based half-open active intervals to physical power in watts.
+% Пояснение (рус.): масштабировать сигнал так, чтобы средняя мощность его
+% активных (ненулевых) участков была txPowerDbm. Нулевые паузы в буфере
+% не занижают мощность передачи.
 waveform=double(waveform(:)); mask=false(size(waveform));
 validateattributes(txPowerDbm,{'numeric'},{'scalar','real','finite'});
 for k=1:size(activeRanges,1)

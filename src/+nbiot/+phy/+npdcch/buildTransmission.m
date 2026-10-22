@@ -1,4 +1,7 @@
 function tx=buildTransmission(cfg,g,dci)
+% Пояснение (рус.): передатчик NPDCCH на станции. Команда DCI (N0 - разрешение
+% передать вверх, N1 - указание принять вниз) кодируется с RNTI получателя,
+% размещается в сетке вместе с опорными сигналами NRS и модулируется.
 nbiot.phy.requireToolbox({'lteNPDCCH','lteDCIEncode','lteNRS','lteSCFDMAModulate'});
 [enb,chs]=nbiot.phy.dlConfig(cfg,g,true);
 [~,info]=lteNPDCCHIndices(enb,chs);

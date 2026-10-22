@@ -1,5 +1,16 @@
 function action=chooseAction(method,estimate,bsState,currentAction,policyConfig)
 %CHOOSEACTION Propose a bounded action from one recent, validated load estimate.
+% Пояснение (рус.): решение интеллектуального контроллера (§23-25 ТЗ).
+% Вход: метод управления, ML-оценка нагрузки, текущий тик, текущие P и доля RA.
+% Правила:
+%  - Static: ничего не меняет;
+%  - нет годной свежей оценки (ошибка, вне границ, старое окно): не меняет;
+%  - Adaptive-P: выбрать P по порогам нагрузки (чем выше, тем меньше P),
+%    доля RA остаётся статической (10/90);
+%  - Adaptive-RA/DT: выбрать долю RA по порогам (чем выше, тем больше RA),
+%    P остаётся статической (1).
+% Пороги и уровни - в configs/adaptiveDefaults.m (сейчас временные).
+% reason='load-threshold' означает, что предложено новое действие.
 if nargin<5||isempty(policyConfig), policyConfig=adaptiveDefaults(); end
 method=char(string(method));
 allowed={'Static','Adaptive-P','Adaptive-RA/DT'};
@@ -52,6 +63,9 @@ action.reason='load-threshold';
 end
 
 function value=selectLevel(loadEstimate,thresholds,levels)
+% Первый порог, который оценка не превышает, задаёт уровень; если оценка
+% выше всех порогов - последний уровень. Пример для Adaptive-P с порогами
+% [1 3 6 10] и уровнями [1 .75 .5 .25 .1]: оценка 4 -> P = 0,5.
 index=find(loadEstimate<=thresholds,1,'first');
 if isempty(index), index=numel(levels); end
 value=levels(index);

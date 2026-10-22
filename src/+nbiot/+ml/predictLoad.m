@@ -1,5 +1,10 @@
 function estimate=predictLoad(bundleOrFile,observationRow,publicLimits)
 %PREDICTLOAD Predict meanRaUe from one complete BS observation window.
+% Пояснение (рус.): ML-оценка нагрузки во время опыта (online inference).
+% Признаки окна приводятся к виду, как при обучении (заполнение пропусков,
+% нормировка), и подаются модели. Оценка = ожидаемое среднее число UE в
+% процедуре доступа. Если оценка не число или вне допустимых границ,
+% она помечается недействительной (valid=false) и контроллер её не использует.
 bundle=nbiot.ml.validateModelBundle(bundleOrFile);
 if ~istable(observationRow)||height(observationRow)~=1
     error('nbiot:ml:Observation','Supply exactly one named BS observation row.');

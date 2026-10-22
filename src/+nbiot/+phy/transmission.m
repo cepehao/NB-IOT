@@ -1,5 +1,8 @@
 function tx=transmission(cfg,grant,waveform,direction,activeRanges)
 % Normalize only active samples, independently of silent calendar gaps.
+% Пояснение (рус.): общий «конверт» передачи - сигнал, направление (0 - UL,
+% 1 - DL), начало в отсчётах и мощность (23 дБм для UE и BS). Сигнал
+% нормируется к единичной мощности активной части.
 if nargin<5, activeRanges=[0 size(waveform,1)]; end
 energy=0; count=0;
 for k=1:size(activeRanges,1)

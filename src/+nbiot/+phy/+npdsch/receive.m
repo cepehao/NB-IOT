@@ -1,4 +1,7 @@
 function [decode,state]=receive(cfg,rx,g,state)
+% Пояснение (рус.): приёмник нисходящих данных NPDSCH на стороне UE (RAR,
+% Msg4, квитанция). По подкадрам: синхронизация, оценка канала по NRS,
+% демодуляция; затем декодирование и проверка CRC.
 if nargin<4 || isempty(state), state=struct(); end
 nbiot.phy.requireToolbox({'lteNPDSCHDecode','lteNDLSCHDecode','lteDLChannelEstimate'});
 if ~isfield(state,'ndi') || state.ndi~=g.ndi, state=struct('ndi',g.ndi,'transport',[]); end

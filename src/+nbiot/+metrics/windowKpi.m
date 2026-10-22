@@ -1,5 +1,10 @@
 function series=windowKpi(cfg,packets,attempts,observed,actualTick,queueSamples,controllerLog)
 %WINDOWKPI Interval events and arrival cohorts have distinct denominators.
+% Пояснение (рус.): KPI по окнам 500 мс - для графиков во времени.
+% «В окне» - события, случившиеся в окне (доставки, отказы, попытки RA);
+% «когорта» - судьба сообщений, созданных в этом окне (сколько из них
+% в итоге доставлено). Эти величины считаются отдельно, чтобы не делить
+% числа из разных групп друг на друга.
 names={'windowId','startTick','endTick','created','deliveredInWindow','droppedInWindow', ...
     'cohortDelivered','cohortDropped','cohortUnfinished','cohortDeliveryProbability', ...
     'raStarted','raSucceededInWindow','raFailedInWindow','ulTbDecoded','ulCrcFailures','throughputBitsPerSecond'};

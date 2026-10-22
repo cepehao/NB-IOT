@@ -1,5 +1,9 @@
 function result=finalizeResult(cfg,scenario,packets,attempts,observed,truth,usage,actualTick,status,stopReason,errorInfo,deviceStates)
 %FINALIZERESULT Export completed, partial and failed runs without fake drops.
+% Пояснение (рус.): основа структуры result (§47 ТЗ): настройки, сценарий,
+% статус и причина остановки, сведения о случайности, журналы сообщений,
+% попыток RA и передач, сводка по каждому UE. Остановленный или
+% упавший опыт тоже сохраняется: незавершённое не выдаётся за отброшенное.
 result=struct('config',cfg,'scenario',scenario,'status',status,'stopReason',stopReason, ...
     'actualTick',actualTick,'error',errorInfo,'randomness',scenario.randomManifest);
 result.resultSchemaVersion=2;

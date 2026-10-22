@@ -1,5 +1,10 @@
 function destination=saveResult(result,folder,metadata)
 %SAVERESULT Save legacy exports, or transactionally commit a manifested case.
+% Пояснение (рус.): сохранить результат в папку: MAT с полной структурой
+% result и CSV-таблицы (_summary - итоговые KPI, _kpi - по окнам, _ue - по
+% устройствам, _observations/_targets - датасет, _radio, _resources и др.).
+% С metadata сохраняется «случай» эксперимента с case-complete.json, где
+% записаны контрольные суммы всех файлов.
 if nargin<2 || isempty(folder), folder=result.config.logging.outputFolder; end
 if nargin<3
     destination=saveLegacyResult(result,folder);

@@ -1,7 +1,33 @@
 classdef NBIoTSimulator < handle
     %NBIOTSIMULATOR Sequential waveform simulation with independent UE/BS state.
     % No channel quality/true collision label decides any receiver outcome.
+    %
+    % Пояснение (рус.): это главный объект симулятора (модуль NBIoTSimulator
+    % из §45 ТЗ). Он хранит всё состояние одного опыта и двигает модельное
+    % время шагами по 1 мс (тиками). Сам он не формирует сигналы и не
+    % декодирует их: для этого он вызывает модули +phy, +channel,
+    % +scheduler, +ra, +metrics, +dataset, +controller.
+    %
+    % Главный принцип: у устройств (UE) и у базовой станции (BS) отдельные
+    % состояния. Станция узнаёт что-либо только из принятых радиосигналов
+    % (журнал observed), а «правда» симулятора (журнал truth: кто что
+    % отправил, были ли коллизии) используется только для отчётов и как
+    % целевая переменная для ML. Решения приёмников от правды не зависят.
+    %
+    % Типичное использование:
+    %   sim = nbiot.NBIoTSimulator(cfg);  % построить сценарий и все модули
+    %   sim.run();                         % пройти все тики до конца опыта
+    %   result = sim.result();             % собрать KPI, журналы, датасет
     properties (SetAccess=private)
+        % Открытые для чтения поля:
+        % cfg - проверенные настройки; scenario - неизменная расстановка UE,
+        % их радиоусловия и расписание сообщений; currentTick - текущий тик;
+        % status - ready/running/partial/completed/stopped/failed;
+        % runtimeAction - действующие сейчас P (вероятность доступа) и доля RA;
+        % devices - состояния UE; packets - сообщения и очереди; contexts -
+        % контексты процедуры доступа на стороне BS; calendar/scheduler -
+        % бронирование радиоресурсов; channel - эфир; attempts - журнал
+        % попыток случайного доступа (Msg1) с отметками коллизии и capture.
         cfg
         scenario
         currentTick = 0
@@ -19,6 +45,15 @@ classdef NBIoTSimulator < handle
             'nInit',{},'startTick',{},'endTick',{},'status',{},'collision',{},'capture',{})
     end
     properties (Access=private)
+        % Внутренние поля:
+        % sources - независимые потоки случайных чисел; receiveQueue -
+        % очередь событий «приём будет готов в тик N»; observed - что видит
+        % станция; truth - правда симулятора; harqJournal - журнал повторов
+        % блоков данных; controllerLog - история решений контроллера;
+        % occasions - заранее забронированные окна NPRACH; tokens - выданные
+        % уникальные токены Msg3; observationRows/targetRows - строки
+        % датасета по окнам; raIntegral/activeIntegral/queueIntegral -
+        % накопители для средних значений внутри текущего окна.
         sources
         receiveQueue
         observed
@@ -63,6 +98,11 @@ classdef NBIoTSimulator < handle
             if nargin<1, cfg=nbiot.config.defaultConfig(); end
             if nargin<3, execution=struct(); end
             if nargin<4, controllerOptions=struct(); end
+            % Конструктор: проверить настройки и бюджет времени расчёта,
+            % подготовить контроллер (если выбран адаптивный режим), построить
+            % сценарий (если не передан готовый) и создать все модули.
+            % execution - ограничения расчёта (например, не более 10 UE и
+            % 300 с реального времени при локальном запуске).
             obj.executionBudget=nbiot.experiments.validateExecutionBudget(cfg,execution);
             obj.executionClock=tic;
             obj.cfg=nbiot.config.validateConfig(cfg);
@@ -84,10 +124,16 @@ classdef NBIoTSimulator < handle
                 'errorIdentifier',{},'errorMessage',{},'featureValuesJson',{});
             obj.runtimeAction=struct('accessProbability',obj.cfg.policy.accessProbability, ...
                 'raShare',obj.cfg.policy.raShare,'effectiveTick',0);
+            % Все случайные числа берутся из независимых подпотоков, заданных
+            % seed и номером реализации. Это даёт одинаковые внешние условия
+            % при сравнении Static и Adaptive (§28, §43 ТЗ).
             obj.sources=nbiot.randomness.RandomSources(cfg.simulation.seed,cfg.simulation.realizationId);
             if nargin<2 || isempty(scenario), scenario=nbiot.scenario.buildScenario(cfg,obj.sources); end
             obj.validateScenario(scenario); obj.scenario=scenario;
             obj.checkExecutionDeadline();
+            % Создание модулей: состояния UE, очереди сообщений, контексты RA
+            % станции, календарь ресурсов, планировщик, радиоканал, очередь
+            % событий приёма и журналы. Окна NPRACH бронируются сразу на весь опыт.
             obj.devices=nbiot.devices.DeviceStore(cfg.simulation.numUE);
             obj.packets=nbiot.traffic.PacketStore(cfg); obj.contexts=nbiot.ra.RaContextStore();
             obj.calendar=nbiot.scheduler.ResourceCalendar(cfg);
@@ -102,6 +148,10 @@ classdef NBIoTSimulator < handle
             obj.tokens=containers.Map('KeyType','char','ValueType','logical');
         end
         function run(obj,untilTick)
+            % Выполнить шаги до тика untilTick включительно (по умолчанию до
+            % конца опыта). Можно вызывать по частям: так GUI делает паузы.
+            % Ошибки не выбрасываются наружу, а сохраняются в errorInfo со
+            % статусом failed, чтобы можно было сохранить частичный результат.
             if nargin<2, untilTick=obj.cfg.simulation.durationTicks; end
             validateattributes(untilTick,{'numeric'},{'scalar','integer','>=',obj.currentTick,'<=',obj.cfg.simulation.durationTicks});
             if any(strcmp(obj.status,{'completed','stopped','failed'})), return; end
@@ -112,10 +162,13 @@ classdef NBIoTSimulator < handle
                     struct('untilTick',double(untilTick)));
             end
             try
+                % Без LTE Toolbox и без калиброванного порога детектора NPRACH
+                % физическую модель запускать нельзя.
                 nbiot.phy.requireToolbox();
                 if ~isfinite(obj.cfg.phy.nprachThreshold)
                     error('nbiot:phy:Calibration','Run examples/calibrateNprach.m and load its threshold before a KPI experiment.');
                 end
+                % Главный цикл: один вызов step() = один тик (1 мс модели).
                 while obj.nextTick<=untilTick && ~obj.stopRequested, obj.step(); end
                 if obj.stopRequested, obj.status='stopped';
                 elseif obj.nextTick>obj.cfg.simulation.durationTicks, obj.status='completed'; obj.stopReason='horizon';
@@ -145,6 +198,11 @@ classdef NBIoTSimulator < handle
             obj.resultCache=[];
         end
         function [applied,reason]=applyRuntimeAction(obj,action)
+            % Применить решение контроллера: новую вероятность доступа P и/или
+            % долю ресурсов RA. Допускаются только значения из фиксированных
+            % наборов и только на границе окна 500 мс. Если новая доля RA не
+            % помещается в уже забронированные ресурсы, решение отклоняется
+            % (reason='resource-budget-conflict') и настройки не меняются.
             applied=false; reason='unsupported-action';
             if ~isstruct(action)||~isscalar(action)|| ...
                     ~all(isfield(action,{'accessProbability','raShare','effectiveTick'}))
@@ -175,16 +233,29 @@ classdef NBIoTSimulator < handle
             obj.resultCache=[]; applied=true; reason='applied';
         end
         function step(obj)
+            % Один тик модели (1 мс). Порядок действий фиксирован:
+            %  1) завершить приёмы, готовые к этому тику;
+            %  2) выбросить просроченные сообщения, проверить таймеры UE/BS,
+            %     добавить новые сообщения, разбудить устройства с сообщением;
+            %  3) на границе окна 500 мс закрыть окно датасета и, если включён,
+            %     вызвать контроллер;
+            %  4) обязательные сигналы BS, преамбулы NPRACH, планирование
+            %     ответов станции, прослушивание управляющего канала;
+            %  5) накопить статистику очередей для KPI и окна датасета.
             if any(strcmp(obj.status,{'completed','stopped','failed'})) || obj.stopRequested, return; end
             obj.checkExecutionDeadline();
             obj.resultCache=[];
             now=obj.nextTick; obj.currentTick=now; obj.monitorQueued=false;
+            % На нулевом тике контроллер записывает начальное решение (данных
+            % ещё нет, поэтому настройки не меняются).
             if now==0&&obj.controllerRuntime.enabled&&isempty(obj.controllerLog)
                 obj.processControllerWindow([],0);
             end
             % Complete physical receptions first, including the horizon boundary.
             ready=obj.receiveQueue.popReady(now);
             for k=1:numel(ready), obj.handleReceive(ready(k)); end
+            % Этап 2. Сообщения старше срока жизни (10 с) отбрасываются, их
+            % незаконченная попытка доступа считается неудачной.
             if now<obj.cfg.simulation.durationTicks
                 expired=obj.packets.expireLifetime(now);
                 for u=1:obj.cfg.simulation.numUE
@@ -202,6 +273,8 @@ classdef NBIoTSimulator < handle
                 end
                 obj.advanceTimers(); obj.addArrivals(); obj.activateHeads();
             end
+            % Этап 3. Конец окна 500 мс: признаки станции и правда за окно
+            % идут в датасет; признаки также подаются ML-модели контроллера.
             if now>0 && (mod(now,obj.cfg.dataset.windowTicks)==0 || now==obj.cfg.simulation.durationTicks)
                 first=floor((now-1)/obj.cfg.dataset.windowTicks)*obj.cfg.dataset.windowTicks;
                 observation=obj.closeWindow(first,now);
@@ -209,10 +282,14 @@ classdef NBIoTSimulator < handle
                     obj.processControllerWindow(observation,now);
                 end
             end
+            % Этап 4. Новые передачи начинаются только до конца горизонта.
             if now<obj.cfg.simulation.durationTicks
                 mandatory=nbiot.phy.buildMandatoryTransmission(obj.cfg,now);
                 if ~isempty(mandatory), obj.channel.add(mandatory); end
                 obj.emitNprach(); obj.schedulePending(); obj.queueMonitoring();
+                % Этап 5. Статистика: сколько UE в процедуре доступа, сколько
+                % имеют недоставленные сообщения, длины очередей. Эти суммы
+                % по тикам дают средние за окно (правда для датасета).
                 [ra,~]=obj.devices.counts();
                 work=0; waiting=0; totalQueued=0; maxQueued=0;
                 for u=1:obj.cfg.simulation.numUE
@@ -228,6 +305,8 @@ classdef NBIoTSimulator < handle
                 obj.raIntegral=obj.raIntegral+ra; obj.activeIntegral=obj.activeIntegral+work;
                 obj.queueIntegral=obj.queueIntegral+waiting/obj.cfg.simulation.numUE;
                 obj.observed.append(now,'bs_queue',struct('pendingRequests',sum([obj.contexts.entries.pending])));
+                % Сигналы старше 128 мс больше никому не нужны: освобождаем
+                % память (1920 отсчётов = 1 мс при 1,92 МГц).
                 obj.channel.discardBefore(max(0,(now-128)*1920));
             end
             obj.nextTick=now+1;
@@ -235,6 +314,8 @@ classdef NBIoTSimulator < handle
             if now==obj.cfg.simulation.durationTicks, obj.status='completed'; obj.stopReason='horizon'; end
         end
         function stop(obj,reason)
+            % Досрочная остановка (кнопка «Остановить» или превышение бюджета
+            % времени). Накопленные данные сохраняются и доступны в result().
             if nargin<2, reason='requested'; end
             obj.resultCache=[];
             obj.stopRequested=true; obj.stopReason=char(reason);
@@ -243,6 +324,9 @@ classdef NBIoTSimulator < handle
             if ~strcmp(obj.status,'failed'), obj.status='stopped'; end
         end
         function s=snapshot(obj)
+            % Короткий снимок текущего состояния для GUI: тик, статус, состояния
+            % UE, счётчики сообщений и CRC, решения контроллера. Только чтение,
+            % на ход расчёта и случайные числа не влияет.
             schema=nbiot.dataset.featureSchema();
             targets=obj.rowsTable(obj.targetRows,schema.targetNames);
             diagnosticTargets=targets(:,{'endTick','meanRaUe'});
@@ -290,6 +374,11 @@ classdef NBIoTSimulator < handle
             [events,nextIndex]=obj.observed.since(afterIndex);
         end
         function result=result(obj)
+            % Собрать итоговую структуру result (§47 ТЗ): настройки, сценарий,
+            % журналы, KPI итоговые и по окнам, радиодиагностику, датасет,
+            % историю контроллера. Незавершённые сообщения и попытки
+            % помечаются как unfinished только в копии, поэтому после паузы
+            % расчёт можно продолжить. Результат кешируется до следующего шага.
             if ~isempty(obj.resultCache), result=obj.resultCache; return; end
             packets=obj.packets.packets;
             % Do not mutate resumable state when exporting a partial result.
@@ -361,6 +450,9 @@ classdef NBIoTSimulator < handle
             obj.resultCache=result;
         end
         function state=exportCheckpointState(obj)
+            % Контрольная точка: всё состояние симулятора между тиками. По ней
+            % fromCheckpointState восстанавливает объект, и длинный расчёт
+            % продолжается так, как будто паузы не было.
             if any(strcmp(obj.status,{'completed','stopped','failed','running'}))
                 error('nbiot:experiments:CheckpointState', ...
                     'Checkpoint export requires a nonterminal simulator at a completed step boundary.');
@@ -394,6 +486,9 @@ classdef NBIoTSimulator < handle
     end
     methods (Static)
         function obj=fromCheckpointState(state,execution)
+            % Восстановить симулятор из контрольной точки (см. exportCheckpointState).
+            % Проверяется полнота состояния и что объекты-модули по-прежнему
+            % связаны между собой (планировщик с календарём, канал с потоками).
             if nargin<2, execution=struct(); end
             required={'schemaVersion','cfg','scenario','currentTick','status', ...
                 'stopReason','errorInfo','runtimeAction','devices','packets','contexts', ...
@@ -452,6 +547,9 @@ classdef NBIoTSimulator < handle
             obj.liveRadioRefreshBusy=false;
         end
         function checkExecutionDeadline(obj)
+            % Защита от слишком долгого расчёта: если реальное время превысило
+            % бюджет, опыт останавливается (или, в режиме finish-current,
+            % только выдаётся предупреждение).
             if isempty(obj.executionClock), obj.executionClock=tic; end
             elapsed=obj.executionElapsedOffset+toc(obj.executionClock);
             if elapsed>=obj.executionBudget.maxCaseSeconds
@@ -476,6 +574,10 @@ classdef NBIoTSimulator < handle
             end
         end
         function addArrivals(obj)
+            % Переложить в очереди UE сообщения, время появления которых
+            % наступило. Расписание сгенерировано заранее (generateArrivals),
+            % поэтому трафик одинаков для всех сравниваемых режимов. Если
+            % очередь UE полна (10 сообщений), сообщение не принимается.
             a=obj.scenario.arrivals;
             while obj.arrivalCursor<=numel(a) && double(a(obj.arrivalCursor).createdTick)<=obj.currentTick
                 arrival=a(obj.arrivalCursor); accepted=obj.packets.enqueue(arrival);
@@ -484,6 +586,8 @@ classdef NBIoTSimulator < handle
             end
         end
         function activateHeads(obj)
+            % Свободное устройство (IDLE) с сообщением в очереди переходит в
+            % WAIT_RA - ждёт ближайшего окна случайного доступа.
             for u=1:obj.cfg.simulation.numUE
                 d=obj.devices.get(u);
                 if strcmp(d.state,'IDLE')
@@ -493,14 +597,22 @@ classdef NBIoTSimulator < handle
             end
         end
         function emitNprach(obj)
+            % Msg1: отправка преамбул в окне случайного доступа (каждые 80 мс).
+            % Работает только в тик начала окна.
             at=find([obj.occasions.startTick]==obj.currentTick,1); if isempty(at), return; end
             occasion=obj.occasions(at); ids=[]; indices=[];
             for u=1:obj.cfg.simulation.numUE
                 d=obj.devices.get(u);
+                % Пробуют только UE, ждущие доступа, у которых кончилась пауза BACKOFF.
                 if ~any(strcmp(d.state,{'WAIT_RA','BACKOFF'})) || d.nextAllowedTick>obj.currentTick, continue; end
                 stream=obj.sources.stream('access',0,u,occasion.occasionId);
+                % «Монетка» с вероятностью P: так работает Adaptive-P. При
+                % P = 1 (Static) пробуют все готовые устройства.
                 if rand(stream)>obj.runtimeAction.accessProbability, continue; end
+                % Случайный выбор одной из 12 преамбул (номер стартовой поднесущей).
                 d.nInit=floor(rand(stream)*obj.cfg.ra.numSubcarriers);
+                % attemptNumber - попытки для текущего сообщения (предел 8);
+                % токен - уникальный идентификатор, который UE отправит в Msg3.
                 d.attemptNumber=d.attemptNumber+1; d.lifetimeAttempt=d.lifetimeAttempt+1;
                 d.attemptId=numel(obj.attempts)+1; d.occasionId=occasion.occasionId;
                 d.token=obj.newToken(u,d.lifetimeAttempt); d.raSucceeded=false;
@@ -508,6 +620,8 @@ classdef NBIoTSimulator < handle
                 d.state='WAIT_RAR'; d.monitorStartTick=occasion.endTick+3;
                 d.deadlineTick=obj.monitoringDeadline(d.monitorStartTick,obj.cfg.ra.rarPp);
                 obj.packets.incrementAttempt(d.packetId); obj.devices.set(u,d);
+                % Настоящий сигнал NPRACH (LTE Toolbox) уходит в эфир; там он
+                % пройдёт индивидуальный канал этого UE и сложится с остальными.
                 tx=nbiot.phy.nprach.buildTransmission(obj.cfg,occasion,d.nInit);
                 tx.ueId=u; tx.attemptId=d.attemptId; tx.occasionId=occasion.occasionId;
                 tx.nInit=d.nInit; obj.channel.add(tx);
@@ -519,13 +633,23 @@ classdef NBIoTSimulator < handle
                 obj.attempts(end+1)=a; ids(end+1)=d.attemptId; indices(end+1)=d.nInit; %#ok<AGROW>
                 obj.truth.append(obj.currentTick,'msg1',struct('attemptId',d.attemptId,'ueId',u,'packetId',d.packetId,'nInit',d.nInit,'occasionId',occasion.occasionId));
             end
+            % Правда для отчёта: логическая коллизия = в этом окне ещё кто-то
+            % выбрал тот же номер преамбулы. Станция этого не знает.
             for k=1:numel(ids), obj.attempts(ids(k)).collision=sum(indices==indices(k))>1; end
             % Every configured occasion is detected, including pure noise.
             obj.receiveQueue.push(occasion.endTick+obj.cfg.phy.processingTicks+1,'nprach',occasion);
         end
         function handleReceive(obj,event)
+            % Обработка приёма, готового к текущему тику. Виды событий:
+            % nprach - станция ищет преамбулы в окне доступа;
+            % monitor - UE слушает управляющий канал NPDCCH;
+            % dl_payload - UE декодирует NPDSCH (RAR, Msg4 или квитанцию);
+            % bs_ul - станция декодирует NPUSCH (Msg3, данные или ACK).
             switch event.kind
                 case 'nprach'
+                    % Взять из эфира окно NPRACH (+-128 отсчётов запаса), найти
+                    % преамбулы детектором и записать результат в наблюдения.
+                    % На каждого найденного кандидата создаётся контекст RA.
                     occasion=event.payload; a=max(0,occasion.startTick*1920-128); z=occasion.endTick*1920+128;
                     [rx,radio]=obj.channel.receive('UL',0,a,z);
                     [detected,metrics]=nbiot.phy.nprach.detect(obj.cfg,rx,occasion);
@@ -534,6 +658,8 @@ classdef NBIoTSimulator < handle
                         'candidates',detected,'count',numel(detected), ...
                         'maxMetric',max(metrics),'meanMetric',mean(metrics), ...
                         'energyW',mean(abs(rx.waveform).^2)));
+                    % Диагностика (правда): мощность каждого сигнала, помехи и
+                    % перекрытия. Нужна для отчёта о capture и near-far.
                     for k=1:numel(radio.components)
                         obj.radioReceptionDiagnostics.append(obj.currentTick, ...
                             'nprach_component',radio.components(k));
@@ -557,6 +683,14 @@ classdef NBIoTSimulator < handle
             end
         end
         function schedulePending(obj)
+            % Логика станции: для каждого контекста RA, ждущего действия,
+            % попытаться забронировать ресурсы и отправить следующее сообщение.
+            % Контексты обслуживаются по ближайшему сроку (deadline). Состояния:
+            % RAR_PENDING   -> отправить RAR (Msg2) и ждать Msg3 (MSG3_RX);
+            % MSG4_PENDING  -> отправить Msg4 и ждать ACK (MSG4_ACK);
+            % DATA_PENDING  -> выдать разрешение N0 на блок данных (DATA_RX);
+            % RECEIPT_PENDING -> отправить квитанцию о доставке (RECEIPT_ACK).
+            % Просроченный контекст становится EXPIRED.
             entries=obj.contexts.entries; if isempty(entries), return; end
             pending=find([entries.pending]);
             if isempty(pending), return; end
@@ -574,6 +708,8 @@ classdef NBIoTSimulator < handle
                         s=obj.scheduler.downlink('RAR','RA',max(obj.currentTick,occasion.endTick+3),c.deadlineTick,raRnti);
                         if isempty(s), continue; end
                         s.msg3Grant.rnti=c.rnti;
+                        % Поля RAR: номер услышанной преамбулы (rapid), временный
+                        % номер RNTI, поправка TA по оценённой задержке, разрешение на Msg3.
                         f=s.rarGrant; f.rapid=c.nInit; f.rnti=c.rnti;
                         f.timingAdvance=max(0,min(1282,round(c.delaySeconds/(16/(15000*2048)))));
                         bits=nbiot.ra.encodeMessage('RAR',f); obj.emitDownlink(s,bits);
@@ -585,6 +721,7 @@ classdef NBIoTSimulator < handle
                         obj.emitDownlink(s,nbiot.ra.encodeMessage('Msg4',struct('token',c.token)));
                         obj.queueBsUl(id,s.ackGrant,'Msg4Ack'); c.state='MSG4_ACK'; c.receiptAttempts=c.receiptAttempts+1;
                     case 'DATA_PENDING'
+                        % Версия избыточности (RV) зависит от номера попытки HARQ.
                         rv=obj.cfg.phy.rvSequence(c.harqTry);
                         s=obj.scheduler.uplink('Data','DT',obj.currentTick,c.deadlineTick,c.rnti,c.ndi,rv);
                         if isempty(s), continue; end
@@ -602,17 +739,21 @@ classdef NBIoTSimulator < handle
             end
         end
         function emitControl(obj,g,dci)
+            % Станция передаёт управляющую команду DCI по NPDCCH.
             tx=nbiot.phy.npdcch.buildTransmission(obj.cfg,g,dci); obj.channel.add(tx);
             obj.logTx(g,0);
             obj.observed.append(obj.currentTick,'grant',struct('phase',g.phase,'rnti',g.rnti,'format',dci.format,'startTick',g.startTick,'endTick',g.endTick));
         end
         function emitDownlink(obj,s,bits)
+            % Нисходящее сообщение: команда DCI N1 по NPDCCH + данные по NPDSCH.
             obj.emitControl(s.controlGrant,s.dci);
             [tx,~]=nbiot.phy.npdsch.buildTransmission(obj.cfg,s.payloadGrant,bits,[]); obj.channel.add(tx);
             obj.logTx(s.payloadGrant,0);
             if strcmpi(s.payloadGrant.kind,'RAR'), obj.observed.append(obj.currentTick,'rar_sent',struct('rnti',s.controlGrant.rnti)); end
         end
         function queueBsUl(obj,id,g,kind)
+            % Запомнить, что станция должна принять UL-передачу по разрешению g
+            % сразу после её окончания и обработки.
             obj.receiveQueue.push(g.endTick+obj.cfg.phy.processingTicks+1,'bs_ul',struct('contextId',id,'grant',g,'kind',kind));
             if strcmp(kind,'Data')
                 c=obj.contexts.get(id); f=obj.harqIdentity(c);
@@ -622,6 +763,9 @@ classdef NBIoTSimulator < handle
             end
         end
         function queueMonitoring(obj)
+            % Каждые 32 мс UE, ждущие ответа станции, слушают общедоступные
+            % моменты NPDCCH (пространство поиска). UE не знает заранее,
+            % есть ли для него команда: он декодирует и проверяет свой RNTI.
             if mod(obj.currentTick,32)~=0, return; end
             ticks=obj.calendar.monitoringTicks(obj.currentTick); if numel(ticks)<2, return; end
             ticks=ticks(1:2); ready=max(ticks)+1+obj.cfg.phy.processingTicks+1;
@@ -637,6 +781,10 @@ classdef NBIoTSimulator < handle
             end
         end
         function receiveControl(obj,p)
+            % UE декодирует NPDCCH. Если найдена команда со своим RNTI:
+            % N0 - разрешение передать блок данных вверх (ueTransmitData);
+            % N1 - указание, где принять нисходящее сообщение (dl_payload).
+            % Устаревшие события прежней попытки (другой attemptId) игнорируются.
             d=obj.devices.get(p.ueId);
             if d.attemptId~=p.attemptId || ~any(strcmp(d.state,{'WAIT_RAR','WAIT_MSG4','DATA','WAIT_RECEIPT'})), return; end
             rx=obj.receiverWindow('DL',p.ueId,p.grant);
@@ -662,6 +810,10 @@ classdef NBIoTSimulator < handle
             end
         end
         function receiveDlPayload(obj,p)
+            % UE декодирует NPDSCH. По состоянию UE и заголовку понятно, что это:
+            % RAR   - если номер преамбулы совпал, отправить Msg3 с токеном;
+            % Msg4  - если токен свой, доступ успешен, переход к данным, ACK;
+            % квитанция - сообщение доставлено, UE освобождается.
             d=obj.devices.get(p.ueId);
             if d.attemptId~=p.attemptId || ~any(strcmp(d.state,{'WAIT_RAR','WAIT_MSG4','DATA','WAIT_RECEIPT'})), return; end
             rx=obj.receiverWindow('DL',p.ueId,p.grant);
@@ -671,6 +823,8 @@ classdef NBIoTSimulator < handle
             try
                 if strcmp(d.state,'WAIT_RAR')
                     rar=nbiot.ra.decodeMessage('RAR',decoded.decodedBits);
+                    % Чужой номер преамбулы или опоздавший RAR - не для нас.
+                    % При коллизии RAR подходит сразу нескольким UE.
                     if rar.rapid~=d.nInit || obj.currentTick>d.deadlineTick, return; end
                     ul=obj.scheduler.reconstructMsg3(rar,p.grant.ticks); ul.rnti=rar.rnti;
                     if ul.startTick<obj.currentTick, return; end
@@ -683,11 +837,15 @@ classdef NBIoTSimulator < handle
                     obj.logTx(ul,p.ueId);
                 elseif numel(decoded.decodedBits)>=16 && nbiot.util.fromBits(decoded.decodedBits(1:8))==60
                     msg=nbiot.ra.decodeMessage('Msg4',decoded.decodedBits);
+                    % Разрешение конкуренции: побеждает тот, чей токен станция
+                    % прочитала в Msg3. Остальные дождутся таймаута и BACKOFF.
                     if msg.token~=d.token, return; end
                     if strcmp(d.state,'WAIT_MSG4') && obj.currentTick>d.deadlineTick, return; end
                     firstSuccess=~d.raSucceeded;
                     if firstSuccess
                         d.raSucceeded=true; obj.attempts(d.attemptId).status='success'; obj.attempts(d.attemptId).endTick=obj.currentTick;
+                        % Успех при логической коллизии = capture (один из
+                        % столкнувшихся всё же прошёл процедуру).
                         obj.attempts(d.attemptId).capture=obj.attempts(d.attemptId).collision;
                         obj.truth.append(obj.currentTick,'ra_success',struct('attemptId',d.attemptId,'ueId',p.ueId,'packetId',d.packetId));
                     end
@@ -708,6 +866,9 @@ classdef NBIoTSimulator < handle
             end
         end
         function ueTransmitData(obj,u,g)
+            % UE передаёт блок данных по разрешению N0. Флаг NDI (new data
+            % indicator) показывает, новый это блок или повтор прежнего (HARQ):
+            % если NDI изменился, станция приняла прошлый блок - берём следующий.
             d=obj.devices.get(u); packet=obj.packets.get(d.packetId);
             if d.ndi<0, d.fragmentIndex=0;
             elseif g.ndi~=d.ndi, d.fragmentIndex=d.fragmentIndex+1; d.encoderState=[]; end
@@ -736,6 +897,8 @@ classdef NBIoTSimulator < handle
                 'packetId',double(packet.packetId)));
         end
         function ueAck(obj,u,dci,payload,phase)
+            % UE подтверждает приём Msg4 или квитанции коротким ACK (1 бит,
+            % NPUSCH формата Control, без CRC) на ресурсе, указанном в DCI.
             d=obj.devices.get(u); g=obj.scheduler.reconstructAck(dci,payload,d.rnti);
             g.phase=phase;
             if g.startTick<obj.currentTick, error('nbiot:engine:Timing','Decoded DL cannot meet its ACK start.'); end
@@ -745,6 +908,11 @@ classdef NBIoTSimulator < handle
             obj.logTx(g,u);
         end
         function receiveAtBs(obj,p)
+            % Станция декодирует NPUSCH по своему разрешению:
+            % Msg3 - CRC ок: запомнить токен, отправить Msg4; иначе контекст FAILED;
+            % Data - CRC ок и заголовок верный: блок принят, следующий или
+            %        квитанция; иначе повтор HARQ (до 4 передач);
+            % Msg4Ack/ReceiptAck - есть ACK: перейти к данным / завершить.
             c=obj.contexts.get(p.contextId); g=p.grant;
             if any(strcmp(c.state,{'FAILED','EXPIRED','DONE'})), return; end
             % Receive events belong to one public BS state and grant. A queued
@@ -761,6 +929,7 @@ classdef NBIoTSimulator < handle
                     ~isequaln(c.schedule.(grantField),g)
                 return;
             end
+            % softBuffer - «мягкая» информация прошлых попыток для объединения HARQ.
             rx=obj.receiverWindow('UL',0,g);
             [decoded,soft]=nbiot.phy.npusch.receive(obj.cfg,rx,g,c.softBuffer);
             obj.appendNpuschReceptionDiagnostic(p.kind,decoded,g,c);
@@ -828,6 +997,7 @@ classdef NBIoTSimulator < handle
             obj.contexts.set(p.contextId,c);
         end
         function c=failedTb(obj,c)
+            % Блок не принят: ещё одна попытка HARQ или, после 4-й, провал контекста.
             if c.harqTry>=obj.cfg.phy.maxHarqTransmissions, c.state='FAILED'; c.pending=false;
             else, c.harqTry=c.harqTry+1; c.state='DATA_PENDING'; c.pending=true; end
         end
@@ -840,6 +1010,9 @@ classdef NBIoTSimulator < handle
             obj.harqJournal.append(obj.currentTick,'terminal',f);
         end
         function analyzeDelivery(obj,c,b,index)
+            % Только для статистики: найти, какому UE на самом деле принадлежит
+            % принятый блок, и отметить доставку сообщения, когда собраны все
+            % блоки. На решения станции это не влияет.
             for u=1:obj.cfg.simulation.numUE
                 d=obj.devices.get(u);
                 if d.token==c.token && d.rnti==c.rnti && d.packetId>0
@@ -851,6 +1024,13 @@ classdef NBIoTSimulator < handle
             end
         end
         function advanceTimers(obj)
+            % Таймеры UE:
+            %  - не дождался RAR или своего Msg4 -> попытка неудачна; если это
+            %    была 8-я попытка, сообщение отбрасывается (ra_limit), иначе
+            %    BACKOFF - случайная пауза 1..256 мс перед новой попыткой;
+            %  - передача данных не продвигается 1024 мс -> сообщение
+            %    отбрасывается (progress_timeout).
+            % Затем таймеры станции: повтор Msg4 или квитанции после паузы.
             for u=1:obj.cfg.simulation.numUE
                 d=obj.devices.get(u);
                 if any(strcmp(d.state,{'WAIT_RAR','WAIT_MSG4'})) && obj.currentTick>=d.deadlineTick
@@ -880,9 +1060,13 @@ classdef NBIoTSimulator < handle
             end
         end
         function rx=receiverWindow(obj,direction,u,g)
+            % Взять из эфира принятый сигнал на интервале разрешения g
+            % (с запасом 128 отсчётов на задержки). u=0 - приёмник станции.
             rx=obj.channel.receive(direction,u,max(0,g.startTick*1920-128),g.endTick*1920+128);
         end
         function recordDecode(obj,kind,decoded,g,receiverId)
+            % Результат декодирования: приём на станции (receiverId=0) -
+            % в наблюдения BS, приём на UE - в правду (станция его не знает).
             fields=struct('channel',kind,'phase',g.phase, ...
                 'rnti',g.rnti,'hasCrc',decoded.hasCrc,'crcError',decoded.crcError, ...
                 'receiverId',receiverId,'startTick',g.startTick,'endTick',g.endTick);
@@ -932,6 +1116,8 @@ classdef NBIoTSimulator < handle
                 'channel',g.kind,'ueId',u,'ticks',g.ticks,'frequencyStartHz',g.frequencyStartHz,'bandwidthHz',g.bandwidthHz));
         end
         function deadline=monitoringDeadline(obj,start,pp)
+            % Срок ожидания ответа: pp периодов прослушивания NPDCCH после start
+            % (для RAR pp=10, для Msg4 pp=16) плюс время обработки.
             remaining=pp*obj.cfg.phy.npdcch.rmax; deadline=Inf;
             for base=floor(start/32)*32:32:obj.cfg.simulation.durationTicks-1
                 ticks=obj.calendar.monitoringTicks(base); ticks=ticks(ticks>=start);
@@ -942,6 +1128,7 @@ classdef NBIoTSimulator < handle
             end
         end
         function token=newToken(obj,u,attempt)
+            % Случайный 48-битный токен для Msg3/Msg4, уникальный в опыте.
             s=obj.sources.stream('token',0,u,attempt);
             while true
                 token=uint64(floor(rand(s)*2^48)); key=sprintf('%u',token);
@@ -949,6 +1136,9 @@ classdef NBIoTSimulator < handle
             end
         end
         function obs=closeWindow(obj,first,last)
+            % Закрыть окно датасета [first,last): строка признаков (только то,
+            % что знает станция) и строка правды (истинная нагрузка). Затем
+            % обнулить накопители окна. Возвращает признаки для контроллера.
             occupancy=obj.calendar.windowOccupancy(first,last);
             [obs,target]=nbiot.dataset.closeWindow(obj.observed.all(),obj.truth.all(),first,last, ...
                 obj.raIntegral,obj.activeIntegral,obj.queueIntegral, ...
@@ -959,6 +1149,11 @@ classdef NBIoTSimulator < handle
             obs=nbiot.NBIoTSimulator.rowsTable({obs},nbiot.dataset.featureSchema().observationNames);
         end
         function processControllerWindow(obj,observation,decisionTick)
+            % Цикл контроллера (раз в 500 мс, §23 ТЗ):
+            %  признаки окна -> ML-оценка нагрузки (predictLoad) ->
+            %  выбор действия по порогам (chooseAction) -> проверка и
+            %  применение (applyRuntimeAction) -> запись в историю решений.
+            % При ошибке модели настройки не меняются, причина записывается.
             state=struct('tick',double(decisionTick), ...
                 'durationTicks',double(obj.cfg.simulation.durationTicks));
             featureValuesJson='{}';
@@ -1015,6 +1210,8 @@ classdef NBIoTSimulator < handle
             obj.controllerLog(end+1)=record;
         end
         function validateScenario(obj,s)
+            % Готовый сценарий должен соответствовать настройкам: число UE,
+            % номер реализации, упорядоченное расписание сообщений.
             if ~isfield(s,'ue') || numel(s.ue)~=obj.cfg.simulation.numUE || ...
                     ~isequal(double([s.ue.ueId]),1:obj.cfg.simulation.numUE)
                 error('nbiot:scenario:Incompatible','Scenario UE IDs must be 1:numUE.');
@@ -1032,6 +1229,9 @@ classdef NBIoTSimulator < handle
     end
     methods (Static,Access=private)
         function f=fragmentHeader(b)
+            % Разбор заголовка блока данных (256 бит): номер сообщения (16 бит),
+            % номер блока (8), число блоков (8), число полезных бит (8),
+            % 8 нулевых бит, затем до 208 бит полезных данных и нули-заполнитель.
             if numel(b)~=256 || any(b~=0 & b~=1), error('nbiot:protocol:Fragment','Invalid TB.'); end
             f=struct('sequence',double(nbiot.util.fromBits(b(1:16))), ...
                 'index',double(nbiot.util.fromBits(b(17:24))), ...

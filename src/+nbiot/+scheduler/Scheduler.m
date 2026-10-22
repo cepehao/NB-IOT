@@ -1,5 +1,14 @@
 classdef Scheduler < handle
     % Fixed quota allocator; all dependent grants commit atomically.
+    %
+    % Пояснение (рус.): планировщик радиоресурсов станции. Получает запрос
+    % «нужно отправить RAR/Msg4/квитанцию или получить блок данных не позже
+    % такого-то тика», перебирает ближайшие моменты NPDCCH и допустимые
+    % задержки и бронирует в ResourceCalendar сразу всю связку: команду DCI,
+    % полезную нагрузку и ответ (Msg3 после RAR, ACK после Msg4/квитанции).
+    % Если любая часть не помещается в свою квоту RA или DT, не бронируется
+    % ничего. Методы reconstruct* восстанавливают разрешение из принятой
+    % команды DCI/RAR - так UE узнаёт, где и когда передавать или принимать.
     properties (Access=private)
         cfg
         calendar
@@ -17,6 +26,8 @@ classdef Scheduler < handle
             obj.availableDlTicks=reshape(find(~mask)-1,1,[]);
             obj.availableDlPrefix=[0 cumsum(~mask)];
         end
+        % reserveNprach - заранее забронировать все окна NPRACH опыта:
+        % каждые 80 мс (со сдвигом 8 мс) на 6 мс в полосе 45 кГц, фаза RA.
         function occasions=reserveNprach(obj)
             if ~isempty(obj.occasions), occasions=obj.occasions; return; end
             occasions=struct('occasionId',{},'startTick',{},'endTick',{},'grantId',{}); plans=[];
@@ -34,6 +45,8 @@ classdef Scheduler < handle
         function matches=referencesCalendar(obj,calendar)
             matches=(obj.calendar==calendar);
         end
+        % uplink - разрешение UE передать блок данных: команда N0 по NPDCCH
+        % + интервал NPUSCH. Возвращает [] если до срока места нет.
         function schedule=uplink(obj,kind,phase,earliestTick,deadlineTick,rnti,ndi,rv)
             schedule=[]; earliestTick=max(earliestTick,obj.contextAvailable(rnti));
             for base=ceil(earliestTick/32)*32:32:min(deadlineTick,obj.cfg.simulation.durationTicks)-1
@@ -53,6 +66,8 @@ classdef Scheduler < handle
                 end
             end
         end
+        % downlink - нисходящее сообщение: команда N1 + NPDSCH, а также
+        % ответный ресурс UE (Msg3 для RAR или ACK для Msg4/квитанции).
         function schedule=downlink(obj,kind,phase,earliestTick,deadlineTick,rnti)
             schedule=[]; earliestTick=max(earliestTick,obj.contextAvailable(rnti)); rar=strcmpi(kind,'RAR');
             for base=ceil(earliestTick/32)*32:32:min(deadlineTick,obj.cfg.simulation.durationTicks)-1

@@ -1,5 +1,8 @@
 function tx=buildMandatoryTransmission(cfg,tick)
 % Stateless public wrapper, derives SIB1 bundle phase from absolute frame.
+% Пояснение (рус.): обязательные служебные сигналы станции в этом тике
+% (синхросигналы NPSS/NSSS, NPBCH, системная информация SIB1). Они всегда
+% присутствуют в DL и занимают свои подкадры; их не может занять планировщик.
 [~,kinds]=nbiot.scheduler.mandatoryDlMask(tick+1,cfg.phy.cellId);
 state=[];
 if kinds.sib1(end)

@@ -1,4 +1,7 @@
 function decode=receive(cfg,rx,g)
+% Пояснение (рус.): приёмник управляющего канала NPDCCH на стороне UE.
+% UE пробует декодировать команду DCI в общедоступных моментах прослушивания.
+% Команда считается своей, если её CRC сошёлся с RNTI этого UE.
 nbiot.phy.requireToolbox({'lteNPDCCHDecode','lteDCIDecode','lteDLChannelEstimate'});
 % Search-space input carries no payload assignment, grant ID or UE identity.
 g.startTick=min(g.ticks); [enb,chs]=nbiot.phy.dlConfig(cfg,g,true); dstate=[];

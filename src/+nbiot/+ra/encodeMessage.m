@@ -3,6 +3,12 @@ function bits = encodeMessage(kind,fields)
 % RAR MAC PDU: BI subheader, RAPID subheader, 48-bit MAC RAR.
 % NB-IoT uses a 15-bit UL grant in the 20-bit grant field (5 reserved zeros).
 % TS36.321 6.1.5, TS36.213 16.3.3. Msg3 and receipt are research wrappers.
+% Пояснение (рус.): перевод сообщений процедуры доступа в биты (88 бит):
+%   RAR     - номер преамбулы, поправка TA, разрешение на Msg3, временный RNTI;
+%   Msg3    - токен UE (48 бит) и номер сообщения (16 бит);
+%   Msg4    - токен, который станция прочитала в Msg3 (разрешение конкуренции);
+%   receipt - квитанция о доставке: номер сообщения, номер блока, статус.
+% Внутренние номера симулятора (UE, пакет) в биты не попадают.
 b=@nbiot.util.toBits;
 switch lower(string(kind))
     case "rar"

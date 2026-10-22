@@ -1,5 +1,9 @@
 function policy=buildAdaptivePolicy(method,accessProbabilityRange,allowedRaShares)
 %BUILDADAPTIVEPOLICY Build a threshold policy from supported UI selections.
+% Пояснение (рус.): сузить пороговую политику под выбор в GUI. Для
+% Adaptive-P - диапазон допустимых P (например, от 0,25 до 1); для
+% Adaptive-RA/DT - список разрешённых долей (например, 10/90 и 30/70).
+% Пороги между оставшимися уровнями берутся из adaptiveDefaults.
 policy=adaptiveDefaults();
 method=char(string(method));
 if strcmp(method,'Adaptive-P')

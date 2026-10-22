@@ -1,4 +1,9 @@
 function [tx,state]=buildTransmission(cfg,g,bits,state)
+% Пояснение (рус.): передатчик NPUSCH на стороне UE (Msg3, блок данных, ACK).
+% Средствами LTE Toolbox: канальное кодирование (lteNULSCH) с версией
+% избыточности RV из разрешения, модуляция символов (lteNPUSCH), пилоты
+% DM-RS, размещение в ресурсной сетке и SC-FDMA-модуляция по слотам.
+% Профиль (число поднесущих, повторы, размер блока) берётся из разрешения g.
 if nargin<4, state=[]; end
 nbiot.phy.requireToolbox({'lteNULSCH','lteNPUSCH','lteNPUSCHDRS','lteSCFDMAModulate'});
 [ue,chs]=nbiot.phy.npusch.configure(cfg,g); p=g.profile;

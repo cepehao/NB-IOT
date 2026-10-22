@@ -1,4 +1,7 @@
 function [tx,state]=buildTransmission(cfg,g,bits,state)
+% Пояснение (рус.): передатчик NPDSCH на станции: 88-битное сообщение (RAR,
+% Msg4 или квитанция) кодируется, размещается в сетке с NRS и модулируется
+% по подкадрам, указанным в разрешении g.
 if nargin<4, state=[]; end
 nbiot.phy.requireToolbox({'lteNDLSCH','lteNPDSCH','lteNRS','lteSCFDMAModulate'});
 assert(numel(bits)==g.profile.tbs,'nbiot:phy:TBS','NPDSCH payload does not match TBS.');

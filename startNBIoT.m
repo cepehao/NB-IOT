@@ -1,6 +1,12 @@
 function [app,report]=startNBIoT(mode)
 %STARTNBIOT Open the v4 demo, saved report, or installation check.
 % startNBIoT; startNBIoT('saved100'); startNBIoT('check');
+% Пояснение (рус.): единая точка входа. Добавляет папки проекта в путь,
+% проверяет MATLAB R2025b, LTE Toolbox, файл калибровки детектора NPRACH
+% и возможность записи в results, затем открывает:
+%   'demo'     - окно с демо на одно устройство;
+%   'saved100' - готовый отчёт на 100 устройств без нового расчёта;
+%   'check'    - только проверка установки.
 if nargin<1, mode='demo'; end
 if ~(ischar(mode)||(isstring(mode)&&isscalar(mode))) || ...
         ~ismember(string(mode),["demo","saved100","check"])

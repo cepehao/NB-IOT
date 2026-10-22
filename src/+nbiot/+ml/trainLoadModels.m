@@ -1,5 +1,14 @@
 function [bundles,report]=trainLoadModels(data,options)
 %TRAINLOADMODELS Fit four fixed load regressors using ID-separated groups.
+% Пояснение (рус.): обучение четырёх моделей оценки нагрузки из ТЗ §21:
+% линейная регрессия (fitlm), решающее дерево (fitrtree), случайный лес
+% (TreeBagger) и градиентный бустинг (fitrensemble, LSBoost).
+% Нужна Statistics and Machine Learning Toolbox.
+% Порядок: пропуски заполняются медианой train, признаки нормируются
+% (z-score) по train; модели обучаются на train и оцениваются на
+% validation (и на test, если это не режим selection-only). Каждая модель
+% сохраняется пакетом с порядком признаков, нормировкой, списками
+% реализаций и SHA256 - чтобы потом проверить, что применяется та же модель.
 if nargin<2||isempty(options), options=mlTrainingDefaults(); end
 options=validatedOptions(options);
 [x,y,ids,groups,schema,kind,allocationsVerified]=validateTrainingData(data);
@@ -555,6 +564,8 @@ normalized=(x-transform.mean)./transform.scale;
 end
 
 function model=fitOne(name,x,y,options)
+% Обучить одну модель по её имени; гиперпараметры берутся из options
+% (по умолчанию configs/mlTrainingDefaults.m).
 switch name
     case 'linearRegression'
         model=fitlm(x,y);

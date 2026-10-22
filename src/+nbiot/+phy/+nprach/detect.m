@@ -1,4 +1,16 @@
 function [detected,metrics]=detect(cfg,rx,occasion)
+% Пояснение (рус.): детектор преамбул NPRACH на базовой станции (§14-16 ТЗ).
+% Вход: принятый сигнал окна доступа (сумма всех UE + шум) и описание окна.
+% Выход: список найденных преамбул (кандидатов) с оценками задержки и CFO.
+% Алгоритм:
+%  1) groupMetrics считает для каждой из 12 преамбул метрику сходства 0..1;
+%     кандидаты - преамбулы с метрикой не ниже калиброванного порога;
+%  2) для кандидата (от сильного к слабому) перебором уточняются задержка
+%     и CFO и проверяется совпадение по всему сигналу (matchScore);
+%  3) найденный сигнал вычитается из принятого (последовательное подавление
+%     помех, SIC), чтобы искать более слабые преамбулы «под» сильной.
+% Детектор не знает, сколько UE передавало: две UE с одной преамбулой дают
+% одного кандидата. Порог калибруется заранее (examples/calibrateNprach.m).
 threshold=cfg.phy.nprachThreshold;
 assert(isfinite(threshold) && threshold>0 && threshold<=1,...
     'nbiot:phy:Calibration','Set a calibrated NPRACH threshold before simulation.');
@@ -34,6 +46,10 @@ end
 end
 
 function [bestDelay,bestCfo,best]=estimateParameters(cfg,rx,occasion,bank,index)
+% Перебор CFO по сетке (-200..200 Гц, шаг 25) и задержки (-8..20 мкс):
+% для каждого CFO компенсировать сдвиг частоты и найти пик нормированной
+% корреляции с шаблоном преамбулы (через FFT). Лучший пик уточняется
+% параболической интерполяцией по задержке и по CFO.
 fs=1920000; delays=round((-8e-6:1/fs:20e-6)*fs);
 delays=min(delays):max(delays)+ceil(cfg.channel.fractionalFilterLength/2);
 count=numel(bank{1}.waveform); first=occasion.startTick*1920+min(delays);

@@ -1,4 +1,6 @@
 function key = substreamKey(sourceName,direction,receiverId,blockId)
+% Пояснение (рус.): однозначный номер подпотока по ключу: код источника,
+% направление (0 - UL, 1 - DL), номер получателя/устройства и номер блока.
 names={'layout','traffic','shadowing','channel','CFO','timing','noise','payload','access','backoff','token'};
 code=find(strcmpi(sourceName,names),1);
 if isempty(code), error('nbiot:randomness:InvalidKey','Unknown source name'); end

@@ -1,5 +1,12 @@
 classdef SimulationSession < handle
     %SIMULATIONSESSION Own one bounded simulator session for the user interface.
+    %
+    % Пояснение (рус.): посредник между окном (apps/NBIoTApp.m) и симулятором.
+    % start - проверить настройки и лимиты (локально до 10 UE), создать
+    % симулятор; advance(ticks) - сделать порцию шагов (вызывается таймером
+    % окна); pause/resume/stop/reset - управление; snapshot - данные для
+    % отображения; save - сохранить результат. Окно только читает состояние,
+    % поэтому действия пользователя не меняют результат расчёта (§46.15 ТЗ).
     properties (SetAccess=private)
         Status = 'idle'
         Config = struct()

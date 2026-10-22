@@ -1,6 +1,8 @@
 function [delay,measurement]=estimateTiming(cfg,rx,g,ue,chs)
 % Received DM-RS correlation, restricted to actual available public margins.
 % Toolbox offsets/correlation are zero-based sample delays modulo one slot.
+% Пояснение (рус.): оценка задержки прихода NPUSCH по корреляции с
+% известными пилотами DM-RS в пределах +-64 отсчётов от номинального начала.
 nbiot.phy.requireToolbox({'lteULFrameOffsetNPUSCH'});
 nominal=g.startTick*1920; count=g.profile.nru*g.profile.nulSlots*g.profile.repetitions*960;
 limit=64;

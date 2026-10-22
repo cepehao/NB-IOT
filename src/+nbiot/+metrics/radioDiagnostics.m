@@ -1,6 +1,12 @@
 function diagnostics=radioDiagnostics(truthEvents,observedEvents,receptionEvents,options)
 %RADIODIAGNOSTICS Compare post-reception observations with simulation truth.
 % Truth is joined only after the detector/receiver has produced its result.
+% Пояснение (рус.): радиодиагностика NPRACH (§15-16 ТЗ). После опыта
+% сопоставляет, что передавалось на самом деле (truth), с тем, что нашёл
+% детектор (observed): обнаружения, miss (передано, но не найдено),
+% false alarm (найдено, но никто не передавал), логические коллизии
+% (одинаковая преамбула), физические перекрытия, capture (из столкнувшихся
+% кто-то прошёл до конца при измеренной разнице мощностей), SINR.
 validateEvents(truthEvents,'truthEvents');
 validateEvents(observedEvents,'observedEvents');
 validateEvents(receptionEvents,'receptionEvents');

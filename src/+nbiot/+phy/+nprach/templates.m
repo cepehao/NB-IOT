@@ -1,5 +1,9 @@
 function bank=templates(cfg)
 % Cache all allowed starting tones, never a shortlist of active transmitters.
+% Пояснение (рус.): шаблоны всех 12 преамбул NPRACH (NInit = 0..11),
+% сформированные функцией LTE Toolbox lteNPRACH. Берётся активная часть
+% (10752 отсчёта = 5,6 мс) с единичной мощностью. Шаблоны используют и
+% передатчик UE, и детектор BS; считаются один раз и кешируются.
 persistent cached key
 k=[cfg.phy.cellId cfg.ra.periodTicks cfg.ra.numSubcarriers cfg.ra.repetitions cfg.ra.format];
 if isempty(cached) || ~isequal(key,k)

@@ -1,4 +1,13 @@
 classdef ResourceCalendar < handle
+    % Пояснение (рус.): «таблица бронирования» радиоресурсов.
+    % UL: сетка (2 полуслота по 0,5 мс на тик) x (48 полос по 3,75 кГц = 180 кГц).
+    % DL: один элемент на тик (вся полоса 180 кГц); обязательные служебные
+    % подкадры (mandatoryMask) заняты всегда.
+    % Каждая занятая клетка помечена фазой: 1 - RA (доступ), 2 - DT (данные).
+    % Квота RA/DT: в каждом окне 500 мс доля RA (windowShares, по умолчанию
+    % 0,1) от доступных клеток отдаётся под RA, остальное - под DT, отдельно
+    % для UL и DL. Заимствовать чужую квоту нельзя; округление вниз.
+    % Adaptive-RA/DT меняет windowShares через applyShareFrom.
     properties (SetAccess=private)
         mandatoryMask
         durationTicks
@@ -26,6 +35,8 @@ classdef ResourceCalendar < handle
         function ok=canReserve(obj,plans)
             [ok,~,~]=obj.check(plans);
         end
+        % monitoringTicks - до 4 ближайших свободных от служебных сигналов
+        % DL-подкадров начиная с baseTick: моменты прослушивания NPDCCH.
         function ticks=monitoringTicks(obj,baseTick)
             assert(isscalar(baseTick) && baseTick>=0 && baseTick==fix(baseTick));
             if baseTick>=obj.durationTicks, ticks=zeros(1,0); return; end
@@ -34,6 +45,7 @@ classdef ResourceCalendar < handle
             if first>last, ticks=zeros(1,0); return; end
             ticks=obj.monitoringDlTicks(first:last);
         end
+        % reserveTransaction - забронировать все планы разом или ни одного.
         function ok=reserveTransaction(obj,plans)
             [ok,u,d]=obj.check(plans);
             if ok
@@ -41,6 +53,8 @@ classdef ResourceCalendar < handle
                 for k=1:numel(plans), obj.records(end+1)=obj.canonical(plans(k)); end
             end
         end
+        % applyShareFrom - новая доля RA с окна effectiveTick до конца опыта.
+        % Отказ, если уже сделанные брони не помещаются в новые квоты.
         function applied=applyShareFrom(obj,effectiveTick,raShare)
             applied=false; windowTicks=obj.cfg.policy.windowTicks;
             if ~isnumeric(effectiveTick)||~isscalar(effectiveTick)||~isfinite(effectiveTick)|| ...
@@ -70,6 +84,8 @@ classdef ResourceCalendar < handle
                 if d==0, obj.ul(r,c)=phase; else, obj.dl(r)=phase; end
             end
         end
+        % windowOccupancy - доля занятых клеток RA и DT в UL и DL за окно
+        % датасета (признаки occupancy для ML).
         function occupancy=windowOccupancy(obj,first,last)
             windowTicks=obj.cfg.dataset.windowTicks;
             validFirst=isnumeric(first)&&isreal(first)&&isscalar(first)&&isfinite(first)&& ...
@@ -103,6 +119,7 @@ classdef ResourceCalendar < handle
                 'ulRaOccupancy',ulRa,'ulDtOccupancy',ulDt, ...
                 'dlRaOccupancy',dlRa,'dlDtOccupancy',dlDt);
         end
+        % usage - таблица по окнам: доступно, квоты и забронировано RA/DT.
         function result=usage(obj)
             rows={}; w=obj.cfg.policy.windowTicks;
             for first=0:w:obj.durationTicks-1

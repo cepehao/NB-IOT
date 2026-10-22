@@ -2,6 +2,8 @@ function [mask,kinds]=mandatoryDlMask(durationTicks,cellId)
 % Release-13 FDD mask, schedulingInfoSIB1=0 (four repetitions).
 % Each repetition spans eight even frames in its 160 ms transmission block;
 % blocks repeat every 640 ms, initial frame = 16*(NCellID mod 4).
+% Пояснение (рус.): маска DL-подкадров, всегда занятых служебными сигналами:
+% NPBCH (подкадр 0), NPSS (подкадр 5), NSSS (подкадр 9 чётных кадров), SIB1.
 t=(0:durationTicks-1)'; frame=floor(t/10); sf=mod(t,10);
 npbch=sf==0; npss=sf==5; nsss=sf==9 & mod(frame,2)==0;
 relative=mod(frame-16*mod(cellId,4),64);

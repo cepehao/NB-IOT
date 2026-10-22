@@ -1,5 +1,14 @@
 classdef PacketStore < handle
     %PACKETSTORE BS delivery and UE queue completion are independent facts.
+    %
+    % Пояснение (рус.): хранилище сообщений и очередей UE. Каждое сообщение
+    % при постановке в очередь режется на блоки по 256 бит (segmentPacket).
+    % Статус сообщения: pending (в работе) -> delivered (станция собрала все
+    % блоки) / dropped (отброшено: переполнение очереди, лимит попыток RA,
+    % таймаут, срок жизни) / unfinished (не успело к концу опыта).
+    % Доставка на станции и освобождение места в очереди UE - разные
+    % события: UE освобождает место, только когда получит квитанцию.
+    % counters - итоговые счётчики created/delivered/dropped/unfinished.
     properties (SetAccess=private)
         packets
         counters=struct('created',0,'delivered',0,'dropped',0,'unfinished',0,'deliveredPayloadBits',0)
@@ -17,6 +26,8 @@ classdef PacketStore < handle
             obj.packets=struct('packetId',{},'ueId',{},'sequence',{},'payloadBits',{},'blocks',{},'map',{},'received',{},'status',{},'reason',{},'createdTick',{},'deliveredTick',{},'terminalTick',{},'attemptCount',{},'ueConfirmed',{},'localFinished',{},'localFinishedTick',{});
         end
         function accepted=enqueue(obj,a)
+            % Поставить сообщение в очередь UE. Если в очереди уже 10
+            % незавершённых сообщений, новое сразу отбрасывается (overflow).
             id=uint32(a.packetId); ue=double(a.ueId); obj.validateUE(ue);
             validateattributes(a.packetId,{'numeric'},{'scalar','integer','positive','<=',2^32-1});
             validateattributes(a.sequence,{'numeric'},{'scalar','integer','>=',0,'<=',65535}); obj.tick(a.createdTick);
@@ -29,6 +40,7 @@ classdef PacketStore < handle
             if accepted, obj.queues{ue}(end+1)=id; else, p.status='dropped'; p.reason='overflow'; p.terminalTick=double(a.createdTick); p.localFinished=true; p.localFinishedTick=double(a.createdTick); obj.counters.dropped=obj.counters.dropped+1; end
             obj.sequences{ue}(end+1)=double(a.sequence); obj.packets(end+1)=p; obj.index(id)=numel(obj.packets); obj.counters.created=obj.counters.created+1;
         end
+        % head - первое сообщение в очереди UE (0, если очередь пуста).
         function id=head(obj,ue)
             obj.validateUE(ue); q=obj.queues{double(ue)}; id=uint32(0); if ~isempty(q), id=q(1); end
         end
@@ -50,6 +62,7 @@ classdef PacketStore < handle
             end
         end
         function localFinish(obj,id,tick,confirmed)
+            % UE закончило работу с сообщением и освобождает место в очереди.
             i=obj.lookup(id); obj.tick(tick); p=obj.packets(i);
             if tick<double(p.createdTick), error('nbiot:traffic:InvalidTime','Completion precedes arrival'); end
             validateattributes(confirmed,{'logical'},{'scalar'});
@@ -59,6 +72,7 @@ classdef PacketStore < handle
             ue=double(p.ueId); obj.queues{ue}(obj.queues{ue}==p.packetId)=[];
         end
         function markTerminal(obj,id,status,reason,tick)
+            % Пометить сообщение как dropped или unfinished с причиной.
             i=obj.lookup(id); obj.tick(tick); p=obj.packets(i);
             if tick<double(p.createdTick), error('nbiot:traffic:InvalidTime','Terminal tick precedes arrival'); end
             if ~any(strcmp(status,{'dropped','unfinished'})), error('nbiot:traffic:InvalidStatus','Only dropped or unfinished terminal status allowed'); end
@@ -68,6 +82,9 @@ classdef PacketStore < handle
             obj.counters.(status)=obj.counters.(status)+1; obj.localFinish(id,tick,false);
         end
         function newlyDelivered=markReceived(obj,id,fragmentIndex,bits,tick)
+            % Станция приняла блок fragmentIndex. Когда приняты все блоки,
+            % сообщение собирается и считается доставленным (KPI доставки).
+            % Повторно принятый тот же блок второй раз не засчитывается.
             i=obj.lookup(id); obj.tick(tick); p=obj.packets(i); newlyDelivered=false;
             validateattributes(fragmentIndex,{'numeric'},{'scalar','integer','>=',0,'<',numel(p.blocks)});
             if tick<double(p.createdTick), error('nbiot:traffic:InvalidTime','Receive precedes arrival'); end

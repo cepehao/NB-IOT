@@ -1,5 +1,13 @@
 function links=evaluateLinks(cfg,ue)
 %EVALUATELINKS Calculate per-UE reference link budgets before small-scale fading.
+%
+% Пояснение (рус.): опорный бюджет линии (link budget, §13 ТЗ) для каждого UE:
+%   мощность приёма = мощность передатчика (23 дБм) - полные потери L;
+%   шум = k*T*F*B в полосе 180 кГц (k - постоянная Больцмана, T = 290 К,
+%         F - шум-фактор приёмника);
+%   SNR = мощность приёма - шум (в дБ).
+% Это значение «до fading и помех» - для справки и отчётов. Принят сигнал
+% или нет, решают реальные приёмники по смоделированному сигналу.
 cfg=nbiot.config.validateConfig(cfg);
 if ~isstruct(ue)||~isfield(ue,'ueId')||~isfield(ue,'pathLossDb')
     error('nbiot:channel:InvalidLinkInput', ...

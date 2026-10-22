@@ -1,6 +1,9 @@
 function data=assembleLoadDataset(resultFiles,splitManifest)
 %ASSEMBLELOADDATASET Verify saved cases and align closed BS/target windows.
 % Reads only MAT snapshots and CSV exports, never the full waveform result.
+% Пояснение (рус.): собрать общий датасет из многих сохранённых запусков.
+% Каждый запуск (реализация) целиком относится к train, validation или test
+% по splitManifest - соседние окна одного запуска не разносятся по разным частям.
 files=cellstr(string(resultFiles));
 if isempty(files)||~isvector(files), error('nbiot:dataset:Inputs','Supply explicit MAT result files.'); end
 [splits,rolesExplicit]=validateSplits(splitManifest);

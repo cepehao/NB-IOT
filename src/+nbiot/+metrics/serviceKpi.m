@@ -1,5 +1,8 @@
 function [service,groups]=serviceKpi(ueSummary,actualTick,isComplete)
 %SERVICEKPI Summarize service outage and KPIs by existing UE dimensions.
+% Пояснение (рус.): показатели обслуживания по устройствам: сколько UE имели
+% сообщения, сколько не получили обслуживания, и те же счётчики по группам
+% UE (indoor/outdoor, класс покрытия).
 required={'indoor','coverageClass','created','delivered','dropped', ...
     'unfinished','raAttempts','raSuccesses','raFailures','raUnfinished'};
 if ~istable(ueSummary)||~all(ismember(required,ueSummary.Properties.VariableNames))

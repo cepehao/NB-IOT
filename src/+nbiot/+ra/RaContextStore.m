@@ -1,5 +1,15 @@
 classdef RaContextStore < handle
     %RACONTEXTSTORE BS observations only: no true UE identity or contenders.
+    %
+    % Пояснение (рус.): контексты процедуры доступа на стороне станции.
+    % Контекст создаётся на каждую обнаруженную преамбулу - станция не знает,
+    % сколько UE за ней стоит. Временный номер RNTI = 255 + номер контекста.
+    % Состояния: RAR_PENDING -> MSG3_RX -> MSG4_PENDING -> MSG4_ACK ->
+    % DATA_PENDING <-> DATA_RX -> RECEIPT_PENDING -> RECEIPT_ACK -> DONE,
+    % а также FAILED, EXPIRED и *_RETRY (повтор Msg4/квитанции).
+    % Поля: token/sequence - прочитаны из Msg3; nextFragment/ndi/harqTry/
+    % softBuffer - приём блоков данных и HARQ; pending - ждёт планирования;
+    % deadlineTick - срок; delaySeconds - оценённая задержка для поправки TA.
     properties (SetAccess=private)
         entries = struct('id',{},'rnti',{},'nInit',{},'occasionId',{},'state',{}, ...
             'deadlineTick',{},'token',{},'sequence',{},'nextFragment',{},'ndi',{}, ...

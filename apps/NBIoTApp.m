@@ -1,5 +1,18 @@
 function app=NBIoTApp(dialogs,options)
 %NBIOTAPP Open the bounded local simulation interface.
+%
+% Пояснение (рус.): главное окно программы (GUI, §46 ТЗ). Окно построено
+% программно (uifigure), а не в редакторе App Designer.
+% Устройство окна:
+%   слева - кнопки управления и вкладки настроек следующего запуска
+%           (Сеть, Канал, Трафик, Контроллер);
+%   справа - статус, прогресс и вкладки отображения: «Текущий запуск»
+%           (карта соты, карточка UE, сводка, журнал радиособытий),
+%           «Сохранённые результаты», «Сравнение режимов», «Графики запуска»,
+%           «Прогноз и управление».
+% Расчётом управляет nbiot.ui.SimulationSession: таймер окна вызывает
+% advanceRun, тот делает 20 шагов модели и при необходимости обновляет вид.
+% dialogs/options позволяют тестам подменять диалоги и симулятор.
 if nargin<1 || isempty(dialogs), dialogs=struct(); end
 if ~isstruct(dialogs) || ~isscalar(dialogs)
     error('nbiot:ui:DialogAdapter','Dialog adapters must be a scalar structure.');
@@ -126,6 +139,7 @@ left.RowHeight={52,24,'1x'}; left.Padding=[0 0 0 0]; left.RowSpacing=6;
 buttons=uigridlayout(left,[2 3]); buttons.RowHeight={24,24};
 buttons.ColumnWidth={'1x','1x','1x'}; buttons.Padding=[0 0 0 0];
 buttons.Layout.Row=1; buttons.Layout.Column=1;
+% Панель управления моделированием (§46.5 ТЗ).
 startButton=uibutton(buttons,'Text','Запуск','ButtonPushedFcn',@startRun);
 pauseButton=uibutton(buttons,'Text','Пауза','ButtonPushedFcn',@pauseRun);
 resumeButton=uibutton(buttons,'Text','Продолжить','ButtonPushedFcn',@resumeRun);
@@ -137,6 +151,7 @@ nextRunSettingsInfo=uilabel(left, ...
     'Tag','nextRunSettingsInfo','FontColor',[0.25 0.35 0.5]);
 nextRunSettingsInfo.Layout.Row=2; nextRunSettingsInfo.Layout.Column=1;
 
+% Панель настройки эксперимента (§46.2-46.4 ТЗ): вкладки параметров.
 tabs=uitabgroup(left); tabs.Layout.Row=3; tabs.Layout.Column=1;
 networkTab=uitab(tabs,'Title','Сеть');
 channelTab=uitab(tabs,'Title','Канал');
@@ -278,6 +293,7 @@ controllerHint.Layout.Row=row; controllerHint.Layout.Column=[1 2];
 controls.simulationMode.ValueChangedFcn=@updateModeControls;
 updateModeControls();
 
+% Правая часть: статус, прогресс, журнал и вкладки отображения результатов.
 right=uigridlayout(main,[4 1]); right.Layout.Row=2; right.Layout.Column=2;
 right.RowHeight={44,24,42,'1x'}; right.Padding=[0 0 0 0]; right.RowSpacing=8;
 statusLabel=uilabel(right,'Text',calibrationStatus,'FontSize',14, ...
@@ -582,6 +598,8 @@ appendLog('Окно готово к запуску');
         cfgOut=nbiot.experiments.loadCalibration(cfgOut,calibrationFile);
     end
     function startRun(~,~)
+        % Кнопка «Запуск»: прочитать и проверить настройки (ошибки - до
+        % запуска), подготовить контроллер, начать сессию и запустить таймер.
         if ~strcmp(session.Status,'idle'), return; end
         try
             cfgToRun=readConfiguration();
@@ -733,6 +751,8 @@ appendLog('Окно готово к запуску');
         end
     end
     function advanceRun(~,~)
+        % Срабатывание таймера: 20 тиков модели, затем обновление экрана.
+        % Частота обновления экрана не влияет на шаг и результат расчёта.
         if ~strcmp(session.Status,'running'), return; end
         try
             session.advance(20); state=session.snapshot();
@@ -1433,6 +1453,7 @@ appendLog('Окно готово к запуску');
         end
     end
     function updateView(state)
+        % Перерисовать карту, сводку, журнал и графики по снимку state.
         latestDisplayState=state;
         [newEvents,radioEventCursor]=session.observedEventsSince(radioEventCursor);
         [newLines,newHidden]=nbiot.ui.formatObservedEvents( ...

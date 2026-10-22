@@ -1,5 +1,10 @@
 function [obs,target]=closeWindow(observed,truth,first,last,raIntegral,activeIntegral,queueIntegral,realizationId,windowTicks,resourceOccupancy,action)
 %CLOSEWINDOW Finish a window using receiver observations and BS-known state only.
+% Пояснение (рус.): одна строка датасета за окно [first,last) (500 мс).
+% obs - признаки только из журнала наблюдений станции (observed) с проверкой
+%       разрешённых источников; результат приёма на стороне UE -> ошибка утечки;
+% target - правда из журнала truth и накопителей симулятора (средние числа
+%       UE в RA, активных UE, очередь; число преамбул и разных передатчиков).
 e=observed([observed.tick]>=first & [observed.tick]<last);
 if nargin<9, windowTicks=500; end
 if nargin<10||isempty(resourceOccupancy), resourceOccupancy=missingOccupancy(); end

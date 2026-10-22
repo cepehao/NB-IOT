@@ -1,5 +1,7 @@
 function fields = decodeMessage(kind,bits)
 %DECODEMESSAGE Validate the decoded wire bits, not the transmitted payload.
+% Пояснение (рус.): обратное к encodeMessage - разбор принятых 88 бит.
+% Неверный формат вызывает ошибку nbiot:protocol:*, и сообщение игнорируется.
 bits=int8(bits(:));
 if numel(bits)~=88 || any(bits~=0 & bits~=1)
     error('nbiot:protocol:Malformed','Expected an 88-bit message.');

@@ -1,5 +1,12 @@
 function k=summarizeKpi(cfg,packets,attempts,observed,truth,usage,actualTick,harqJournal,queueSamples)
 %SUMMARIZEKPI Retain explicit numerators, denominators and censored work.
+% Пояснение (рус.): итоговые KPI опыта (§27 ТЗ): создано/доставлено/
+% отброшено/незавершено, вероятности успешного доступа и доставки,
+% вероятность коллизии, пропускная способность (доставленные биты / время),
+% средняя и 95-процентная задержка, BLER Msg3 и данных, занятость ресурсов
+% UL/DL/NPRACH, очереди, сводка HARQ. Вместе с вероятностями хранятся
+% числитель и знаменатель; при нулевом знаменателе - NaN («нет данных»).
+% Проверяется баланс: создано = доставлено + отброшено + незавершено.
 k=struct('created',numel(packets),'delivered',0,'dropped',0,'unfinished',0);
 if ~isempty(packets)
     k.delivered=sum(strcmp({packets.status},'delivered')); k.dropped=sum(strcmp({packets.status},'dropped'));

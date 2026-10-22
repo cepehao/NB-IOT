@@ -1,5 +1,14 @@
 classdef RadioChannel < handle
     % Sample-domain FDD channel. Receiver windows contain no transmitter truth.
+    %
+    % Пояснение (рус.): «эфир» на уровне отсчётов сигнала. Все передатчики
+    % добавляют свои сигналы методом add. Приёмник запрашивает окно времени
+    % методом receive и получает сумму всех пришедших сигналов плюс шум.
+    % Каждый сигнал по пути проходит индивидуальный канал своего UE:
+    % задержка распространения (+ ошибка синхронизации - поправка TA),
+    % три луча fading, ослабление на pathLossDb и сдвиг частоты CFO.
+    % UL (к станции) и DL (к устройствам) - разные частоты, не смешиваются.
+    % Приёмник получает только сумму отсчётов - без сведений, кто передавал.
     properties (Access=private)
         cfg
         ue
@@ -20,6 +29,8 @@ classdef RadioChannel < handle
             matches=isequal(obj.sources,sources);
         end
         function add(obj,tx)
+            % Добавить передачу в эфир. Сигнал масштабируется так, чтобы
+            % средняя мощность его активной части равнялась txPowerDbm.
             assert(tx.sampleRateHz==obj.cfg.simulation.sampleRateHz);
             assert(tx.startSample==fix(tx.startSample));
             if ~isfield(tx,'powerNormalized') || ~tx.powerNormalized
@@ -33,6 +44,11 @@ classdef RadioChannel < handle
             obj.transmissions{end+1}=tx;
         end
         function [rx,diagnostics]=receive(obj,direction,receiverId,startSample,endSample)
+            % Принятый сигнал на отсчётах [startSample, endSample).
+            % direction 'UL' - приёмник станции (receiverId=0), 'DL' - приёмник
+            % UE с номером receiverId. diagnostics (только UL) - мощности
+            % каждой преамбулы, помех и пары перекрытий; это правда для отчёта,
+            % приёмник её не использует.
             d=obj.directionCode(direction); fs=obj.cfg.simulation.sampleRateHz;
             assert(startSample>=0 && endSample>=startSample && all([startSample endSample]==fix([startSample endSample])));
             assert((d==0 && receiverId==0) || (d==1 && any([obj.ue.ueId]==receiverId)));
@@ -41,6 +57,9 @@ classdef RadioChannel < handle
             componentSignals=struct('occasionId',{},'attemptId',{},'ueId',{}, ...
                 'nInit',{},'startSample',{},'endSampleExclusive',{}, ...
                 'configuredDelaySeconds',{},'configuredCfoHz',{},'waveform',{});
+            % Сложить все передачи нужного направления, попадающие в окно.
+            % Сигналы DL до конкретного UE кешируются: одно и то же окно
+            % UE может запрашивать несколько раз.
             for i=1:numel(obj.transmissions)
                 tx=obj.transmissions{i}; if obj.directionCode(tx.direction)~=d, continue; end
                 [delay,~,cfo,~]=obj.pathParameters(tx,d,receiverId);
@@ -127,6 +146,9 @@ classdef RadioChannel < handle
                         'overlaps',diagnosticOverlaps);
                 end
             end
+            % Тепловой шум приёмника: дисперсия k*T*F*Fs. Шум генерируется
+            % блоками по 1 мс из своего потока, поэтому одно и то же окно
+            % всегда получает один и тот же шум, сколько бы раз его ни читали.
             if d==0, nf=obj.cfg.channel.bsNoiseFigureDb; else, nf=obj.cfg.channel.ueNoiseFigureDb; end
             sigma=sqrt(1.380649e-23*obj.cfg.channel.temperatureK*10^(nf/10)*fs/2);
             blockLength=round(fs/1000);
@@ -152,6 +174,9 @@ classdef RadioChannel < handle
     end
     methods (Access=private)
         function signal=propagate(obj,tx,d,receiverId)
+            % Пропустить один сигнал через канал: построить импульсную
+            % характеристику из трёх лучей с дробной задержкой, свернуть с
+            % сигналом, ослабить на pathLossDb и повернуть фазу на CFO.
             [delay,taps,cfo,u]=obj.pathParameters(tx,d,receiverId); fs=obj.cfg.simulation.sampleRateHz;
             L=obj.cfg.channel.fractionalFilterLength; half=(L-1)/2;
             delays=(delay+obj.cfg.channel.tapDelaysSeconds(:))*fs; integers=floor(delays); base=min(integers)-half;
@@ -165,6 +190,9 @@ classdef RadioChannel < handle
             signal=struct('waveform',y,'startSample',first);
         end
         function [delay,taps,cfo,u]=pathParameters(obj,tx,d,receiverId)
+            % Параметры пути. UL: задержка туда-обратно (UE синхронизируется
+            % по DL-сигналу) + ошибка синхронизации - поправка TA, лучи UL,
+            % CFO UE. DL: задержка в одну сторону, лучи DL, CFO с обратным знаком.
             if d==0, id=tx.ueId; else, id=receiverId; end
             u=obj.ue(find([obj.ue.ueId]==id,1));
             if d==0

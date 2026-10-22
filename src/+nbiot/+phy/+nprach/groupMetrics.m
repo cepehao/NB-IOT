@@ -1,5 +1,11 @@
 function [metrics,groups]=groupMetrics(cfg,rx,occasion)
 % All-tone partial correlation in four public NPRACH symbol groups.
+% Пояснение (рус.): преамбула формата 0 состоит из 4 групп символов на
+% разных поднесущих. Для каждой группы и каждой из 12 преамбул считается,
+% какую долю энергии принятого сигнала объясняет именно эта преамбула
+% (с учётом остальных и медленного изменения фазы из-за CFO - квадратичная
+% огибающая). Итоговая метрика преамбулы - минимум по 4 группам (0..1):
+% преамбула должна присутствовать во всех группах. Базисы кешируются.
 degree=2; % Quadratic envelope spans the static-v1 +/-200 Hz CFO profile.
 persistent cachedByDegree keyByDegree
 if isempty(cachedByDegree), cachedByDegree=cell(1,7); keyByDegree=cell(1,7); end
